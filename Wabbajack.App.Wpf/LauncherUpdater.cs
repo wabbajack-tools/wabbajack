@@ -110,12 +110,21 @@ public class LauncherUpdater
             _logger.LogInformation("Updating Launcher from {OldVersion} to {NewVersion}", launcherVersion.FileVersion, release.version);
             var tempPath = launcherFolder.Combine("Wabbajack.exe.temp");
 
-            await _downloader.Download(new Archive
+            try
             {
-                State = new Http {Url = release.asset.BrowserDownloadUrl!},
-                Name = release.asset.Name,
-                Size = release.asset.Size
-            }, tempPath, CancellationToken.None);
+                await _downloader.Download(new Archive
+                {
+                    State = new Http {Url = release.asset.BrowserDownloadUrl!},
+                    Name = release.asset.Name,
+                    Size = release.asset.Size
+                }, tempPath, CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                // A stalled download now throws instead of reporting an empty hash; the next start tries again.
+                _logger.LogWarning(ex, "Could not download the new launcher, keeping the current one");
+                return;
+            }
 
             if (tempPath.Size() != release.asset.Size)
             {

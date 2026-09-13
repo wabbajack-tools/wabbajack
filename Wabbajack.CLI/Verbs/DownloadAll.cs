@@ -119,7 +119,10 @@ public class DownloadAll
             }
             catch (Exception ex)
             {
+                // A timeout or any other failure leaves a partial file behind; drop it as a Failure result used to.
                 _logger.LogError(ex, "While downloading {Name}, Ignoring", file.Name);
+                if (outputFile.FileExists())
+                    outputFile.Delete();
             }
 
             });

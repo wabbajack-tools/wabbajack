@@ -10,7 +10,6 @@ using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
-using Wabbajack.DTOs.ServerResponses;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.Http;
@@ -85,6 +84,7 @@ public class DownloadDispatcher
 
     public async Task<Hash> Download(Archive a, AbsolutePath dest, Job<DownloadDispatcher> job, CancellationToken token, bool? useProxy = null)
     {
+        var requested = a;
         try
         {
             if (!dest.Parent.DirectoryExists())
@@ -115,9 +115,11 @@ public class DownloadDispatcher
             var hash = await downloader.Download(a, dest, job, token);
             return hash;
         }
-        catch (TaskCanceledException)
+        catch (TaskCanceledException ex) when (!token.IsCancellationRequested)
         {
-            return new Hash();
+            // HttpClient reports a stalled transfer as a cancellation. The user did not cancel, so
+            // surface it as something a caller can retry rather than as a zero hash.
+            throw new DownloadTimeoutException(requested, ex);
         }
     }
 
@@ -158,7 +160,30 @@ public class DownloadDispatcher
     public async Task<(DownloadResult, Hash)> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination,
         CancellationToken token)
     {
-        var downloadedHash = await Download(archive, destination, token);
+        Hash downloadedHash;
+        try
+        {
+            downloadedHash = await Download(archive, destination, token);
+        }
+        catch (Exception ex) when (ex is ManualDownloadRequiredException or DownloadTimeoutException)
+        {
+            // The source needs a browser or the transfer stalled, but the mirror may still have the file.
+            _logger.LogInformation("{archive} could not be downloaded from its source ({reason}), trying mirror first",
+                archive.Name, ex.Message);
+            Hash mirrorHash = default;
+            try
+            {
+                mirrorHash = await DownloadFromMirror(archive, destination, token);
+            }
+            catch (NotSupportedException)
+            {
+                _logger.LogInformation("Could not find archive {archive} on mirror", archive.Name);
+            }
+
+            if (mirrorHash != default) return (DownloadResult.Mirror, mirrorHash);
+            throw;
+        }
+
         if (downloadedHash != default && (downloadedHash == archive.Hash || archive.Hash == default))
             return (DownloadResult.Success, downloadedHash);
 
@@ -175,63 +200,6 @@ public class DownloadDispatcher
         }
 
         return (DownloadResult.Failure, downloadedHash);
-
-        // TODO: implement patching
-        /*
-        if (!(archive.State is IUpgradingState))
-        {
-            _logger.LogInformation("Download failed for {name} and no upgrade from this download source is possible", archive.Name);
-            return DownloadResult.Failure;
-        }
-
-        _logger.LogInformation("Trying to find solution to broken download for {name}", archive.Name);
-        
-        var result = await FindUpgrade(archive);
-        if (result == default )
-        {
-            result = await AbstractDownloadState.ServerFindUpgrade(archive);
-            if (result == default)
-            {
-                _logger.LogInformation(
-                    "No solution for broken download {name} {primaryKeyString} could be found", archive.Name, archive.State.PrimaryKeyString);
-                return DownloadResult.Failure;
-            }
-        }
-
-        _logger.LogInformation($"Looking for patch for {archive.Name} ({(long)archive.Hash} {archive.Hash.ToHex()} -> {(long)result.Archive!.Hash} {result.Archive!.Hash.ToHex()})");
-        var patchResult = await ClientAPI.GetModUpgrade(archive, result.Archive!);
-
-        _logger.LogInformation($"Downloading patch for {archive.Name} from {patchResult}");
-        
-        var tempFile = new TempFile();
-
-        if (WabbajackCDNDownloader.DomainRemaps.TryGetValue(patchResult.Host, out var remap))
-        {
-            var builder = new UriBuilder(patchResult) {Host = remap};
-            patchResult = builder.Uri;
-        }
-
-        using var response = await (await ClientAPI.GetClient()).GetAsync(patchResult);
-
-        await tempFile.Path.WriteAllAsync(await response.Content.ReadAsStreamAsync());
-        response.Dispose();
-
-        _logger.LogInformation($"Applying patch to {archive.Name}");
-        await using(var src = await result.NewFile.Path.OpenShared())
-        await using (var final = await destination.Create())
-        {
-            Utils.ApplyPatch(src, () => tempFile.Path.OpenShared().Result, final);
-        }
-
-        var hash = await destination.FileHashCachedAsync();
-        if (hash != archive.Hash && archive.Hash != default)
-        {
-            _logger.LogInformation("Archive hash didn't match after patching");
-            return DownloadResult.Failure;
-        }
-
-        return DownloadResult.Update;
-        */
     }
     
     private async Task<Hash> DownloadFromMirror(Archive archive, AbsolutePath destination, CancellationToken token)
@@ -309,11 +277,6 @@ public class DownloadDispatcher
     public bool IsAllowed(Archive archive, ServerAllowList allowList)
     {
         return Downloader(archive).IsAllowed(allowList, archive.State);
-    }
-
-    public Task<bool> IsAllowed(ModUpgradeRequest request, CancellationToken allowList)
-    {
-        throw new NotImplementedException();
     }
 
     public Task<IEnumerable<IDownloader>> AllDownloaders(IEnumerable<IDownloadState> downloadStates)

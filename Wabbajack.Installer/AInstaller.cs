@@ -18,6 +18,7 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.FileExtractor.ExtractedFiles;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Installer.Utilities;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -454,59 +455,15 @@ public abstract class AInstaller<T>
         NextStep(Consts.StepHashing, "Hashing Archives", 0);
         _logger.LogInformation("Looking for files to hash");
 
-        // Collect all game folders – primary plus other games
-        var gameFolders = new HashSet<AbsolutePath>();
+        // Collect all game folders - primary plus other games. An OtherGames entry that is not installed
+        // fails the install here, as it always has, rather than after the download phase.
+        var gameFolders = ArchiveInventory.GameFolders(_configuration, _gameLocator, _logger,
+            throwOnMissingOtherGame: true);
 
-        void AddIfValid(AbsolutePath p)
-        {
-            if (p != default && p != AbsolutePath.Empty)
-                gameFolders.Add(p);
-        }
-
-        AddIfValid(_gameLocator.GameLocation(_configuration.Game));
-
-        
-        // .othergames should only be non-null if the compiled list specifically named othergames
-        foreach (var g in _configuration.OtherGames ?? Array.Empty<Game>())
-        {
-            _logger.LogInformation("Also searching othergame folder for {Game}", g);
-            AddIfValid(_gameLocator.GameLocation(g));
-        }
-
-        // Enumerate downloads + every game folder, filtering out any paths that
-        // don't survive the AbsolutePath round-trip (e.g. UNC/device paths like \\.\nul)
-        var allFiles = _configuration.Downloads.EnumerateFiles()
-            .Concat(gameFolders.SelectMany(p => p.EnumerateFiles()))
-            .Where(f => f.FileExists())
-            .ToList();
-
-        _logger.LogInformation("Getting archive sizes");
-        var hashDict = (await allFiles.PMapAllBatched(_limiter,
-                                                      x => (x, x.Size())).ToList())
-            .GroupBy(f => f.Item2)
-            .ToDictionary(g => g.Key, g => g.Select(v => v.x));
-
-        _logger.LogInformation("Linking archives to downloads");
-        var toHash = ModList.Archives.Where(a => hashDict.ContainsKey(a.Size))
-            .SelectMany(a => hashDict[a.Size])
-            .ToList();
-
-        MaxStepProgress = toHash.Count;
-        _logger.LogInformation("Found {count} total files, {hashedCount} matching filesize",
-                               allFiles.Count, toHash.Count);
-
-        var hashResults = await toHash.PMapAll(async e =>
-        {
-            UpdateProgress(1);
-            return (await FileHashCache.FileHashCachedAsync(e, token), e);
-        }).ToList();
-
-        HashedArchives = hashResults
-            .OrderByDescending(e => e.Item2.LastModified())
-            .GroupBy(e => e.Item1)
-            .Select(e => e.First())
-            .Where(x => x.Item1 != default)
-            .ToDictionary(kv => kv.Item1, kv => kv.e);
+        HashedArchives = await ArchiveInventory.Scan(ModList.Archives, _configuration.Downloads, gameFolders,
+            FileHashCache, _limiter, _logger, token,
+            onFilesToHash: count => MaxStepProgress = count,
+            onFileHashed: () => UpdateProgress(1));
     }
 
 
@@ -523,37 +480,9 @@ public abstract class AInstaller<T>
         UnoptimizedArchives = ModList.Archives;
         UnoptimizedDirectives = ModList.Directives;
 
-        var indexed = ModList.Directives.ToDictionary(d => d.To);
-
-        var bsasToBuild = await ModList.Directives
-            .OfType<CreateBSA>()
-            .PMapAll(async b =>
-            {
-                var file = _configuration.Install.Combine(b.To);
-                if (!file.FileExists())
-                    return (true, b);
-                return (b.Hash != await FileHashCache.FileHashCachedAsync(file, token), b);
-            })
-            .ToArray();
-
-        var bsasToNotBuild = bsasToBuild
-            .Where(b => b.Item1 == false).Select(t => t.b.TempID).ToHashSet();
-
-        var bsaPathsToNotBuild = bsasToBuild
-            .Where(b => b.Item1 == false).Select(t => t.b.To.RelativeTo(_configuration.Install))
-            .ToHashSet();
-
-        indexed = indexed.Values
-            .Where(d =>
-            {
-                return d switch
-                {
-                    CreateBSA bsa => !bsasToNotBuild.Contains(bsa.TempID),
-                    FromArchive a when a.To.StartsWith($"{Consts.BSACreationDir}") => !bsasToNotBuild.Any(b =>
-                        a.To.RelativeTo(_configuration.Install).InFolder(_configuration.Install.Combine(Consts.BSACreationDir, b))),
-                    _ => true
-                };
-            }).ToDictionary(d => d.To);
+        var plan = await RequiredArchives.PruneBuiltBsas(ModList, _configuration.Install, FileHashCache, token);
+        var indexed = plan.Indexed;
+        var bsaPathsToNotBuild = plan.BsaPathsToNotBuild;
 
 
         // Phase 1: Enumerate files that would be deleted (non-destructive)
@@ -638,34 +567,13 @@ public abstract class AInstaller<T>
             _logger.LogInformation("Error when trying to clean empty folders. This doesn't really matter.");
         }
 
-        var existingfiles = _configuration.Install.EnumerateFiles().ToHashSet();
-
         NextStep(Consts.StepPreparing, "Looking for unmodified files", 0);
-        await indexed.Values.PMapAllBatchedAsync(_limiter, async d =>
-            {
-                // Bit backwards, but we want to return null for 
-                // all files we *want* installed. We return the files
-                // to remove from the install list.
-                var path = _configuration.Install.Combine(d.To);
-                if (!existingfiles.Contains(path)) return null;
-
-                return await FileHashCache.FileHashCachedAsync(path, token) == d.Hash ? d : null;
-            })
-            .Do(d =>
-            {
-                if (d != null)
-                {
-                    indexed.Remove(d.To);
-                }
-            });
+        await RequiredArchives.PruneUnmodified(indexed, _configuration.Install, FileHashCache, _limiter, token);
 
         NextStep(Consts.StepPreparing, "Updating ModList", 0);
         _logger.LogInformation("Optimized {From} directives to {To} required", ModList.Directives.Length, indexed.Count);
-        var requiredArchives = indexed.Values.OfType<FromArchive>()
-            .GroupBy(d => d.ArchiveHashPath.Hash)
-            .Select(d => d.Key)
-            .ToHashSet();
-        
+        var requiredArchives = RequiredArchives.RequiredHashes(indexed.Values);
+
         ModList.Archives = ModList.Archives.Where(a => requiredArchives.Contains(a.Hash)).ToArray();
         ModList.Directives = indexed.Values.ToArray();
         return true;

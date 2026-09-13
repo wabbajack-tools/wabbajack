@@ -134,7 +134,7 @@ public class GoogleDriveDownloader : ADownloader<DTOs.DownloadStates.GoogleDrive
                 doc.LoadHtml(txt);
 
                 var form = doc.DocumentNode.DescendantsAndSelf()
-                    .FirstOrDefault(d => d.Name == "form" && d.Id.Contains("download", StringComparison.OrdinalIgnoreCase));
+                    .FirstOrDefault(d => d.Name == "form" && d.Id?.Contains("download", StringComparison.OrdinalIgnoreCase) == true);
 
                 if (form == null)
                     return new HttpRequestMessage(HttpMethod.Get, initialUrl);

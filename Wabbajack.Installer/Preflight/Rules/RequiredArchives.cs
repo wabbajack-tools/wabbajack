@@ -1,0 +1,137 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Wabbajack.Common;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.Directives;
+using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
+using Wabbajack.VFS;
+
+namespace Wabbajack.Installer.Preflight.Rules;
+
+/// <summary>
+///     Which archives an install will actually read once what is already on disk is taken into account.
+///     These are the non-destructive halves of <c>AInstaller.OptimizeModlist</c>, split so the installer can
+///     run its deletion phases between them while preflight runs them back to back as a dry run. Both
+///     callers share this code so the two cannot drift.
+/// </summary>
+public static class RequiredArchives
+{
+    public sealed class Plan
+    {
+        public Plan(Dictionary<RelativePath, Directive> indexed, HashSet<RelativePath> bsasToNotBuild,
+            HashSet<AbsolutePath> bsaPathsToNotBuild)
+        {
+            Indexed = indexed;
+            BsasToNotBuild = bsasToNotBuild;
+            BsaPathsToNotBuild = bsaPathsToNotBuild;
+        }
+
+        /// <summary>Directives still to install, keyed by destination.</summary>
+        public Dictionary<RelativePath, Directive> Indexed { get; }
+
+        /// <summary>TempIDs of BSAs that already exist with the right hash.</summary>
+        public HashSet<RelativePath> BsasToNotBuild { get; }
+
+        /// <summary>Full paths of those BSAs, for the deletion rules to leave alone.</summary>
+        public HashSet<AbsolutePath> BsaPathsToNotBuild { get; }
+    }
+
+    /// <summary>
+    ///     Drops every CreateBSA whose output already exists with the expected hash, along with the
+    ///     FromArchive directives that only exist to feed it.
+    /// </summary>
+    public static async Task<Plan> PruneBuiltBsas(ModList modList, AbsolutePath install, FileHashCache hashCache,
+        CancellationToken token)
+    {
+        var indexed = modList.Directives.ToDictionary(d => d.To);
+
+        var bsasToBuild = await modList.Directives
+            .OfType<CreateBSA>()
+            .PMapAll(async b =>
+            {
+                var file = install.Combine(b.To);
+                if (!file.FileExists())
+                    return (true, b);
+                return (b.Hash != await hashCache.FileHashCachedAsync(file, token), b);
+            })
+            .ToArray();
+
+        var bsasToNotBuild = bsasToBuild
+            .Where(b => b.Item1 == false).Select(t => t.b.TempID).ToHashSet();
+
+        var bsaPathsToNotBuild = bsasToBuild
+            .Where(b => b.Item1 == false).Select(t => t.b.To.RelativeTo(install))
+            .ToHashSet();
+
+        indexed = indexed.Values
+            .Where(d =>
+            {
+                return d switch
+                {
+                    CreateBSA bsa => !bsasToNotBuild.Contains(bsa.TempID),
+                    FromArchive a when a.To.StartsWith($"{Consts.BSACreationDir}") => !bsasToNotBuild.Any(b =>
+                        a.To.RelativeTo(install).InFolder(install.Combine(Consts.BSACreationDir, b))),
+                    _ => true
+                };
+            }).ToDictionary(d => d.To);
+
+        return new Plan(indexed, bsasToNotBuild, bsaPathsToNotBuild);
+    }
+
+    /// <summary>
+    ///     Removes from <paramref name="indexed" /> every directive whose destination already holds a file
+    ///     with the expected hash.
+    /// </summary>
+    public static async Task PruneUnmodified(Dictionary<RelativePath, Directive> indexed, AbsolutePath install,
+        FileHashCache hashCache, IResource<IInstaller> limiter, CancellationToken token)
+    {
+        var existingfiles = install.DirectoryExists()
+            ? install.EnumerateFiles().ToHashSet()
+            : new HashSet<AbsolutePath>();
+
+        await indexed.Values.PMapAllBatchedAsync(limiter, async d =>
+            {
+                // Bit backwards, but we want to return null for
+                // all files we *want* installed. We return the files
+                // to remove from the install list.
+                var path = install.Combine(d.To);
+                if (!existingfiles.Contains(path)) return null;
+
+                return await hashCache.FileHashCachedAsync(path, token) == d.Hash ? d : null;
+            })
+            .Do(d =>
+            {
+                if (d != null)
+                {
+                    indexed.Remove(d.To);
+                }
+            });
+    }
+
+    /// <summary>The hashes of every archive the given directives extract from.</summary>
+    public static HashSet<Hash> RequiredHashes(IEnumerable<Directive> directives)
+    {
+        return directives.OfType<FromArchive>()
+            .GroupBy(d => d.ArchiveHashPath.Hash)
+            .Select(d => d.Key)
+            .ToHashSet();
+    }
+
+    /// <summary>
+    ///     Dry run of the whole pruning: the subset of <paramref name="modList" />'s archives an install into
+    ///     <paramref name="install" /> would read. Touches nothing on disk beyond the hash cache.
+    /// </summary>
+    public static async Task<Archive[]> Compute(ModList modList, AbsolutePath install, FileHashCache hashCache,
+        IResource<IInstaller> limiter, CancellationToken token)
+    {
+        var plan = await PruneBuiltBsas(modList, install, hashCache, token);
+        await PruneUnmodified(plan.Indexed, install, hashCache, limiter, token);
+        var required = RequiredHashes(plan.Indexed.Values);
+        return modList.Archives.Where(a => required.Contains(a.Hash)).ToArray();
+    }
+}

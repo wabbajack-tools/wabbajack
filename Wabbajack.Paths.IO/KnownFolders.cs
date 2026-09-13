@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Wabbajack.Paths.IO;
 
@@ -80,4 +81,55 @@ public static class KnownFolders
     public static AbsolutePath WabbajackAppLocal => AppDataLocal.Combine("Wabbajack");
     public static AbsolutePath CurrentDirectory => Directory.GetCurrentDirectory().ToAbsolutePath();
     public static AbsolutePath Windows => Environment.GetFolderPath(Environment.SpecialFolder.Windows).ToAbsolutePath();
+
+    /// <summary>
+    ///     The user's Downloads folder. On Windows this is the shell's known folder, which follows a user who
+    ///     has relocated it; elsewhere, and if the shell call fails, it is <c>Downloads</c> under the profile.
+    ///     Never throws; the folder may not exist.
+    /// </summary>
+    public static AbsolutePath Downloads
+    {
+        get
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                var known = TryGetKnownFolder(FolderIdDownloads);
+                if (known != default) return known;
+            }
+
+            var profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            if (string.IsNullOrEmpty(profile))
+                profile = Environment.GetEnvironmentVariable("HOME") ?? "";
+            if (string.IsNullOrEmpty(profile))
+                return EntryPoint.Combine("Downloads");
+            return profile.ToAbsolutePath().Combine("Downloads");
+        }
+    }
+
+    private static readonly Guid FolderIdDownloads = new("374DE290-123F-4565-9164-39C4925E467B");
+
+    private static AbsolutePath TryGetKnownFolder(Guid folderId)
+    {
+        var buffer = IntPtr.Zero;
+        try
+        {
+            var hr = SHGetKnownFolderPath(folderId, 0, IntPtr.Zero, out buffer);
+            if (hr != 0 || buffer == IntPtr.Zero) return default;
+            var path = Marshal.PtrToStringUni(buffer);
+            return string.IsNullOrWhiteSpace(path) ? default : path.ToAbsolutePath();
+        }
+        catch (Exception)
+        {
+            return default;
+        }
+        finally
+        {
+            if (buffer != IntPtr.Zero)
+                Marshal.FreeCoTaskMem(buffer);
+        }
+    }
+
+    [DllImport("shell32.dll")]
+    private static extern int SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags,
+        IntPtr hToken, out IntPtr ppszPath);
 }
