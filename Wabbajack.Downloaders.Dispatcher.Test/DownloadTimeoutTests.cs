@@ -1,0 +1,107 @@
+using System;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Wabbajack.Downloaders.Http;
+using Wabbajack.Downloaders.Interfaces;
+using Wabbajack.Downloaders.VerificationCache;
+using Wabbajack.DTOs;
+using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
+using Xunit;
+
+namespace Wabbajack.Downloaders.Dispatcher.Test;
+
+/// <summary>
+///     The dispatcher used to swallow every <see cref="TaskCanceledException" /> and hand back a zero hash,
+///     which callers read as a corrupt download. A stalled transfer is now a
+///     <see cref="DownloadTimeoutException" /> and a real cancellation propagates.
+/// </summary>
+public class DownloadTimeoutTests
+{
+    private readonly IServiceProvider _provider;
+    private readonly TemporaryFileManager _temp;
+
+    public DownloadTimeoutTests(IServiceProvider provider, TemporaryFileManager temp)
+    {
+        _provider = provider;
+        _temp = temp;
+    }
+
+    [Fact]
+    public async Task TimeoutBecomesDownloadTimeoutException()
+    {
+        var archive = HttpArchive();
+        var dispatcher = DispatcherWith(new ThrowingHttpDownloader(_ =>
+            new TaskCanceledException("The request was canceled due to the configured HttpClient.Timeout")));
+
+        await using var dest = _temp.CreateFile();
+        var ex = await Assert.ThrowsAsync<DownloadTimeoutException>(() =>
+            dispatcher.Download(archive, dest.Path, CancellationToken.None));
+
+        Assert.Same(archive, ex.Archive);
+        Assert.IsType<TaskCanceledException>(ex.InnerException);
+    }
+
+    [Fact]
+    public async Task CancellationPropagatesAsOperationCanceled()
+    {
+        var archive = HttpArchive();
+        using var cts = new CancellationTokenSource();
+        var dispatcher = DispatcherWith(new ThrowingHttpDownloader(token =>
+        {
+            cts.Cancel();
+            return new TaskCanceledException("cancelled by the user", null, token);
+        }));
+
+        await using var dest = _temp.CreateFile();
+        var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            dispatcher.Download(archive, dest.Path, cts.Token));
+
+        Assert.IsNotType<DownloadTimeoutException>(ex);
+    }
+
+    private static Archive HttpArchive()
+    {
+        return new Archive
+        {
+            Name = "WABBAJACK_TEST_FILE.zip",
+            Size = 1024,
+            State = new DTOs.DownloadStates.Http {Url = new Uri("https://example.com/WABBAJACK_TEST_FILE.zip")}
+        };
+    }
+
+    private DownloadDispatcher DispatcherWith(IHttpDownloader httpDownloader)
+    {
+        var http = new HttpDownloader(_provider.GetRequiredService<ILogger<HttpDownloader>>(),
+            _provider.GetRequiredService<HttpClient>(), httpDownloader);
+
+        return new DownloadDispatcher(_provider.GetRequiredService<ILogger<DownloadDispatcher>>(),
+            new IDownloader[] {http},
+            _provider.GetRequiredService<IResource<DownloadDispatcher>>(),
+            _provider.GetRequiredService<Client>(),
+            _provider.GetRequiredService<IVerificationCache>(),
+            useProxyCache: false);
+    }
+
+    private class ThrowingHttpDownloader : IHttpDownloader
+    {
+        private readonly Func<CancellationToken, Exception> _failure;
+
+        public ThrowingHttpDownloader(Func<CancellationToken, Exception> failure)
+        {
+            _failure = failure;
+        }
+
+        public Task<Hash> Download(HttpRequestMessage message, AbsolutePath dest, IJob job, CancellationToken token)
+        {
+            throw _failure(token);
+        }
+    }
+}
