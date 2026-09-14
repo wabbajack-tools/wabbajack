@@ -29,21 +29,36 @@ public class ConsoleSteamGuardPrompt : ISteamGuardPrompt
         return ReadAsync($"Steam Guard code emailed to {email} (blank to cancel): ", token);
     }
 
+    /// <summary>
+    ///     Always waits for the mobile app. Declining would fall back to a typed code, which is a choice the
+    ///     console could offer, but it would have to be offered before the approval is already pending.
+    /// </summary>
     public Task<bool> AcceptDeviceConfirmationAsync(CancellationToken token)
     {
         Console.WriteLine("Approve this login in the Steam mobile app.");
         return Task.FromResult(true);
     }
 
-    private static Task<string?> ReadAsync(string prompt, CancellationToken token)
+    private static async Task<string?> ReadAsync(string prompt, CancellationToken token)
     {
-        return Task.Run(() =>
+        Console.Write(prompt);
+
+        // Console.ReadLine cannot be interrupted, so cancelling unblocks the caller while this worker stays
+        // parked until the user presses Enter. In a console process that is on its way out anyway that is
+        // the cheapest honest answer; doing better means reading the console key by key.
+        var read = Task.Run(Console.ReadLine, CancellationToken.None);
+        _ = read.ContinueWith(t => _ = t.Exception, CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
+
+        try
         {
-            Console.Write(prompt);
-            var line = Console.ReadLine();
-            // A blank line, EOF or a cancelled run all mean the same thing: give up on this login.
-            if (token.IsCancellationRequested || string.IsNullOrWhiteSpace(line)) return (string?) null;
-            return line.Trim();
-        }, token);
+            var line = await read.WaitAsync(token).ConfigureAwait(false);
+            // A blank line and EOF mean the same thing as cancelling: give up on this login.
+            return string.IsNullOrWhiteSpace(line) ? null : line.Trim();
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
     }
 }

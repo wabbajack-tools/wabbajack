@@ -20,8 +20,11 @@ public interface ISteamGuardPrompt
     Task<string?> GetEmailCodeAsync(string email, bool previousCodeWasIncorrect, CancellationToken token);
 
     /// <summary>
-    ///     True to wait for the user to approve the login in the Steam mobile app, false to fall back to typing
-    ///     a code instead.
+    ///     Called when the account can approve the login from the Steam mobile app. Return true to wait for
+    ///     that approval.
+    ///     SteamKit will fall back to asking for a typed code if this returns false, but no implementation
+    ///     does: both always wait for the app, because offering the choice needs somewhere to offer it, and
+    ///     nothing in the tree has that yet. Do not treat the fallback as available until one does.
     /// </summary>
     Task<bool> AcceptDeviceConfirmationAsync(CancellationToken token);
 }

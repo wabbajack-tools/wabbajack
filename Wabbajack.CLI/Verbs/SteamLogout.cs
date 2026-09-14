@@ -21,10 +21,20 @@ public class SteamLogout
 
     public async Task<int> Run()
     {
-        var deleted = await _session.LogoutAsync();
-        _logger.LogInformation(deleted
-            ? "Logged out of Steam and deleted the saved login"
-            : "There was no saved Steam login to delete");
-        return 0;
+        switch (await _session.LogoutAsync())
+        {
+            case SteamLogoutResult.Deleted:
+                _logger.LogInformation("Logged out of Steam and deleted the saved login");
+                return 0;
+
+            case SteamLogoutResult.HeldInEnvironment:
+                _logger.LogWarning(
+                    "Logged out of Steam, but the login comes from the STEAM_LOGIN environment variable and is still in place. Unset it to finish logging out");
+                return 0;
+
+            default:
+                _logger.LogInformation("There was no saved Steam login to delete");
+                return 0;
+        }
     }
 }

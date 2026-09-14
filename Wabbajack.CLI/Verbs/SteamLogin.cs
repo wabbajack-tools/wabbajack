@@ -60,6 +60,32 @@ public class SteamLogin
             _logger.LogInformation("Steam login cancelled");
             return 1;
         }
+        catch (SteamCredentialsRejectedException)
+        {
+            // The one place a password error is the right thing to say. An expired token never lands here.
+            _logger.LogError("Steam did not accept that account name and password");
+            return 1;
+        }
+        catch (SteamLoginRequiredException ex)
+        {
+            _logger.LogError("{Message}", ex.Message);
+            return 1;
+        }
+        catch (SteamLoginInProgressException ex)
+        {
+            _logger.LogError("{Message}", ex.Message);
+            return 1;
+        }
+        catch (SteamException ex)
+        {
+            _logger.LogError("Steam refused the login: {Result}", ex.Result);
+            return 1;
+        }
+        catch (TimeoutException)
+        {
+            _logger.LogError("Steam did not answer in time. Check your connection and try again");
+            return 1;
+        }
     }
 
     private async Task<SteamLoginResult> LoginWithQrCode(CancellationToken token)

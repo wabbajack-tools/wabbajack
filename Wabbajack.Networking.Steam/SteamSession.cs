@@ -22,11 +22,12 @@ public class SteamSession : ISteamSession
     private readonly ILogger<SteamSession> _logger;
 
     /// <summary>
-    ///     Steam identifies a session by the pair (public IP, LoginID), and refuses two sessions on one account
-    ///     sharing both. SteamKit's default LoginID is derived from the machine's primary bind address, which is
-    ///     exactly the value the user's own Steam client is already using -- logging in with it kicks them out
-    ///     of Steam. That reads as "Wabbajack broke my Steam", so this is a correctness requirement, not a
-    ///     nicety. Any value that is ours alone will do.
+    ///     Steam identifies a session by the pair (public IP, LoginID) and refuses two sessions on one account
+    ///     sharing both. Left unset, SteamKit computes the LoginID from the machine's primary bind address as
+    ///     <c>localIP ^ 0xBAADF00D</c> -- a pure function of the machine, so every client on it lands on the
+    ///     same value, including the user's own Steam client. Logging in with it disconnects them from Steam,
+    ///     which reads as "Wabbajack broke my Steam". So this is a correctness requirement rather than a
+    ///     nicety, and any value that is ours alone will do.
     /// </summary>
     private readonly uint _loginId = GenerateLoginId();
 
@@ -90,7 +91,7 @@ public class SteamSession : ISteamSession
 
     public async Task<SteamLoginResult> LoginWithStoredTokenAsync(CancellationToken token)
     {
-        await _loginLock.WaitAsync(token).ConfigureAwait(false);
+        await EnterLoginAsync(token).ConfigureAwait(false);
         try
         {
             var state = await TryGetStoredStateAsync().ConfigureAwait(false);
@@ -99,13 +100,18 @@ public class SteamSession : ISteamSession
 
             if (SteamRefreshToken.IsExpired(state.RefreshTokenExpiresAt, DateTimeOffset.UtcNow))
             {
-                await _tokenProvider.Delete().ConfigureAwait(false);
+                await ForgetStoredTokenAsync().ConfigureAwait(false);
                 throw new SteamLoginRequiredException("The saved Steam login has expired, log in again");
             }
 
             await ConnectAsync(token).ConfigureAwait(false);
             var callback = await LogOnAsync(state.AccountName, state.RefreshToken, true, token).ConfigureAwait(false);
             return new SteamLoginResult(state.AccountName, callback.ClientSteamID, true);
+        }
+        catch
+        {
+            Teardown();
+            throw;
         }
         finally
         {
@@ -115,7 +121,7 @@ public class SteamSession : ISteamSession
 
     public async Task<SteamLoginResult> LoginWithQrCodeAsync(Action<string> onChallengeUrl, CancellationToken token)
     {
-        await _loginLock.WaitAsync(token).ConfigureAwait(false);
+        await EnterLoginAsync(token).ConfigureAwait(false);
         try
         {
             await ConnectAsync(token).ConfigureAwait(false);
@@ -144,6 +150,16 @@ public class SteamSession : ISteamSession
             var poll = await session.PollingWaitForResultAsync(token).ConfigureAwait(false);
             return await CompleteLoginAsync(poll, token).ConfigureAwait(false);
         }
+        catch (AuthenticationException ex)
+        {
+            Teardown();
+            throw Translate(ex, false);
+        }
+        catch
+        {
+            Teardown();
+            throw;
+        }
         finally
         {
             _loginLock.Release();
@@ -153,7 +169,7 @@ public class SteamSession : ISteamSession
     public async Task<SteamLoginResult> LoginWithCredentialsAsync(string username, string password,
         CancellationToken token)
     {
-        await _loginLock.WaitAsync(token).ConfigureAwait(false);
+        await EnterLoginAsync(token).ConfigureAwait(false);
         try
         {
             await ConnectAsync(token).ConfigureAwait(false);
@@ -181,22 +197,48 @@ public class SteamSession : ISteamSession
             var poll = await session.PollingWaitForResultAsync(token).ConfigureAwait(false);
             return await CompleteLoginAsync(poll, token).ConfigureAwait(false);
         }
+        catch (AuthenticationException ex)
+        {
+            Teardown();
+            throw Translate(ex, true);
+        }
+        catch
+        {
+            Teardown();
+            throw;
+        }
         finally
         {
             _loginLock.Release();
         }
     }
 
-    public async ValueTask<bool> LogoutAsync()
+    public async ValueTask<SteamLogoutResult> LogoutAsync()
     {
-        if (_client.IsConnected)
-            _steamUser.LogOff();
+        // Under the login lock, or a login finishing at the same moment writes its token back over the one
+        // this just deleted.
+        await EnterLoginAsync(CancellationToken.None).ConfigureAwait(false);
+        try
+        {
+            if (_client.IsConnected)
+                _steamUser.LogOff();
 
-        IsLoggedIn = false;
-        AccountName = null;
-        Licenses = Array.Empty<SteamApps.LicenseListCallback.License>();
+            Teardown();
+            AccountName = null;
+            Licenses = Array.Empty<SteamApps.LicenseListCallback.License>();
 
-        return await _tokenProvider.Delete().ConfigureAwait(false);
+            var deleted = await _tokenProvider.Delete().ConfigureAwait(false);
+
+            // HaveToken() also answers for the environment variable the provider falls back to, which
+            // Delete() has no way to remove. Saying "logged out" while that keeps working would be a lie.
+            if (_tokenProvider.HaveToken()) return SteamLogoutResult.HeldInEnvironment;
+
+            return deleted ? SteamLogoutResult.Deleted : SteamLogoutResult.NothingStored;
+        }
+        finally
+        {
+            _loginLock.Release();
+        }
     }
 
     public void Dispose()
@@ -211,12 +253,70 @@ public class SteamSession : ISteamSession
         GC.SuppressFinalize(this);
     }
 
+    /// <summary>
+    ///     Takes the login lock, or fails at once rather than waiting.
+    ///     A login holds this lock across the Steam Guard prompt, which sits on the user for as long as they
+    ///     take. A second caller queueing behind that would be indistinguishable from a hang, so it is told
+    ///     what is actually happening instead.
+    /// </summary>
+    private async Task EnterLoginAsync(CancellationToken token)
+    {
+        if (!await _loginLock.WaitAsync(TimeSpan.Zero, token).ConfigureAwait(false))
+            throw new SteamLoginInProgressException(
+                "A Steam login is already under way and may be waiting on you. Finish or cancel it first.");
+    }
+
+    /// <summary>
+    ///     Drops the connection and forgets any half-finished handshake.
+    ///     Called on every failed or cancelled login: without it the socket and the callback pump stay up
+    ///     until the process ends, so a Ctrl-C during a login leaves a live Steam connection nobody asked for.
+    /// </summary>
+    private void Teardown()
+    {
+        _connected = null;
+        _loggedOn = null;
+        IsLoggedIn = false;
+        if (_client.IsConnected) _client.Disconnect();
+    }
+
+    /// <summary>
+    ///     Turns SteamKit's authentication failure into something a host can report, without letting a
+    ///     SteamKit type out of this project.
+    /// </summary>
+    private static Exception Translate(AuthenticationException ex, bool fromCredentials)
+    {
+        // On a credentials flow this really is the password, because that is the only thing that was sent.
+        // The same result on a token logon is handled in LogOnAsync, where it means the opposite.
+        if (fromCredentials && ex.Result == EResult.InvalidPassword)
+            return new SteamCredentialsRejectedException(
+                "Steam did not accept that account name and password", ex);
+
+        if (SteamResults.IsDeadCredential(ex.Result))
+            return new SteamLoginRequiredException($"Steam refused the login ({ex.Result}), start again");
+
+        return new SteamException("Steam refused the login", ex.Result, EResult.Invalid, ex);
+    }
+
+    /// <summary>
+    ///     Deletes the saved token, and says so plainly when it cannot: the provider falls back to an
+    ///     environment variable that nothing here can unset, and silently failing to forget a credential is
+    ///     worse than admitting it.
+    /// </summary>
+    private async ValueTask ForgetStoredTokenAsync()
+    {
+        await _tokenProvider.Delete().ConfigureAwait(false);
+
+        if (_tokenProvider.HaveToken())
+            _logger.LogWarning(
+                "The Steam login is supplied by the environment, so it cannot be removed from here. Unset it, or it will keep being tried");
+    }
+
     private static uint GenerateLoginId()
     {
+        // Drawn fresh per process, so two Wabbajack sessions do not collide with each other either.
         Span<byte> bytes = stackalloc byte[4];
         RandomNumberGenerator.Fill(bytes);
-        // The top bit keeps us well clear of the small, bind-address-derived ids Steam's own clients use.
-        return BitConverter.ToUInt32(bytes) | 0x8000_0000u;
+        return BitConverter.ToUInt32(bytes);
     }
 
     private void PumpCallbacks()
@@ -259,7 +359,14 @@ public class SteamSession : ISteamSession
         _logger.LogInformation("Connecting to Steam");
         _client.Connect();
 
-        await tcs.Task.WaitAsync(ConnectTimeout, token).ConfigureAwait(false);
+        try
+        {
+            await tcs.Task.WaitAsync(ConnectTimeout, token).ConfigureAwait(false);
+        }
+        finally
+        {
+            _connected = null;
+        }
     }
 
     private async Task<SteamUser.LoggedOnCallback> LogOnAsync(string accountName, string refreshToken,
@@ -276,7 +383,15 @@ public class SteamSession : ISteamSession
             LoginID = _loginId
         });
 
-        var callback = await tcs.Task.WaitAsync(LogOnTimeout, token).ConfigureAwait(false);
+        SteamUser.LoggedOnCallback callback;
+        try
+        {
+            callback = await tcs.Task.WaitAsync(LogOnTimeout, token).ConfigureAwait(false);
+        }
+        finally
+        {
+            _loggedOn = null;
+        }
 
         if (callback.Result != EResult.OK)
         {
@@ -286,7 +401,7 @@ public class SteamSession : ISteamSession
                     "Steam rejected the saved credential as {Result}; it is expired or revoked, not a bad password",
                     callback.Result);
 
-                if (fromStoredToken) await _tokenProvider.Delete().ConfigureAwait(false);
+                if (fromStoredToken) await ForgetStoredTokenAsync().ConfigureAwait(false);
 
                 throw new SteamLoginRequiredException(
                     "The saved Steam login is no longer valid, log in again");
@@ -303,8 +418,11 @@ public class SteamSession : ISteamSession
 
     private async Task<SteamLoginResult> CompleteLoginAsync(AuthPollResult poll, CancellationToken token)
     {
-        await StoreAsync(poll).ConfigureAwait(false);
+        // Log on before storing. A token written first and then rejected by the logon sits on disk
+        // unverified, and the dead-credential path will not clear it: that only fires for a login that came
+        // from storage, which this one did not.
         var callback = await LogOnAsync(poll.AccountName, poll.RefreshToken, false, token).ConfigureAwait(false);
+        await StoreAsync(poll).ConfigureAwait(false);
         return new SteamLoginResult(poll.AccountName, callback.ClientSteamID, false);
     }
 

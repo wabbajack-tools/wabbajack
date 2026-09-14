@@ -8,6 +8,25 @@ namespace Wabbajack.Networking.Steam;
 /// </param>
 public record SteamLoginResult(string AccountName, ulong SteamId, bool UsedStoredToken);
 
+public enum SteamLogoutResult
+{
+    /// <summary>
+    ///     There was nothing saved to remove.
+    /// </summary>
+    NothingStored,
+
+    /// <summary>
+    ///     The saved token was deleted.
+    /// </summary>
+    Deleted,
+
+    /// <summary>
+    ///     The credential comes from the environment variable the token provider falls back to. Logging out
+    ///     cannot remove it and it will keep working, so the user has to unset it themselves.
+    /// </summary>
+    HeldInEnvironment
+}
+
 /// <summary>
 ///     Owns the connection to Steam and everything about being logged in. Content lives in <see cref="Client" />.
 /// </summary>
@@ -50,7 +69,9 @@ public interface ISteamSession : IDisposable
     Task<SteamLoginResult> LoginWithCredentialsAsync(string username, string password, CancellationToken token);
 
     /// <summary>
-    ///     Logs off and deletes the stored token. Returns true when there was a stored token to delete.
+    ///     Logs off, drops the connection and deletes the stored token. The result says what actually
+    ///     happened, including the case where the credential is held in the environment and cannot be removed
+    ///     from here.
     /// </summary>
-    ValueTask<bool> LogoutAsync();
+    ValueTask<SteamLogoutResult> LogoutAsync();
 }

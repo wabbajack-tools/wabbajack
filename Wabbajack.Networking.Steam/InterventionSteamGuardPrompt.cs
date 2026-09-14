@@ -26,6 +26,10 @@ public class InterventionSteamGuardPrompt : ISteamGuardPrompt
         return Ask(new GetAuthCode(GetAuthCode.AuthType.EmailCode, email, previousCodeWasIncorrect), token);
     }
 
+    /// <summary>
+    ///     Always waits for the mobile app. Declining would send the user to a typed code instead, which is a
+    ///     choice worth offering, but there is no intervention to offer it in yet.
+    /// </summary>
     public Task<bool> AcceptDeviceConfirmationAsync(CancellationToken token)
     {
         return Task.FromResult(true);

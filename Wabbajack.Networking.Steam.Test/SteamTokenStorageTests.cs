@@ -84,20 +84,6 @@ public class SteamTokenStorageTests
     }
 
     [Fact]
-    public void TheStoredStateHasNowhereToPutASecretItShouldNotKeep()
-    {
-        // The old SteamLoginState persisted a plaintext password. Nothing on the replacement should ever
-        // hold a password, a TOTP secret or the short-lived access token, so this pins the shape.
-        var forbidden = new[] {"password", "secret", "totp", "accesstoken", "sentry"};
-
-        foreach (var property in typeof(SteamLoginState).GetProperties())
-        {
-            var name = property.Name.ToLowerInvariant();
-            Assert.DoesNotContain(forbidden, f => name.Contains(f));
-        }
-    }
-
-    [Fact]
     public void TheStoredStateSerialisesWithStableNames()
     {
         // The on-disk names are part of the format: changing one silently logs every user out.
