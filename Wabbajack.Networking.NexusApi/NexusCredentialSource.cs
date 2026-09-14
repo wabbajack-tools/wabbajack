@@ -13,8 +13,8 @@ public enum NexusCredentialSource
     /// <summary>
     ///     An OAuth login: what the app stores when the user logs in, and what a host can hand it as
     ///     <c>NEXUS_OAUTH_INFO</c>. Refreshable, and tied to the account the user signed in as. Reported only
-    ///     when the stored state carries an access token to send: a refresh Nexus refuses leaves one behind
-    ///     that does not, and that is no more a login than an empty variable is.
+    ///     when the state carries an access token to send: a refresh Nexus refuses yields one that does not
+    ///     (and older versions stored exactly that), which is no more a login than an empty variable is.
     /// </summary>
     OAuth,
 
@@ -42,6 +42,15 @@ public static class NexusCredential
     ///         OAuth state to decide whether to refresh before every download, and <c>ITokenProvider.Get</c>
     ///         throws when there is none. A stray key in a developer's environment therefore has to read as
     ///         logged out, or preflight promises Nexus downloads the installer will not make.
+    ///     </para>
+    ///     <para>
+    ///         This is the question "can this machine download from Nexus Mods", and only that. The collection
+    ///         upload and download paths (<c>NexusCollectionUploader</c>, <c>NexusCollectionDownloader</c> and
+    ///         <c>CompilerMainVM.GetLatestCollectionRevision</c>) ask a narrower one: they build their own
+    ///         GraphQL requests with <c>Authorization: Bearer</c>, so they need an unexpired OAuth access
+    ///         token in hand and read the stored state directly to get one. A stored API key passes here and
+    ///         would fail there, so routing them through this predicate would trade one wrong answer for
+    ///         another.
     ///     </para>
     /// </summary>
     public static bool CanDownload(this NexusCredentialSource source)

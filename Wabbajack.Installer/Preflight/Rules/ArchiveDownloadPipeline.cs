@@ -114,7 +114,10 @@ public sealed class ArchiveDownloadPipeline
 
     /// <summary>
     ///     Points archives the mirror carries at the mirror, as the installer does. The archive objects are
-    ///     the modlist's own, so the rerouted state is what gets written to the <c>.meta</c> file.
+    ///     the modlist's own, so the rerouted state is what the downloader is handed and what gets written to
+    ///     the <c>.meta</c> file - which is the point, and also why the caller records what was rerouted on
+    ///     <c>PreflightBlackboard.Rerouted</c>: after this, the list looks as though it always carried these
+    ///     states.
     /// </summary>
     public static List<Archive> Reroute(IEnumerable<Archive> missing, ILookup<Hash, Archive> mirrors, ILogger logger)
     {
@@ -150,6 +153,12 @@ public sealed class ArchiveDownloadPipeline
     ///     in or premium is not a failure at this point, and deliberately does not stop the run the way
     ///     nexus-login would have: the archive goes to the manual queue with its Nexus page, as it would have
     ///     had the list carried it from the start.
+    ///     <para>
+    ///         A second pass over the same list has to reach the same conclusion, and that is what
+    ///         <c>PreflightBlackboard.Rerouted</c> is for: the reroute has by then rewritten the archive's
+    ///         state, so nexus-login would otherwise see a Nexus download the list never had and halt the run
+    ///         over it - the one thing this paragraph says will not happen.
+    ///     </para>
     /// </summary>
     public async Task<bool> NexusPremium(IEnumerable<Archive> missing, CancellationToken token)
     {

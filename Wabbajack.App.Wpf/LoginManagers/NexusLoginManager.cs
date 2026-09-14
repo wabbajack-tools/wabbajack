@@ -1,5 +1,6 @@
 using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -59,25 +60,44 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         _serviceProvider = serviceProvider;
         Task.Run(RefreshTokenState);
         
-        ClearLogin = ReactiveCommand.CreateFromTask(async () =>
+        var clearLogin = ReactiveCommand.CreateFromTask(async () =>
         {
             _logger.LogInformation("Deleting Login information for {SiteName}", SiteName);
             await ClearLoginToken();
         }, this.WhenAnyValue(v => v.LoggedIn));
+        ClearLogin = clearLogin;
 
         Icon = (DrawingImage)Application.Current.Resources["NexusLogo"];
-        
-        TriggerLogin = ReactiveCommand.CreateFromTask(async () =>
-        {
-            _logger.LogInformation("Logging into {SiteName}", SiteName); 
-            StartLogin();
-        }, this.WhenAnyValue(v => v.LoggedIn).Select(v => !v));
 
-        ToggleLogin = ReactiveCommand.Create(() =>
+        // No canExecute: logging in again has to be possible while already logged in, because that is
+        // exactly the state preflight asks about when it says "your Nexus Mods login has expired". LoggedIn
+        // is now NexusCredential.CanDownload over the stored credential, which a revoked API key or a token
+        // Nexus has stopped honouring still satisfies - so gating this on !LoggedIn made the one button
+        // offered for the one thing to do silently refuse, and pushed that refusal into ThrownExceptions,
+        // which nothing in this app observes.
+        var triggerLogin = ReactiveCommand.Create(() =>
         {
-            if (LoggedIn) ClearLogin.Execute(null);
-            else TriggerLogin.Execute(null);
+            _logger.LogInformation("Logging into {SiteName}", SiteName);
+            StartLogin();
         });
+        TriggerLogin = triggerLogin;
+
+        // Calls the work directly rather than executing the commands above, so the settings tile cannot
+        // execute one that refuses either: LoggedIn can change between the check and the execution.
+        var toggleLogin = ReactiveCommand.CreateFromTask(async () =>
+        {
+            if (LoggedIn) await ClearLoginToken();
+            else StartLogin();
+        });
+        ToggleLogin = toggleLogin;
+
+        // An unobserved ReactiveCommand exception is rethrown on the UI thread and takes the app with it.
+        foreach (var thrown in new[]
+                     {clearLogin.ThrownExceptions, triggerLogin.ThrownExceptions, toggleLogin.ThrownExceptions})
+        {
+            thrown.Subscribe(ex => _logger.LogError(ex, "A Nexus Mods login command failed"))
+                .DisposeWith(CompositeDisposable);
+        }
     }
 
     private async Task ClearLoginToken()

@@ -101,8 +101,8 @@ made to rehash a downloads folder.
 downloads (600), automated downloads (700), disk space (900).
 `PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
 DI as `IPreflightCheck` and run in `Order` (100–900, gaps left on purpose), each declaring `DependsOn`. A
-check that fails or needs the user makes its dependents `Skipped`; `RunCheck(id)` re-runs one and resets
-what depends on it. The engine has no UI and no DynamicData anywhere. The runner is event-based: it raises
+dependent whose dependency has not passed is marked `Skipped` when its turn comes; everything the halt rule
+below never reached stays `Pending`. `RunCheck(id)` re-runs one and resets what depends on it. The engine has no UI and no DynamicData anywhere. The runner is event-based: it raises
 plain events (`CheckChanged`, `ArchiveChanged`, `ManualQueueChanged`, `RunFinished`) and offers snapshots;
 hosts project those however they like. The acquirer exposes `IObservable`s via `System.Reactive` (already
 a transitive dependency).
@@ -140,7 +140,17 @@ Nexus premium probe, the automated/manual partition and the screening of what ca
 on demand by whichever of them asks first and memoised on the blackboard, so the probe and the policy load
 happen once per run. Computing it also fills the manual queue with everything it means to send to the
 browser. Writing `RequiredArchives` throws the memo away, so re-running archive-inventory repartitions
-against the new answer.
+against the new answer, and so does a change to the Nexus premium answer — a free account that logs in again
+as premium would otherwise keep the split made while it was free, and be told to fetch by hand what the app
+can now download. The manual queue goes with the plan, since the queue is what that plan sent to the browser.
+Re-probing the same account changes nothing and costs nothing.
+
+The reroute rewrites the modlist's own `Archive.State`, so after a plan has been computed the list looks as
+though it always carried the mirror's states. `PreflightBlackboard.Rerouted` records what was rewritten, and
+nexus-login ignores those: otherwise a list with no Nexus files of its own passes "this list has no Nexus
+Mods files" on the first pass and halts for a login on the second, contradicting the rule the reroute path
+is built on — a rerouted Nexus download without a login goes to the manual queue rather than stopping the
+run.
 
 Splitting by state type is only half of it. An archive whose state is automated still needs a downloader the
 dispatcher has, one that will `Prepare()`, and a URL the allow-list permits, and none of those takes a
@@ -164,14 +174,27 @@ reads "Logged in as X (API key)", and `NEXUS_API_KEY` with nothing stored reads 
 naming the variable, because the variable working everywhere else is exactly what makes it confusing. The
 WPF Nexus tile (`NexusLoginManager`) asks the same predicate rather than testing the stored token itself,
 which is what kept a stored API key reading "logged out" there and "Logged in (API key)" in preflight.
+The predicate is true for a credential Nexus has since revoked, so `TriggerLogin` carries no `canExecute`:
+"your login has expired, log in again" is a row whose `LoggedIn` is true, and a `ReactiveCommand` that
+refuses puts the refusal in `ThrownExceptions`, which nothing here observes and which surfaces on the UI
+thread. Nothing executes a sibling command either — `ToggleLogin` calls the work directly.
 
 A source is only reported when there is something to send with it. `GetAuthInfo` rejects an empty API key
-either side, and equally an OAuth state carrying no access token — which is not hypothetical: `RefreshToken`
-logs a refusal, then deserializes the error body into a `JwtTokenReply` with a null `access_token` and
-**stores it**, so a revoked login or a changed password leaves exactly that behind. Reported as `OAuth` it
-would pass `CanDownload` and then throw out of `AddAuthHeaders` on the first real request. The stored API
-key in the same state is still a login; the environment variable is not consulted, because a stored login
-shadows it whether or not it turned out to be usable. `NexusCredentialTests` is the table.
+either side, and equally an OAuth state carrying no access token — which is not hypothetical: a refused
+refresh deserializes the error body into a `JwtTokenReply` with a null `access_token`, and older versions
+stored that over the login, so a user may already have one. Reported as `OAuth` it would pass `CanDownload`
+and then throw out of `AddAuthHeaders` on the first real request. The stored API key in the same state is
+still a login; the environment variable is not consulted, because a stored login shadows it whether or not
+it turned out to be usable. `NexusCredentialTests` is the table.
+
+**A failed refresh must not write anything.** `RefreshToken` stores only a reply that actually carries an
+access token, and hands the caller a copy with nothing to send for this call. Storing the failure destroyed
+a login whose refresh token the next attempt might have used, and since the WPF login tile reads the
+credential from its own constructor, Nexus being briefly unreachable at startup was enough to trigger it.
+`CanDownload` answers "can this machine download from Nexus Mods" and nothing else; the collection upload
+and download paths build their own GraphQL requests with `Authorization: Bearer`, so they need an unexpired
+OAuth access token specifically and read the stored state for one. A stored API key passes `CanDownload`
+and would fail there.
 
 An automated download can still turn out to need a browser once it is running — a
 `ManualDownloadRequiredException`, a stall, a server refusal, bytes that do not hash — which fills a queue

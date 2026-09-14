@@ -89,8 +89,10 @@ public partial class PreflightVM : ViewModel
         events.Connect().DisposeWith(CompositeDisposable);
 
         // Both a completed login and a window closed without one land here; the check decides which it was.
-        // It follows the refresh rather than LoggedIn because LoggedIn is a local test of the stored token,
-        // and a token Nexus has revoked stays locally valid: logging in again would change nothing to watch.
+        // It follows the refresh rather than LoggedIn because a credential this machine holds can have been
+        // revoked at the other end, which LoggedIn cannot see: it says a usable credential is stored, while
+        // the check asks Nexus what it is worth. Logging in again over one of those leaves LoggedIn true
+        // throughout, so watching it would miss the login that fixed the row.
         nexusLogin.Refreshed
             .ObserveOnGuiThread()
             // Only once the checklist has actually asked. nexus-login runs after the archive inventory now,

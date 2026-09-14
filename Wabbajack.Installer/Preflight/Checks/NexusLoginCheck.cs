@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Networking.NexusApi;
 
@@ -37,13 +38,13 @@ public sealed class NexusLoginCheck : IPreflightCheck
 
     public async Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token)
     {
-        var nexus = ctx.State.Missing.Where(a => a.State is Nexus).ToArray();
+        var nexus = ctx.State.Missing.Where(a => IsListNexus(ctx, a)).ToArray();
         if (nexus.Length == 0)
         {
             // Null rather than a recorded "no login": the download plan reads it that way, and probes the
             // account itself if a mirror reroute turns something missing into a Nexus download after all.
             ctx.State.Nexus = null;
-            return PreflightResult.Passed(ctx.ModList.Archives.Any(a => a.State is Nexus)
+            return PreflightResult.Passed(ctx.ModList.Archives.Any(a => IsListNexus(ctx, a))
                 ? "Not needed, nothing left to download from Nexus Mods"
                 : "Not needed, this list has no Nexus Mods files");
         }
@@ -70,6 +71,24 @@ public sealed class NexusLoginCheck : IPreflightCheck
 
         return PreflightResult.Passed(
             $"Logged in as {name}{Tags(status)} - {Plural.Of(count, "Nexus file")} will be downloaded manually ({size})");
+    }
+
+    /// <summary>
+    ///     A Nexus download the modlist itself asks for, as opposed to one this run's mirror reroute
+    ///     introduced by rewriting the archive's state (<c>ArchiveDownloadPipeline.Reroute</c>). The
+    ///     distinction only exists on a second pass: the first time this check runs the plan has not been
+    ///     computed, so nothing has been rewritten yet and the list is answering for itself. Re-run the
+    ///     inventory - pick a game folder, retry a failed scan - and the rewritten states are still there,
+    ///     and a list with no Nexus files at all would suddenly halt for a login, contradicting the rule the
+    ///     reroute path is built on: a rerouted Nexus download without a login goes to the manual queue with
+    ///     its file page, it does not stop the run. Ignoring them here is what keeps the two passes saying
+    ///     the same thing. The alternative - not rewriting the shared archive - would mean carrying the
+    ///     rerouted state alongside every archive through the split, the screening, the download and the
+    ///     <c>.meta</c> file it is written to, which is a great deal of machinery for the same answer.
+    /// </summary>
+    private static bool IsListNexus(PreflightContext ctx, Archive archive)
+    {
+        return archive.State is Nexus && !ctx.State.Rerouted.Contains(archive.Name);
     }
 
     /// <summary>

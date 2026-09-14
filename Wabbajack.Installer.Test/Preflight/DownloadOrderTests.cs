@@ -55,6 +55,14 @@ public class DownloadOrderTests : IDisposable
         return archive;
     }
 
+    /// <summary>A Nexus archive the list carries itself, served so a premium account can fetch it.</summary>
+    private async Task<Archive> FromNexus(string name, string content, long modId)
+    {
+        var state = new Nexus {Game = Game.SkyrimSpecialEdition, ModID = modId, FileID = modId};
+        _host.Server.Serve(state, Encoding.UTF8.GetBytes(content));
+        return await PreflightTestHost.ArchiveFor(name, content, state);
+    }
+
     private Task<Archive> ByHand(string name, string content)
     {
         return PreflightTestHost.ArchiveFor(name, content,
@@ -78,15 +86,46 @@ public class DownloadOrderTests : IDisposable
     /// <summary>The real download checks, with the three they depend on faked out.</summary>
     private PreflightRunner Runner(PreflightContext ctx)
     {
-        var runner = new PreflightRunner(new IPreflightCheck[]
+        return Watch(new PreflightRunner(new IPreflightCheck[]
         {
             new FakeCheck(PreflightCheckIds.NexusLogin, 100),
             new FakeCheck(PreflightCheckIds.ArchiveInventory, 400),
             new FakeCheck(PreflightCheckIds.UnsupportedArchives, 500),
             new ManualDownloadsCheck(),
             new AutomatedDownloadsCheck()
-        }, ctx);
+        }, ctx));
+    }
 
+    /// <summary>
+    ///     The same, with the real nexus-login in its own place in the order. The cases below are about what
+    ///     a second pass makes of what the first one left behind, and both halves of that - the login answer
+    ///     the plan is partitioned on, and the archive states the reroute rewrote - are this check's
+    ///     business. The faked inventory writes <c>RequiredArchives</c> as the real one does, so re-running
+    ///     it throws the plan away the same way.
+    /// </summary>
+    private PreflightRunner RunnerWithLoginCheck(PreflightContext ctx)
+    {
+        var inventory = new FakeCheck(PreflightCheckIds.ArchiveInventory, 300)
+        {
+            Body = (c, _, _) =>
+            {
+                c.State.RequiredArchives = c.ModList.Archives;
+                return Task.FromResult(PreflightResult.Passed("ok"));
+            }
+        };
+
+        return Watch(new PreflightRunner(new IPreflightCheck[]
+        {
+            inventory,
+            new FakeCheck(PreflightCheckIds.UnsupportedArchives, 400),
+            new NexusLoginCheck(),
+            new ManualDownloadsCheck(),
+            new AutomatedDownloadsCheck()
+        }, ctx));
+    }
+
+    private PreflightRunner Watch(PreflightRunner runner)
+    {
         runner.Changed += evt =>
         {
             if (evt is not CheckChanged changed || changed.Status.State != PreflightState.Running) return;
@@ -364,6 +403,123 @@ public class DownloadOrderTests : IDisposable
         Assert.Equal(1, _host.Server.Attempts(archive.State));
         Assert.Empty(ctx.State.Missing);
         Assert.Equal(0, ctx.State.RemainingDownloadBytes);
+    }
+
+    /// <summary>
+    ///     Logging in again as premium has to change what the run asks of the user. The plan is partitioned
+    ///     partly on the Nexus answer and memoised, so a split made while the account was free outlived the
+    ///     login that replaced it: the row turned green, and manual-downloads - re-reading the same plan -
+    ///     went on demanding by hand the very files the app could now fetch itself.
+    /// </summary>
+    [Fact]
+    public async Task APremiumLoginAfterAFreeOneTakesTheNexusFilesOffTheManualQueue()
+    {
+        var nexus = await FromNexus("nexus.7z", "nexus bytes", 9001);
+        _host.Nexus.Status = new NexusLoginStatus(true, false, "someone", null, NexusCredentialSource.OAuth);
+        var acquirer = new FakeManualDownloadAcquirer();
+        var ctx = Context(acquirer, nexus);
+        var runner = RunnerWithLoginCheck(ctx);
+
+        var free = await runner.RunAll(CancellationToken.None);
+
+        Assert.False(free.Ready);
+        Assert.Contains("will be downloaded manually", StatusOf(runner, PreflightCheckIds.NexusLogin).Message);
+        Assert.Equal(new[] {"nexus.7z"}, ctx.State.ManualQueue.Select(q => q.Archive.Name));
+        Assert.Equal(PreflightState.NeedsUser, StatusOf(runner, PreflightCheckIds.ManualDownloads).State);
+        Assert.Equal(0, _host.Server.Attempts(nexus.State));
+
+        // The user logs in as premium. The tile's refresh runs nexus-login again, as the action dispatcher
+        // does, and the run carries on from there.
+        _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.OAuth);
+        var again = await runner.RunCheck(PreflightCheckIds.NexusLogin, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, again.State);
+        Assert.Equal("Logged in as someone (Premium)", again.Message);
+
+        var outcome = await runner.RunAll(CancellationToken.None);
+
+        Assert.True(outcome.Ready);
+        Assert.Empty(ctx.State.ManualQueue);
+        Assert.Equal("Nothing to download by hand", StatusOf(runner, PreflightCheckIds.ManualDownloads).Message);
+        Assert.Equal("1 downloaded", StatusOf(runner, PreflightCheckIds.AutomatedDownloads).Message);
+        Assert.Equal(1, _host.Server.Attempts(nexus.State));
+        Assert.Empty(ctx.State.Missing);
+    }
+
+    /// <summary>
+    ///     Re-probing the same account is not a reason to throw the plan away: nothing it partitioned on has
+    ///     changed, and the policy load, the reroute and the screening behind it are all work the user paid
+    ///     for once already.
+    /// </summary>
+    [Fact]
+    public async Task LoggingInAgainAsTheSameAccountKeepsThePlan()
+    {
+        var nexus = await FromNexus("nexus.7z", "nexus bytes", 9002);
+        var byHand = await ByHand("byhand.7z", "fetched by hand");
+        _host.Nexus.Status = new NexusLoginStatus(true, false, "someone", null, NexusCredentialSource.OAuth);
+        var ctx = Context(new FakeManualDownloadAcquirer(), nexus, byHand);
+        var runner = RunnerWithLoginCheck(ctx);
+
+        await runner.RunAll(CancellationToken.None);
+
+        Assert.Equal(new[] {"nexus.7z", "byhand.7z"}, ctx.State.ManualQueue.Select(q => q.Archive.Name));
+
+        await runner.RunCheck(PreflightCheckIds.NexusLogin, CancellationToken.None);
+        await runner.RunAll(CancellationToken.None);
+
+        // The same queue, and the policy behind it was never loaded a second time: the plan is the one the
+        // first pass computed.
+        Assert.Equal(new[] {"nexus.7z", "byhand.7z"}, ctx.State.ManualQueue.Select(q => q.Archive.Name));
+        Assert.Equal(1, _host.Policy.AllowListCalls);
+        Assert.Equal(1, _host.Policy.MirrorCalls);
+    }
+
+    /// <summary>
+    ///     The reroute rewrites the modlist's own archive, so by the time anything looks again the list
+    ///     appears to have carried a Nexus download all along. nexus-login must not halt a run over one: the
+    ///     first pass sends it to the manual queue with its file page, which is the rule the reroute path is
+    ///     built on, and a re-run of the inventory - a game folder picked by hand, a retried scan - must
+    ///     reach the same conclusion rather than stopping the user over a login the list never needed.
+    /// </summary>
+    [Fact]
+    public async Task ARerouteToNexusDoesNotHaltASecondPassOfNexusLogin()
+    {
+        var rerouted = await Http("rerouted.7z", "rerouted bytes", "dead.invalid");
+        var mirror = new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 3333, FileID = 4444};
+        _host.Server.Serve(mirror, Encoding.UTF8.GetBytes("rerouted bytes"));
+        _host.Policy.MirrorArchives.Add(new Archive
+        {
+            Name = rerouted.Name, Hash = rerouted.Hash, Size = rerouted.Size, State = mirror
+        });
+        // Nobody is logged in, which is what would halt the run if the check counted this archive.
+        _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.None);
+        var acquirer = new FakeManualDownloadAcquirer();
+        var ctx = Context(acquirer, rerouted);
+        var runner = RunnerWithLoginCheck(ctx);
+
+        var first = await runner.RunAll(CancellationToken.None);
+
+        Assert.False(first.Ready);
+        Assert.Equal("Not needed, this list has no Nexus Mods files",
+            StatusOf(runner, PreflightCheckIds.NexusLogin).Message);
+        Assert.Equal(new[] {"rerouted.7z"}, ctx.State.ManualQueue.Select(q => q.Archive.Name));
+        Assert.Equal("Nexus Mods", runner.Archives["rerouted.7z"].Target!.SiteName);
+        Assert.IsType<Nexus>(rerouted.State);
+
+        var inventory = await runner.RunCheck(PreflightCheckIds.ArchiveInventory, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, inventory.State);
+
+        var second = await runner.RunAll(CancellationToken.None);
+
+        // The same answer as the first pass, and the same work left to do.
+        Assert.False(second.Ready);
+        var login = StatusOf(runner, PreflightCheckIds.NexusLogin);
+        Assert.Equal(PreflightState.Passed, login.State);
+        Assert.Equal("Not needed, this list has no Nexus Mods files", login.Message);
+        Assert.Equal(PreflightState.NeedsUser, StatusOf(runner, PreflightCheckIds.ManualDownloads).State);
+        Assert.Equal(new[] {"rerouted.7z"}, ctx.State.ManualQueue.Select(q => q.Archive.Name));
+        Assert.Equal(0, _host.Server.Attempts(mirror));
     }
 
     [Fact]

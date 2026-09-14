@@ -261,11 +261,12 @@ public class NexusApi
                 if (info.OAuth.IsExpired)
                     info = await RefreshToken(info, CancellationToken.None);
 
-                // The same rule the API key gets, for the same reason. A refresh Nexus refuses - a revoked
-                // token, a changed password - is logged and then stored anyway: the error body deserializes
-                // into a reply whose access token is null, which RefreshToken writes over the old state. An
-                // OAuth state is therefore not by itself a credential, and reporting one would put the lie
-                // back where it was: CanDownload true, and the first real request throwing from AddAuthHeaders.
+                // The same rule the API key gets, for the same reason. A refresh Nexus refuses hands back a
+                // state with nothing to send (the stored one is left alone, see RefreshToken), and older
+                // versions of this app wrote that emptied state to disk, so it is also what a user may
+                // already have stored. An OAuth state is therefore not by itself a credential, and reporting
+                // one would put the lie back where it was: CanDownload true, and the first real request
+                // throwing from AddAuthHeaders.
                 if (!string.IsNullOrWhiteSpace(info.OAuth?.AccessToken))
                     return (NexusCredentialSource.OAuth, info.OAuth.AccessToken!);
             }
@@ -290,31 +291,77 @@ public class NexusApi
         return (NexusCredentialSource.None, string.Empty);
     }
     
+    /// <summary>
+    ///     Trades the refresh token for a new access token, and writes the stored login only when one came
+    ///     back. A refusal used to be stored anyway: the error body deserializes into a reply whose
+    ///     <c>access_token</c> is null, and that went over the top of a login the next attempt might have
+    ///     refreshed perfectly well. Nexus being briefly unreachable, or a laptop opened before its network
+    ///     is up, is enough - and since the WPF login tile reads the credential as it is constructed, that
+    ///     now happens when the app starts rather than only when something is downloaded.
+    ///     <para>
+    ///         A failure still has to read as no OAuth credential for this call, so what comes back is a copy
+    ///         with nothing to send rather than the stored state. The API key half of the same login is
+    ///         carried over, because <see cref="GetAuthInfo" /> falls through to it.
+    ///     </para>
+    /// </summary>
     private async Task<NexusOAuthState> RefreshToken(NexusOAuthState state, CancellationToken cancel)
     {
+        if (string.IsNullOrWhiteSpace(state.OAuth?.RefreshToken))
+        {
+            _logger.LogError("The stored Nexus login has expired and carries no refresh token");
+            return Unusable(state);
+        }
+
         _logger.LogInformation("Refreshing OAuth Token");
         var request = new Dictionary<string, string>
         {
             { "grant_type", "refresh_token" },
             { "client_id", "wabbajack" },
-            { "refresh_token", state.OAuth!.RefreshToken },
+            { "refresh_token", state.OAuth.RefreshToken },
         };
 
         var content = new FormUrlEncodedContent(request);
 
         var response = await _client.PostAsync($"https://users.nexusmods.com/oauth/token", content, cancel);
 
-        if (!response.IsSuccessStatusCode) 
+        if (!response.IsSuccessStatusCode)
             _logger.LogError("Nexus OAuth Token refresh failed: {ResponseReasonPhrase}", response.ReasonPhrase);
-        
-        var responseString = await response.Content.ReadAsStringAsync(cancel);
-        var newJwt = JsonSerializer.Deserialize<JwtTokenReply>(responseString);
-        if (newJwt != null) 
-            newJwt.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
-        
+
+        var newJwt = response.IsSuccessStatusCode ? await ReadJwt(response, cancel) : null;
+        if (string.IsNullOrWhiteSpace(newJwt?.AccessToken))
+        {
+            // Nothing usable came back, so nothing is written: the refresh token that is stored may well
+            // work on the next attempt, and it is the only way back to a login without the browser.
+            _logger.LogWarning("Keeping the stored Nexus login: the refresh returned no access token");
+            return Unusable(state);
+        }
+
+        newJwt.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
         state.OAuth = newJwt;
         await AuthInfo.SetToken(state);
         return state;
+    }
+
+    /// <summary>A body that is not the reply we asked for is a refusal like any other, not an exception.</summary>
+    private async Task<JwtTokenReply?> ReadJwt(HttpResponseMessage response, CancellationToken cancel)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<JwtTokenReply>(await response.Content.ReadAsStringAsync(cancel));
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Nexus OAuth Token refresh returned something that is not a token");
+            return null;
+        }
+    }
+
+    /// <summary>
+    ///     The login as it is, minus anything to authenticate with, and deliberately not stored.
+    /// </summary>
+    private static NexusOAuthState Unusable(NexusOAuthState state)
+    {
+        return new NexusOAuthState {OAuth = null, ApiKey = state.ApiKey};
     }
 
     public async Task<(UpdateEntry[], ResponseMetadata headers)> GetUpdates(Game game, CancellationToken token)

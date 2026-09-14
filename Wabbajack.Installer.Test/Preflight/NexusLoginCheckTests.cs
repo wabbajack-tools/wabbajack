@@ -104,6 +104,47 @@ public class NexusLoginCheckTests : IDisposable
         Assert.Contains("1 file this install still needs", result.Message);
     }
 
+    /// <summary>
+    ///     The state of things after a plan has been computed: the mirror reroute has rewritten the archive's
+    ///     state to a Nexus one and recorded the name. This check asks what the modlist needs a login for, and
+    ///     the answer has not changed - a rerouted Nexus download goes to the manual queue with its file page,
+    ///     so halting the run over it on a second pass would contradict the pass that queued it.
+    /// </summary>
+    [Fact]
+    public async Task ANexusStateAMirrorRerouteIntroducedIsNotALoginTheListNeeds()
+    {
+        var mirrored = await PreflightTestHost.ArchiveFor("mirrored.7z", "mirrored bytes");
+        _host.Config.ModList.Archives = new[] {mirrored};
+        var ctx = Context();
+        mirrored.State = new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 7, FileID = 7};
+        ctx.State.Rerouted.Add(mirrored.Name);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Contains("this list has no Nexus Mods files", result.Message);
+        Assert.Equal(0, _host.Nexus.Calls);
+        Assert.Null(ctx.State.Nexus);
+    }
+
+    /// <summary>And it hides nothing: the list's own Nexus files still ask, and the count is only theirs.</summary>
+    [Fact]
+    public async Task ARerouteDoesNotHideTheListsOwnNexusFiles()
+    {
+        await WithNexusArchives();
+        var mirrored = await PreflightTestHost.ArchiveFor("mirrored.7z", "mirrored bytes");
+        _host.Config.ModList.Archives = _host.Config.ModList.Archives.Append(mirrored).ToArray();
+        var ctx = Context();
+        mirrored.State = new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 7, FileID = 7};
+        ctx.State.Rerouted.Add(mirrored.Name);
+        _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.None);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.Contains("Log in to Nexus Mods to download 2 files", result.Message);
+    }
+
     [Fact]
     public async Task NoTokenNeedsTheUserToLogIn()
     {
