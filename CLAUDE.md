@@ -96,15 +96,36 @@ made to rehash a downloads folder.
 
 ## Preflight
 
-`Wabbajack.Installer/Preflight` runs a checklist before an install starts: Nexus login and premium status,
-game installed, game files, archive inventory, unsupported archives, manual downloads, automated downloads,
-disk space. `PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
+`Wabbajack.Installer/Preflight` runs a checklist before an install starts: game installed (100), game files
+(200), archive inventory (300), unsupported archives (400), Nexus login and premium status (500), manual
+downloads (600), automated downloads (700), disk space (900).
+`PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
 DI as `IPreflightCheck` and run in `Order` (100–900, gaps left on purpose), each declaring `DependsOn`. A
-check that fails or needs the user makes its dependents `Skipped`; `RunCheck(id)` re-runs one and resets
-what depends on it. The engine has no UI and no DynamicData anywhere. The runner is event-based: it raises
+dependent whose dependency has not passed is marked `Skipped` when its turn comes; everything the halt rule
+below never reached stays `Pending`. `RunCheck(id)` re-runs one and resets what depends on it. The engine
+has no UI and no DynamicData anywhere. The runner is event-based: it raises
 plain events (`CheckChanged`, `ArchiveChanged`, `ManualQueueChanged`, `RunFinished`) and offers snapshots;
 hosts project those however they like. The acquirer exposes `IObservable`s via `System.Reactive` (already
 a transitive dependency).
+
+**A run stops at the first check the user has to act on.** `PreflightRunner.StopsRun` is the rule: `Failed`
+always stops; `NeedsUser` stops unless the check sets `IPreflightCheck.NeedsUserStopsRun` to false; nothing
+else does. Past a failure the checklist is describing an install the user is not going to get, and the work
+it does to say so — hashing a game folder, walking a downloads folder, downloading archives — is work they
+then watch happen twice. The two download checks are the exceptions: `NeedsUser` is their ordinary ending
+(the user has files to fetch, which is work rather than a mistake), so the run carries on to disk-space. A
+`Warning` never stops a run, acknowledged or not — the user decides, and should decide with the whole
+checklist in front of them. What did not run stays `Pending`, not `Skipped`: "Skipped because X did not
+pass" belongs to a dependent. Every way back in — retry, rescan, acknowledge, pick a game folder — ends in
+`RunAll`, which picks the `Pending` ones up where the stopped run left them.
+
+Because a halt is that blunt, **a check that stops a run has to ask about work the user actually has left.**
+nexus-login is why the rule reads that way: at Order 100 with no dependencies it stopped an un-logged-in
+user at the first row, before they had learned whether their game was installed or what was already on
+disk, and its "N files" came from every Nexus archive in the modlist rather than the missing ones — so a
+user whose downloads folder was already complete was halted over files nobody was going to fetch. It now
+runs at 500, after archive-inventory and unsupported-archives, and asks about `Missing`: no missing Nexus
+archive means "not needed" and the run carries on. The download checks still depend on it.
 
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every
@@ -114,23 +135,83 @@ type**, never by which downloader the dispatcher would choose.
 
 **Manual downloads run before automated ones** (600 then 700, disk space still last): the user does the part
 that needs their hands first, then walks away while the rest is fetched. manual-downloads depends on
-archive-inventory, nexus-login and unsupported-archives; automated-downloads depends on manual-downloads.
+archive-inventory, unsupported-archives and nexus-login; automated-downloads depends on manual-downloads.
 The split both work from is `Rules/DownloadPlan` — the allow-list and mirror load, the mirror reroute, the
 Nexus premium probe, the automated/manual partition and the screening of what came out automated — computed
 on demand by whichever of them asks first and memoised on the blackboard, so the probe and the policy load
 happen once per run. Computing it also fills the manual queue with everything it means to send to the
 browser. Writing `RequiredArchives` throws the memo away, so re-running archive-inventory repartitions
-against the new answer.
+against the new answer, and so does a change to the Nexus premium answer — a free account that logs in again
+as premium would otherwise keep the split made while it was free, and be told to fetch by hand what the app
+can now download. The manual queue goes with the plan, since the queue is what that plan sent to the browser.
+Re-probing the same account changes nothing and costs nothing.
+
+The reroute rewrites the modlist's own `Archive.State`, so after a plan has been computed the list looks as
+though it always carried the mirror's states. `PreflightBlackboard.Rerouted` records what was rewritten, and
+nexus-login ignores those: otherwise a list with no Nexus files of its own passes "this list has no Nexus
+Mods files" on the first pass and halts for a login on the second, contradicting the rule the reroute path
+is built on — a rerouted Nexus download without a login goes to the manual queue rather than stopping the
+run.
 
 Splitting by state type is only half of it. An archive whose state is automated still needs a downloader the
 dispatcher has, one that will `Prepare()`, and a URL the allow-list permits, and none of those takes a
 download to establish, so `ArchiveDownloadPipeline.Screen` settles them while the plan is being computed.
-That matters because the two can disagree: `NexusApiLoginProbe` counts `NEXUS_API_KEY` as a login while
-`NexusDownloader.Prepare` only looks at the stored token, so an account the probe calls premium can still
-have nothing to download with. Screened out at plan time, those archives reach the manual queue before
-manual-downloads reads it; screened out later, they would arrive after it had already passed and reported
-nothing to do by hand. `ManualDownloadsCheck` reads the queue only after asking for the plan for the same
-reason — the only shortcut past it is nothing missing at all.
+Screened out at plan time, those archives reach the manual queue before manual-downloads reads it; screened
+out later, they would arrive after it had already passed and reported nothing to do by hand.
+`ManualDownloadsCheck` reads the queue only after asking for the plan for the same reason — the only
+shortcut past it is nothing missing at all.
+
+**One definition of being logged in to Nexus Mods, and it is the downloader's.** `NexusCredential.CanDownload`
+in `Wabbajack.Networking.NexusApi` is it, over the `NexusCredentialSource` that `NexusApi.CredentialSource()`
+resolves from the same code that builds the request headers. `NexusDownloader.Prepare` and
+`NexusApiLoginProbe` both ask it and nothing else. They used to decide separately, and disagreed over
+`NEXUS_API_KEY`: `NexusApi` falls back to that variable for its own calls, so the probe validated with it and
+reported a premium login, while `Prepare` — which reads the stored OAuth state before every download, and
+whose `ITokenProvider.Get` throws when nothing is stored — returned false and sent every Nexus archive to the
+browser. A green "logged in" row and a pile of manual links. The variable stays the CLI's and the test
+suite's way into the raw API; it is simply not a login. Whatever `NexusLoginCheck` reports has to be
+something the download path can deliver, and the row says *how* the user is authenticated: a stored API key
+reads "Logged in as X (API key)", and `NEXUS_API_KEY` with nothing stored reads as logged out with a detail
+naming the variable, because the variable working everywhere else is exactly what makes it confusing. The
+WPF Nexus tile (`NexusLoginManager`) asks the same predicate rather than testing the stored token itself,
+which is what kept a stored API key reading "logged out" there and "Logged in (API key)" in preflight.
+The predicate is true for a credential Nexus has since revoked, so `TriggerLogin` carries no `canExecute`:
+"your login has expired, log in again" is a row whose `LoggedIn` is true, and a `ReactiveCommand` that
+refuses puts the refusal in `ThrownExceptions`, which nothing here observes and which surfaces on the UI
+thread. Nothing executes a sibling command either — `ToggleLogin` calls the work directly. That button is
+the tile's only one, so it falls through to the login when logging out cannot change anything: `LoggedIn`
+means a usable credential is in reach, not that there is a file to delete, and a host that supplies
+`NEXUS_OAUTH_INFO` would otherwise get a button reading "Log out" for ever. A login stored by the browser
+shadows the variable, so that fall-through is a real way out. One login window at a time, too —
+`MainWindowVM` serialises browser windows, so a second request would open behind the first rather than
+being dropped.
+
+A source is only reported when there is something to send with it. `GetAuthInfo` rejects an empty API key
+either side, and equally an OAuth state carrying no access token — which is not hypothetical: a refused
+refresh deserializes the error body into a `JwtTokenReply` with a null `access_token`, and older versions
+stored that over the login, so a user may already have one. Reported as `OAuth` it would pass `CanDownload`
+and then throw out of `AddAuthHeaders` on the first real request. The stored API key in the same state is
+still a login; the environment variable is not consulted, because a stored login shadows it whether or not
+it turned out to be usable. `NexusCredentialTests` is the table.
+
+**A refusal from the token endpoint must not write anything.** Both places that talk to it follow the same
+rule. `RefreshToken` stores only a reply that actually carries an access token, and hands the caller a copy
+with nothing to send for this call; `NexusLoginHandler.StateToStore` decides the same thing for the login
+window, and keeps the stored `ApiKey`, which that exchange says nothing about. Storing the failure
+destroyed a login whose refresh token the next attempt might have used — and since the login tile reads the
+credential from its own constructor and its Log in button now works while logged in, both paths are
+reachable with a working login to lose. Neither throws: a browser operation is driven from an `async void`
+handler.
+
+A refused refresh also stands for `RefreshRetryDelay` (a minute) before another is attempted. `GetAuthInfo`
+refreshes an expired token on the way to every authenticated call, so an offline machine would otherwise
+post a doomed refresh once per request; the old behaviour hid that by writing the failure and never trying
+again at all.
+
+`CanDownload` answers "can this machine download from Nexus Mods" and nothing else; the collection upload
+and download paths build their own GraphQL requests with `Authorization: Bearer`, so they need an unexpired
+OAuth access token specifically and read the stored state for one. A stored API key passes `CanDownload`
+and would fail there.
 
 An automated download can still turn out to need a browser once it is running — a
 `ManualDownloadRequiredException`, a stall, a server refusal, bytes that do not hash — which fills a queue

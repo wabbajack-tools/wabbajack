@@ -37,7 +37,11 @@ public class NexusDownloader : ADownloader<Nexus>, IUrlDownloader
 
     public override async Task<bool> Prepare()
     {
-        if (!_api.AuthInfo.HaveToken()) return false;
+        // The one definition of "logged in", shared with preflight's Nexus login check. Testing the token
+        // provider here directly is what let the two drift: NexusApi falls back to NEXUS_API_KEY for its own
+        // calls, this downloader cannot use that fallback, and preflight ended up reporting a login that
+        // produced nothing but manual downloads.
+        if (!(await _api.CredentialSource()).CanDownload()) return false;
 
         await EnsureLoginStillValid();
         return true;
