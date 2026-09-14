@@ -37,6 +37,17 @@ public class CommandLineBuilder
             d => new Option<int>(d.Aliases, description: d.Description)
         },
         {
+            // Steam app and depot ids. Unsigned because that is what Steam calls them, and an id that
+            // happens to be past int.MaxValue should not need a second thought.
+            typeof(uint),
+            d => new Option<uint>(d.Aliases, description: d.Description)
+        },
+        {
+            // Steam manifest ids, which are routinely larger than a long.
+            typeof(ulong),
+            d => new Option<ulong>(d.Aliases, description: d.Description)
+        },
+        {
             typeof(AbsolutePath),
                 d => new Option<AbsolutePath>(
                     d.Aliases,
