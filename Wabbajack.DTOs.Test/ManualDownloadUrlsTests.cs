@@ -59,6 +59,37 @@ public class ManualDownloadUrlsTests
                 new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 51939, FileID = 212497},
                 "https://www.nexusmods.com/skyrimspecialedition/mods/51939?tab=files&file_id=212497", "Nexus Mods", "Download the file from this page"
             },
+            // The shape the file link has to have, spelled out: the mod page alone is not enough, and the
+            // query string is the only part of it that names the file.
+            new object[]
+            {
+                new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 266, FileID = 209150},
+                "https://www.nexusmods.com/skyrimspecialedition/mods/266?tab=files&file_id=209150", "Nexus Mods", "Download the file from this page"
+            },
+            // No file id recorded. file_id=0 selects nothing, so the Files tab on its own is the most
+            // specific page that still resolves, and the user is told they have to find the file there.
+            new object[]
+            {
+                new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 266},
+                "https://www.nexusmods.com/skyrimspecialedition/mods/266?tab=files", "Nexus Mods",
+                "This list doesn't record which file, so find it by name in the Files tab"
+            },
+            // Terraria is one of the two games the registry gives no NexusName; without the fallback this
+            // would be https://www.nexusmods.com//mods/2547, which resolves to nothing. The domain is worked
+            // out from the game's name and is therefore a good guess rather than a fact, so the card says so
+            // instead of promising the page is there.
+            new object[]
+            {
+                new Nexus {Game = Game.Terraria, ModID = 2547, FileID = 10432},
+                "https://www.nexusmods.com/terraria/mods/2547?tab=files&file_id=10432", "Nexus Mods",
+                "Wabbajack has no Nexus address recorded for this game, so if this page doesn't open, search Nexus Mods for the file by name"
+            },
+            new object[]
+            {
+                new Nexus {Game = Game.KarrynsPrison, ModID = 61},
+                "https://www.nexusmods.com/karrynsprison/mods/61?tab=files", "Nexus Mods",
+                "Wabbajack has no Nexus address recorded for this game and this list doesn't record which file, so you may have to search Nexus Mods for it by name"
+            },
             new object[]
             {
                 new LoversLab {IPS4Mod = 11116, IPS4File = "WABBAJACK_TEST_FILE.zip"},
@@ -111,5 +142,60 @@ public class ManualDownloadUrlsTests
         Assert.Equal(url, target.Url.ToString());
         Assert.Equal(siteName, target.SiteName);
         Assert.Equal(instructions, target.Instructions);
+    }
+
+    /// <summary>
+    ///     No game may produce a Nexus URL that resolves to nothing. Every game in the registry bar two has
+    ///     a NexusName; the two that do not fall back to their own name, and the thing to catch is an empty
+    ///     domain leaving "https://www.nexusmods.com//mods/1".
+    /// </summary>
+    [Fact]
+    public void EveryGameProducesAReachableNexusFilePage()
+    {
+        foreach (var game in GameRegistry.Games.Keys)
+        {
+            Assert.True(ManualDownloadUrls.TryGet(new Nexus {Game = game, ModID = 1, FileID = 2}, out var target));
+
+            var url = target!.Url;
+            Assert.Equal("www.nexusmods.com", url.Host);
+            Assert.DoesNotContain("//mods/", url.AbsolutePath + url.Query);
+            Assert.EndsWith("/mods/1", url.AbsolutePath);
+            Assert.Equal("?tab=files&file_id=2", url.Query);
+        }
+    }
+
+    /// <summary>
+    ///     The mod link on the state itself and the file link built here are two different pages, but they
+    ///     have to agree about which game they are on: both go through <see cref="GameMetaData.NexusDomain" />
+    ///     so that the empty-domain case cannot be fixed in one and left in the other.
+    /// </summary>
+    [Fact]
+    public void TheModLinkAndTheFileLinkAgreeOnTheGame()
+    {
+        foreach (var game in GameRegistry.Games.Keys)
+        {
+            var state = new Nexus {Game = game, ModID = 7, FileID = 8};
+            Assert.True(ManualDownloadUrls.TryGet(state, out var target));
+
+            Assert.Equal($"https://www.nexusmods.com/{game.MetaData().NexusDomain}/mods/7", state.LinkUrl!.AbsoluteUri);
+            Assert.StartsWith($"https://www.nexusmods.com/{game.MetaData().NexusDomain}/mods/7?", target!.Url.AbsoluteUri);
+            Assert.DoesNotContain("//mods/", state.LinkUrl.AbsolutePath);
+        }
+    }
+
+    /// <summary>
+    ///     What a host hands the browser has to be the whole URL. This is the shape the owner asked for,
+    ///     checked through <see cref="Uri.AbsoluteUri" /> because that is what the shell is given: the
+    ///     failure this pins was a host passing the URL through <c>cmd /c start</c>, where an unquoted
+    ///     <c>&amp;</c> is a command separator and the link arrived as the mod's Files tab with no file on it.
+    /// </summary>
+    [Fact]
+    public void TheNexusFileLinkSurvivesAsOnePiece()
+    {
+        Assert.True(ManualDownloadUrls.TryGet(
+            new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 266, FileID = 209150}, out var target));
+
+        Assert.Equal("https://www.nexusmods.com/skyrimspecialedition/mods/266?tab=files&file_id=209150",
+            target!.Url.AbsoluteUri);
     }
 }
