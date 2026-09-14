@@ -349,7 +349,12 @@ public class AutomatedDownloadsCheckTests : IDisposable
         Assert.Equal(1, _host.Nexus.Calls);
         Assert.Equal(0, _host.Server.Attempts(mirror));
         var item = QueueItem(ctx, "rerouted.7z");
-        Assert.Contains("nexusmods.com", item.Target.Url.ToString());
+        // A rerouted archive carries the mirror's Nexus state, which is built here rather than read from
+        // the list, so it is worth pinning that it still reaches the browser as a file link and not as the
+        // mod page.
+        Assert.Equal(
+            $"https://www.nexusmods.com/skyrimspecialedition/mods/{mirror.ModID}?tab=files&file_id={mirror.FileID}",
+            item.Target.Url.AbsoluteUri);
         Assert.Contains("premium", item.Reason);
         Assert.Equal(ArchiveState.ManualRequired, _progress.LastStates()["rerouted.7z"]);
     }
