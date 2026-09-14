@@ -17,11 +17,11 @@ public static class ServiceExtensions
     /// </summary>
     public static IServiceCollection AddPreflight(this IServiceCollection services)
     {
-        services.AddSingleton<IPreflightCheck, NexusLoginCheck>();
         services.AddSingleton<IPreflightCheck, GameInstalledCheck>();
         services.AddSingleton<IPreflightCheck, GameFilesCheck>();
         services.AddSingleton<IPreflightCheck, ArchiveInventoryCheck>();
         services.AddSingleton<IPreflightCheck, UnsupportedArchivesCheck>();
+        services.AddSingleton<IPreflightCheck, NexusLoginCheck>();
         services.AddSingleton<IPreflightCheck, AutomatedDownloadsCheck>();
         services.AddSingleton<IPreflightCheck, ManualDownloadsCheck>();
         services.AddSingleton<IPreflightCheck, DiskSpaceCheck>();

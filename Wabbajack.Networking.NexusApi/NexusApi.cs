@@ -32,9 +32,12 @@ public class NexusApi
     private readonly ILogger<NexusApi> _logger;
     public readonly ITokenProvider<NexusOAuthState> AuthInfo;
     private DateTime _lastValidated;
-    private (ValidateInfo info, ResponseMetadata header) _lastValidatedInfo; 
+    private (ValidateInfo info, ResponseMetadata header) _lastValidatedInfo;
     private readonly AsyncLock _authLock = new();
     private readonly AsyncLock _authValidationLock = new();
+
+    /// <summary>When the last refresh was refused. Read and written under <see cref="_authLock" />.</summary>
+    private DateTime _lastRefreshFailure = DateTime.MinValue;
 
     public NexusApi(ITokenProvider<NexusOAuthState> authInfo, ILogger<NexusApi> logger, HttpClient client,
         IResource<HttpClient> limiter, ApplicationInfo appInfo, JsonSerializerOptions jsonOptions)
@@ -49,10 +52,22 @@ public class NexusApi
         _lastValidatedInfo = default;
     }
 
+    /// <summary>
+    ///     Which credential this API would authenticate with right now, resolved by the same code that builds
+    ///     the request headers. <c>NexusDownloader.Prepare</c> and preflight's Nexus login check both go
+    ///     through this and <see cref="NexusCredential.CanDownload" />, so neither can claim a login the other
+    ///     would not honour.
+    /// </summary>
+    public virtual async ValueTask<NexusCredentialSource> CredentialSource()
+    {
+        return (await GetAuthInfo()).Source;
+    }
+
     public virtual async Task<(ValidateInfo info, ResponseMetadata header)> Validate(
         CancellationToken token = default)
     {
-        var (isApi, code) = await GetAuthInfo();
+        var (source, _) = await GetAuthInfo();
+        var isApi = source is NexusCredentialSource.StoredApiKey or NexusCredentialSource.EnvironmentApiKey;
 
         using var _ = await _authValidationLock.WaitAsync();
 
@@ -220,11 +235,11 @@ public class NexusApi
     
     private async ValueTask AddAuthHeaders(HttpRequestMessage msg)
     {
-        var (isApi, code) = await GetAuthInfo();
+        var (source, code) = await GetAuthInfo();
         if (string.IsNullOrWhiteSpace(code))
             throw new Exception("No API Key or OAuth Token found for NexusMods");
-        
-        if (isApi)
+
+        if (source is NexusCredentialSource.StoredApiKey or NexusCredentialSource.EnvironmentApiKey)
             msg.Headers.Add("apikey", code);
         else
         {
@@ -233,7 +248,12 @@ public class NexusApi
 
     }
 
-    private async ValueTask<(bool IsApiKey, string code)> GetAuthInfo()
+    /// <summary>
+    ///     The single place that decides what this API authenticates with. Every caller that wants to know
+    ///     whether there is a login - not just whether a call would go out - reads the source it returns
+    ///     rather than testing <see cref="AuthInfo" /> for itself.
+    /// </summary>
+    private async ValueTask<(NexusCredentialSource Source, string code)> GetAuthInfo()
     {
         using var _ = await _authLock.WaitAsync();
         if (AuthInfo.HaveToken())
@@ -243,49 +263,126 @@ public class NexusApi
             {
                 if (info.OAuth.IsExpired)
                     info = await RefreshToken(info, CancellationToken.None);
-                return (false, info.OAuth!.AccessToken!);
+
+                // The same rule the API key gets, for the same reason. A refresh Nexus refuses hands back a
+                // state with nothing to send (the stored one is left alone, see RefreshToken), and older
+                // versions of this app wrote that emptied state to disk, so it is also what a user may
+                // already have stored. An OAuth state is therefore not by itself a credential, and reporting
+                // one would put the lie back where it was: CanDownload true, and the first real request
+                // throwing from AddAuthHeaders.
+                if (!string.IsNullOrWhiteSpace(info.OAuth?.AccessToken))
+                    return (NexusCredentialSource.OAuth, info.OAuth.AccessToken!);
             }
+
+            // A stored API key is still a login when the OAuth half of the same state is unusable.
             if (!string.IsNullOrWhiteSpace(info.ApiKey))
             {
-                return (true, info.ApiKey);
+                return (NexusCredentialSource.StoredApiKey, info.ApiKey);
             }
         }
         else
         {
-            if (Environment.GetEnvironmentVariable("NEXUS_API_KEY") is { } apiKey)
+            // Whitespace is treated as nothing: an empty variable would otherwise read as a credential and
+            // only fail once a request was being built.
+            if (Environment.GetEnvironmentVariable("NEXUS_API_KEY") is { } apiKey &&
+                !string.IsNullOrWhiteSpace(apiKey))
             {
-                return (true, apiKey);
+                return (NexusCredentialSource.EnvironmentApiKey, apiKey);
             }
         }
 
-        return default;
+        return (NexusCredentialSource.None, string.Empty);
     }
     
+    /// <summary>
+    ///     Trades the refresh token for a new access token, and writes the stored login only when one came
+    ///     back. A refusal used to be stored anyway: the error body deserializes into a reply whose
+    ///     <c>access_token</c> is null, and that went over the top of a login the next attempt might have
+    ///     refreshed perfectly well. Nexus being briefly unreachable, or a laptop opened before its network
+    ///     is up, is enough - and since the WPF login tile reads the credential as it is constructed, that
+    ///     now happens when the app starts rather than only when something is downloaded.
+    ///     <para>
+    ///         A failure still has to read as no OAuth credential for this call, so what comes back is a copy
+    ///         with nothing to send rather than the stored state. The API key half of the same login is
+    ///         carried over, because <see cref="GetAuthInfo" /> falls through to it.
+    ///     </para>
+    /// </summary>
     private async Task<NexusOAuthState> RefreshToken(NexusOAuthState state, CancellationToken cancel)
     {
+        // A refusal is taken at its word for a while. Every authenticated call comes through here while the
+        // stored token is expired, so without this a machine that is offline, or holding a token Nexus has
+        // revoked, posts a doomed refresh once per request - which the old behaviour hid by writing the
+        // failure and never trying again at all.
+        if (DateTime.UtcNow - _lastRefreshFailure < RefreshRetryDelay)
+            return Unusable(state);
+
+        if (string.IsNullOrWhiteSpace(state.OAuth?.RefreshToken))
+        {
+            _logger.LogError("The stored Nexus login has expired and carries no refresh token");
+            _lastRefreshFailure = DateTime.UtcNow;
+            return Unusable(state);
+        }
+
         _logger.LogInformation("Refreshing OAuth Token");
         var request = new Dictionary<string, string>
         {
             { "grant_type", "refresh_token" },
             { "client_id", "wabbajack" },
-            { "refresh_token", state.OAuth!.RefreshToken },
+            { "refresh_token", state.OAuth.RefreshToken },
         };
 
         var content = new FormUrlEncodedContent(request);
 
         var response = await _client.PostAsync($"https://users.nexusmods.com/oauth/token", content, cancel);
 
-        if (!response.IsSuccessStatusCode) 
+        if (!response.IsSuccessStatusCode)
             _logger.LogError("Nexus OAuth Token refresh failed: {ResponseReasonPhrase}", response.ReasonPhrase);
-        
-        var responseString = await response.Content.ReadAsStringAsync(cancel);
-        var newJwt = JsonSerializer.Deserialize<JwtTokenReply>(responseString);
-        if (newJwt != null) 
-            newJwt.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
-        
+
+        var newJwt = response.IsSuccessStatusCode ? await ReadJwt(response, cancel) : null;
+        if (string.IsNullOrWhiteSpace(newJwt?.AccessToken))
+        {
+            // Nothing usable came back, so nothing is written: the refresh token that is stored may well
+            // work on the next attempt, and it is the only way back to a login without the browser.
+            _logger.LogWarning("Keeping the stored Nexus login: the refresh returned no access token");
+            _lastRefreshFailure = DateTime.UtcNow;
+            return Unusable(state);
+        }
+
+        newJwt.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
         state.OAuth = newJwt;
+        _lastRefreshFailure = DateTime.MinValue;
         await AuthInfo.SetToken(state);
         return state;
+    }
+
+    /// <summary>
+    ///     How long a refused refresh stands before another is attempted. Long enough that a run of
+    ///     downloads does not re-post a doomed refresh once per request, short enough that a user who
+    ///     reconnects is not held to a stale answer. A login stored by the browser is not affected either
+    ///     way: it is not expired, so nothing here is asked about it.
+    /// </summary>
+    protected virtual TimeSpan RefreshRetryDelay => TimeSpan.FromMinutes(1);
+
+    /// <summary>A body that is not the reply we asked for is a refusal like any other, not an exception.</summary>
+    private async Task<JwtTokenReply?> ReadJwt(HttpResponseMessage response, CancellationToken cancel)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<JwtTokenReply>(await response.Content.ReadAsStringAsync(cancel));
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Nexus OAuth Token refresh returned something that is not a token");
+            return null;
+        }
+    }
+
+    /// <summary>
+    ///     The login as it is, minus anything to authenticate with, and deliberately not stored.
+    /// </summary>
+    private static NexusOAuthState Unusable(NexusOAuthState state)
+    {
+        return new NexusOAuthState {OAuth = null, ApiKey = state.ApiKey};
     }
 
     public async Task<(UpdateEntry[], ResponseMetadata headers)> GetUpdates(Game game, CancellationToken token)

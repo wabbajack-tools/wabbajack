@@ -33,6 +33,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Downloaders.Nexus\Wabbajack.Downloaders.Nexus.csproj" />
+        <ProjectReference Include="..\Wabbajack.Installer\Wabbajack.Installer.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Http.Interfaces\Wabbajack.Networking.Http.Interfaces.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.NexusApi\Wabbajack.Networking.NexusApi.csproj" />
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />

@@ -20,7 +20,7 @@ public sealed class ArchiveInventoryCheck : IPreflightCheck
 {
     public string Id => PreflightCheckIds.ArchiveInventory;
     public string Title => "Archives on disk";
-    public int Order => 400;
+    public int Order => 300;
     public IReadOnlyList<string> DependsOn => new[] {PreflightCheckIds.GameInstalled};
 
     public async Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token)
