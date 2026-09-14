@@ -4,9 +4,14 @@ namespace Wabbajack.Networking.Steam;
 ///     Holds manifest request codes for as long as they are worth reusing.
 ///     Since 2022 a manifest cannot be fetched from a content server without one of these, and they are
 ///     short lived. Valve publishes no lifetime; the reference implementation refreshes on a five minute
-///     clock and its own comment admits the number is a guess. So this treats the lifetime as an estimate
-///     and takes a deliberately shorter one -- a code fetched a second time costs one round trip, while a
-///     code that expired mid-download costs the download.
+///     clock and its own comment admits the number is a guess.
+///     Measured once, against depot 489831 of Skyrim Special Edition: a single code was still accepted 25
+///     minutes after it was issued, on every attempt at one minute intervals. That does not establish a
+///     lifetime -- the server answering was a SteamCache, which may well have served the manifest from its
+///     own cache without revalidating the code -- but it does say the five minute figure is conservative
+///     rather than tight. The estimate here is deliberately shorter still, because the costs are lopsided:
+///     a code fetched a second time costs one round trip, while a code that expired mid-download costs the
+///     download.
 /// </summary>
 public sealed class ManifestRequestCodeCache
 {

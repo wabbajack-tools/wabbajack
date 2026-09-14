@@ -336,12 +336,15 @@ public class SteamContentClient : IDisposable
 
                 await chunks.OrderBy(c => c.Offset).PDoAll(async chunk =>
                 {
+                    // The job comes first and the buffer second. A chunk is about a megabyte, and a large
+                    // file has thousands of them; renting before waiting on the limiter would have every
+                    // chunk in the file holding a buffer while only a handful were downloading.
+                    using var job = await _limiter.Begin($"Downloading a chunk of {file.FileName}",
+                        chunk.CompressedLength, token).ConfigureAwait(false);
+
                     var buffer = ArrayPool<byte>.Shared.Rent((int) chunk.UncompressedLength);
                     try
                     {
-                        using var job = await _limiter.Begin($"Downloading a chunk of {file.FileName}",
-                            chunk.CompressedLength, token).ConfigureAwait(false);
-
                         var written = await WithServerAsync(appId, depotId,
                             (server, proxy, authToken) => cdn.DownloadDepotChunkAsync(depotId, chunk, server,
                                 buffer, depotKey, proxy, authToken), token).ConfigureAwait(false);

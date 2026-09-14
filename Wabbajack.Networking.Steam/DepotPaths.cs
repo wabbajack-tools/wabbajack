@@ -76,12 +76,10 @@ public static class DepotPaths
     {
         var candidates = files.Where(f => !f.Flags.HasFlag(EDepotFileFlag.Directory)).ToArray();
 
-        var exact = candidates.Where(f => AreSame(f.FileName, wanted)).ToArray();
-        if (exact.Length == 1) return exact[0];
-
-        // Two files whose normalised paths are equal can only differ in case, which no Windows install can
-        // hold at once. Take the first rather than refusing.
-        if (exact.Length > 1) return exact[0];
+        // Two entries whose normalised paths are equal can only differ in case, and no Windows install can
+        // hold both at once, so the first is as good an answer as any.
+        var exact = candidates.FirstOrDefault(f => AreSame(f.FileName, wanted));
+        if (exact != null) return exact;
 
         var suffix = candidates.Where(f => EndsWithPath(f.FileName, wanted)).ToArray();
         return suffix.Length == 1 ? suffix[0] : null;
