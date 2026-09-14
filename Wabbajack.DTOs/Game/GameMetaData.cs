@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices.JavaScript;
 using Wabbajack.Paths;
 
@@ -13,6 +14,17 @@ public class GameMetaData
     public string? MO2ArchiveName { get; internal init; }
 
     public string? NexusName { get; internal init; }
+
+    /// <summary>
+    ///     The game's address on Nexus Mods: the segment in <c>https://www.nexusmods.com/{domain}/mods/{id}</c>.
+    ///     <see cref="NexusName" /> where the registry records one, and where it does not - Terraria and
+    ///     Karryn's Prison are the only two - the game's own name stripped to letters and digits and
+    ///     lowercased, which is how Nexus spells both of those. Never empty, so nothing builds a
+    ///     <c>//mods/</c> URL with no domain in it, which resolves to nothing.
+    /// </summary>
+    public string NexusDomain => string.IsNullOrWhiteSpace(NexusName)
+        ? new string(Game.ToString().Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant()
+        : NexusName;
 
     // Nexus DB id for the game, used in some specific situations
     public long NexusGameId { get; internal init; }

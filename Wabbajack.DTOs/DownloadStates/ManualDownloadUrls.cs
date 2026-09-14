@@ -48,9 +48,7 @@ public static class ManualDownloadUrls
                     "Google Drive", DefaultInstructions);
                 return true;
             case Nexus nexus:
-                target = new ManualDownloadTarget(
-                    new Uri($"https://www.nexusmods.com/{nexus.Game.MetaData().NexusName}/mods/{nexus.ModID}?tab=files&file_id={nexus.FileID}"),
-                    "Nexus Mods", DefaultInstructions);
+                target = NexusTarget(nexus);
                 return true;
             case LoversLab loversLab:
                 target = Ips4(LoversLabSite, "Lovers Lab", loversLab);
@@ -62,6 +60,42 @@ public static class ManualDownloadUrls
                 target = null;
                 return false;
         }
+    }
+
+    /// <summary>
+    ///     The file's own page on Nexus: the mod's Files tab with that file selected. The query string is
+    ///     the whole of what makes it a file link rather than a mod link, so whatever carries it to the
+    ///     browser has to keep it intact.
+    ///     <para>
+    ///         Two things can be missing from the state. <c>FileID</c> is a plain <c>long</c> whose unset
+    ///         value is zero, and <c>file_id=0</c> selects nothing; and two games in the registry carry no
+    ///         <c>NexusName</c>, which would build a <c>//mods/</c> URL with an empty domain. Neither is
+    ///         worth dropping the link over, so each falls back to the most specific page that still
+    ///         resolves, and the instructions say what the user has to do for themselves once they get
+    ///         there.
+    ///     </para>
+    /// </summary>
+    private static ManualDownloadTarget NexusTarget(Nexus nexus)
+    {
+        var meta = nexus.Game.MetaData();
+        var page = $"https://www.nexusmods.com/{meta.NexusDomain}/mods/{nexus.ModID}?tab=files";
+        var url = nexus.FileID > 0 ? new Uri($"{page}&file_id={nexus.FileID}") : new Uri(page);
+
+        // Where the domain came from matters to what the card can promise. With one from the registry the
+        // link lands where it says it does; with one worked out from the game's name it is a good guess and
+        // no more, so the card says so rather than telling the user to download from a page that may 404.
+        var named = !string.IsNullOrWhiteSpace(meta.NexusName);
+        var instructions = (nexus.FileID > 0, named) switch
+        {
+            (true, true) => DefaultInstructions,
+            (false, true) => "This list doesn't record which file, so find it by name in the Files tab",
+            (true, false) => "Wabbajack has no Nexus address recorded for this game, so if this page doesn't " +
+                             "open, search Nexus Mods for the file by name",
+            (false, false) => "Wabbajack has no Nexus address recorded for this game and this list doesn't " +
+                              "record which file, so you may have to search Nexus Mods for it by name"
+        };
+
+        return new ManualDownloadTarget(url, "Nexus Mods", instructions);
     }
 
     private static ManualDownloadTarget Ips4(string site, string siteName, IPS4OAuth2 state)
