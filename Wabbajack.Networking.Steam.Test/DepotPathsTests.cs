@@ -72,7 +72,7 @@ public class DepotPathsTests
             File("Backup\\Data\\Skyrim.esm")
         };
 
-        Assert.Equal("Data\\Skyrim.esm", DepotPaths.Find(files, "Data/Skyrim.esm")!.FileName);
+        Assert.Equal("Data\\Skyrim.esm", FoundPath(files, "Data/Skyrim.esm"));
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class DepotPathsTests
             File("SkyrimSE\\Data\\Update.esm")
         };
 
-        Assert.Equal("SkyrimSE\\Data\\Skyrim.esm", DepotPaths.Find(files, "Data\\Skyrim.esm")!.FileName);
+        Assert.Equal("SkyrimSE\\Data\\Skyrim.esm", FoundPath(files, "Data\\Skyrim.esm"));
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class DepotPathsTests
             File("SkyrimSE\\SkyrimSE.exe")
         };
 
-        Assert.Equal("SkyrimSE\\Data\\Skyrim.esm", DepotPaths.Find(files, "Skyrim.esm")!.FileName);
+        Assert.Equal("SkyrimSE\\Data\\Skyrim.esm", FoundPath(files, "Skyrim.esm"));
     }
 
     [Fact]
@@ -145,6 +145,19 @@ public class DepotPathsTests
     public void NothingMatchingIsNull()
     {
         Assert.Null(DepotPaths.Find(new[] {File("Data\\Skyrim.esm")}, "Data\\Dawnguard.esm"));
+    }
+
+    /// <summary>
+    ///     The path of the match, spelled the way a depot spells one. SteamKit rewrites
+    ///     <see cref="DepotManifest.FileData.FileName" /> to the host's directory separator, so on Linux a
+    ///     depot path comes back with forward slashes and a backslash literal would never equal it. The
+    ///     matcher's promise is about which file is found, not how the host punctuates it, so compare the
+    ///     normalised form.
+    /// </summary>
+    private static string? FoundPath(IEnumerable<DepotManifest.FileData> files, string wanted)
+    {
+        var found = DepotPaths.Find(files, wanted);
+        return found == null ? null : DepotPaths.Normalize(found.FileName);
     }
 
     private static DepotManifest.FileData File(string name, EDepotFileFlag flags = 0)
