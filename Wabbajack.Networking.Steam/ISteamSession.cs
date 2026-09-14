@@ -6,7 +6,13 @@ namespace Wabbajack.Networking.Steam;
 ///     True when the login went through a token saved from a previous session rather than a fresh
 ///     authentication, so a host can tell the user it did not need to ask them anything.
 /// </param>
-public record SteamLoginResult(string AccountName, ulong SteamId, bool UsedStoredToken);
+/// <summary>
+///     <paramref name="ExpiresAt" /> is the saved login's own expiry, read from the refresh token's
+///     <c>exp</c> claim. Steam documents no lifetime for these anywhere, so the token itself is the only
+///     thing that will say when the user has to log in again; null means it carried no usable claim.
+/// </summary>
+public record SteamLoginResult(string AccountName, ulong SteamId, bool UsedStoredToken,
+    DateTimeOffset? ExpiresAt);
 
 public enum SteamLogoutResult
 {

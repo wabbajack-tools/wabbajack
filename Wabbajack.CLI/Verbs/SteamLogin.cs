@@ -123,11 +123,24 @@ public class SteamLogin
     private void Report(SteamLoginResult result)
     {
         if (result.UsedStoredToken)
-            _logger.LogInformation("Logged into Steam as {AccountName} ({SteamId}) with the saved login",
-                result.AccountName, result.SteamId);
+            _logger.LogInformation("Logged into Steam as {AccountName} ({SteamId}) with the saved login{Expiry}",
+                result.AccountName, result.SteamId, Expiry(result));
         else
-            _logger.LogInformation("Logged into Steam as {AccountName} ({SteamId}); the login has been saved",
-                result.AccountName, result.SteamId);
+            _logger.LogInformation("Logged into Steam as {AccountName} ({SteamId}); the login has been saved{Expiry}",
+                result.AccountName, result.SteamId, Expiry(result));
+    }
+
+    /// <summary>
+    ///     Steam publishes no lifetime for a refresh token, so the token's own claim is the only thing that
+    ///     can say when the user will be asked again. Said in days because that is the decision it informs.
+    /// </summary>
+    private static string Expiry(SteamLoginResult result)
+    {
+        if (result.ExpiresAt is not { } expires) return "";
+        var days = (int) Math.Round((expires - DateTimeOffset.UtcNow).TotalDays);
+        return days > 0
+            ? $", good for about {days} more {(days == 1 ? "day" : "days")}"
+            : ", which is due to expire";
     }
 
     private static string ReadPassword(string prompt)

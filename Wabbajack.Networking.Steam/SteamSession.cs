@@ -106,7 +106,8 @@ public class SteamSession : ISteamSession
 
             await ConnectAsync(token).ConfigureAwait(false);
             var callback = await LogOnAsync(state.AccountName, state.RefreshToken, true, token).ConfigureAwait(false);
-            return new SteamLoginResult(state.AccountName, callback.ClientSteamID, true);
+            return new SteamLoginResult(state.AccountName, callback.ClientSteamID, true,
+                state.RefreshTokenExpiresAt);
         }
         catch
         {
@@ -422,12 +423,15 @@ public class SteamSession : ISteamSession
         // unverified, and the dead-credential path will not clear it: that only fires for a login that came
         // from storage, which this one did not.
         var callback = await LogOnAsync(poll.AccountName, poll.RefreshToken, false, token).ConfigureAwait(false);
-        await StoreAsync(poll).ConfigureAwait(false);
-        return new SteamLoginResult(poll.AccountName, callback.ClientSteamID, false);
+        var expiresAt = await StoreAsync(poll).ConfigureAwait(false);
+        return new SteamLoginResult(poll.AccountName, callback.ClientSteamID, false, expiresAt);
     }
 
-    private async ValueTask StoreAsync(AuthPollResult poll)
+    /// <summary>Returns the expiry that was stored, so a caller can tell the user when this runs out.</summary>
+    private async ValueTask<DateTimeOffset?> StoreAsync(AuthPollResult poll)
     {
+        var expiresAt = SteamRefreshToken.GetExpiry(poll.RefreshToken);
+
         await _tokenProvider.SetToken(new SteamLoginState
         {
             AccountName = poll.AccountName,
@@ -437,11 +441,13 @@ public class SteamSession : ISteamSession
             // stored rather than replaying a stale value.
             GuardData = poll.NewGuardData,
 
-            RefreshTokenExpiresAt = SteamRefreshToken.GetExpiry(poll.RefreshToken)
+            RefreshTokenExpiresAt = expiresAt
 
             // poll.AccessToken is deliberately not stored: it is short lived and a fresh one can always be
             // minted from the refresh token.
         }).ConfigureAwait(false);
+
+        return expiresAt;
     }
 
     private void OnConnected(SteamClient.ConnectedCallback callback)
