@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -114,6 +115,43 @@ public class NexusRefreshTokenTests
         Assert.False(store.Stored.OAuth.IsExpired);
     }
 
+    /// <summary>
+    ///     A refusal stands for a while. Every authenticated call refreshes an expired token on its way out,
+    ///     so retrying a doomed refresh each time would burn a round-trip per request - an install's worth of
+    ///     them for a machine that is simply offline. The old behaviour hid this by writing the failure to
+    ///     disk, which stopped the retries by destroying the login.
+    /// </summary>
+    [Fact]
+    public async Task ARefusedRefreshIsNotRetriedOnEveryCall()
+    {
+        var store = new RecordingTokenProvider(Expired());
+        var (api, endpoint) = Api(store, HttpStatusCode.ServiceUnavailable, "down for maintenance");
+
+        Assert.Equal(NexusCredentialSource.None, await api.CredentialSource());
+        Assert.Equal(NexusCredentialSource.None, await api.CredentialSource());
+        Assert.Equal(NexusCredentialSource.None, await api.CredentialSource());
+
+        Assert.Equal(1, endpoint.Requests);
+        Assert.Equal(0, store.Writes);
+    }
+
+    /// <summary>And it is only a while: the user who plugs the network back in is not held to it.</summary>
+    [Fact]
+    public async Task ARefusedRefreshIsRetriedOnceTheWindowHasPassed()
+    {
+        var store = new RecordingTokenProvider(Expired());
+        var (api, endpoint) = ImpatientApi(store,
+            (HttpStatusCode.ServiceUnavailable, "down for maintenance"),
+            (HttpStatusCode.OK, "{\"access_token\":\"a-new-access-token\",\"expires_in\":3600}"));
+
+        Assert.Equal(NexusCredentialSource.None, await api.CredentialSource());
+        Assert.Equal(NexusCredentialSource.OAuth, await api.CredentialSource());
+
+        Assert.Equal(2, endpoint.Requests);
+        Assert.Equal(1, store.Writes);
+        Assert.Equal("a-new-access-token", store.Stored.OAuth!.AccessToken);
+    }
+
     private static NexusOAuthState Expired(string apiKey = "")
     {
         return new NexusOAuthState
@@ -134,24 +172,50 @@ public class NexusRefreshTokenTests
     ///     An API whose only way out is <paramref name="status" /> and <paramref name="body" />. The handler
     ///     comes back with it so a test can say how many requests were made, "none" included.
     /// </summary>
-    private static (NexusApi Api, OneReply Endpoint) Api(ITokenProvider<NexusOAuthState> store,
+    private static (NexusApi Api, Endpoint Endpoint) Api(ITokenProvider<NexusOAuthState> store,
         HttpStatusCode status, string body)
     {
-        var endpoint = new OneReply(status, body);
+        var endpoint = new Endpoint((status, body));
         return (new NexusApi(store, NullLogger<NexusApi>.Instance, new HttpClient(endpoint),
             new Resource<HttpClient>("Test", 1), new ApplicationInfo(), new JsonSerializerOptions()), endpoint);
     }
 
-    /// <summary>Answers the one request this API makes without a token: the refresh.</summary>
-    private sealed class OneReply : HttpMessageHandler
+    /// <summary>
+    ///     The same, with a refresh that is willing to try again immediately. Waiting out the real window in
+    ///     a test would mean sleeping a minute; what is under test is that the window is consulted at all,
+    ///     which both this and <see cref="ARefusedRefreshIsNotRetriedOnEveryCall" /> pin from opposite sides.
+    /// </summary>
+    private static (NexusApi Api, Endpoint Endpoint) ImpatientApi(ITokenProvider<NexusOAuthState> store,
+        params (HttpStatusCode Status, string Body)[] replies)
     {
-        private readonly string _body;
-        private readonly HttpStatusCode _status;
+        var endpoint = new Endpoint(replies);
+        return (new NoRetryDelay(store, new HttpClient(endpoint)), endpoint);
+    }
 
-        public OneReply(HttpStatusCode status, string body)
+    private sealed class NoRetryDelay : NexusApi
+    {
+        public NoRetryDelay(ITokenProvider<NexusOAuthState> store, HttpClient client) : base(store,
+            NullLogger<NexusApi>.Instance, client, new Resource<HttpClient>("Test", 1), new ApplicationInfo(),
+            new JsonSerializerOptions())
         {
-            _status = status;
-            _body = body;
+        }
+
+        protected override TimeSpan RefreshRetryDelay => TimeSpan.Zero;
+    }
+
+    /// <summary>
+    ///     Answers the only request this API makes without a token: the refresh. Replies are handed out in
+    ///     order and the last one repeats, so a test says only as much as it cares about.
+    /// </summary>
+    private sealed class Endpoint : HttpMessageHandler
+    {
+        private readonly Queue<(HttpStatusCode Status, string Body)> _replies;
+        private (HttpStatusCode Status, string Body) _current;
+
+        public Endpoint(params (HttpStatusCode Status, string Body)[] replies)
+        {
+            _replies = new Queue<(HttpStatusCode, string)>(replies);
+            _current = replies[0];
         }
 
         public int Requests { get; private set; }
@@ -161,7 +225,9 @@ public class NexusRefreshTokenTests
         {
             Requests++;
             Assert.Equal("https://users.nexusmods.com/oauth/token", request.RequestUri!.ToString());
-            return Task.FromResult(new HttpResponseMessage(_status) {Content = new StringContent(_body)});
+            if (_replies.Count > 0) _current = _replies.Dequeue();
+            return Task.FromResult(new HttpResponseMessage(_current.Status)
+                {Content = new StringContent(_current.Body)});
         }
     }
 

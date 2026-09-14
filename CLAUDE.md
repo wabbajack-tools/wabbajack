@@ -102,7 +102,8 @@ downloads (600), automated downloads (700), disk space (900).
 `PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
 DI as `IPreflightCheck` and run in `Order` (100–900, gaps left on purpose), each declaring `DependsOn`. A
 dependent whose dependency has not passed is marked `Skipped` when its turn comes; everything the halt rule
-below never reached stays `Pending`. `RunCheck(id)` re-runs one and resets what depends on it. The engine has no UI and no DynamicData anywhere. The runner is event-based: it raises
+below never reached stays `Pending`. `RunCheck(id)` re-runs one and resets what depends on it. The engine
+has no UI and no DynamicData anywhere. The runner is event-based: it raises
 plain events (`CheckChanged`, `ArchiveChanged`, `ManualQueueChanged`, `RunFinished`) and offers snapshots;
 hosts project those however they like. The acquirer exposes `IObservable`s via `System.Reactive` (already
 a transitive dependency).
@@ -177,7 +178,13 @@ which is what kept a stored API key reading "logged out" there and "Logged in (A
 The predicate is true for a credential Nexus has since revoked, so `TriggerLogin` carries no `canExecute`:
 "your login has expired, log in again" is a row whose `LoggedIn` is true, and a `ReactiveCommand` that
 refuses puts the refusal in `ThrownExceptions`, which nothing here observes and which surfaces on the UI
-thread. Nothing executes a sibling command either — `ToggleLogin` calls the work directly.
+thread. Nothing executes a sibling command either — `ToggleLogin` calls the work directly. That button is
+the tile's only one, so it falls through to the login when logging out cannot change anything: `LoggedIn`
+means a usable credential is in reach, not that there is a file to delete, and a host that supplies
+`NEXUS_OAUTH_INFO` would otherwise get a button reading "Log out" for ever. A login stored by the browser
+shadows the variable, so that fall-through is a real way out. One login window at a time, too —
+`MainWindowVM` serialises browser windows, so a second request would open behind the first rather than
+being dropped.
 
 A source is only reported when there is something to send with it. `GetAuthInfo` rejects an empty API key
 either side, and equally an OAuth state carrying no access token — which is not hypothetical: a refused
@@ -187,10 +194,20 @@ and then throw out of `AddAuthHeaders` on the first real request. The stored API
 still a login; the environment variable is not consulted, because a stored login shadows it whether or not
 it turned out to be usable. `NexusCredentialTests` is the table.
 
-**A failed refresh must not write anything.** `RefreshToken` stores only a reply that actually carries an
-access token, and hands the caller a copy with nothing to send for this call. Storing the failure destroyed
-a login whose refresh token the next attempt might have used, and since the WPF login tile reads the
-credential from its own constructor, Nexus being briefly unreachable at startup was enough to trigger it.
+**A refusal from the token endpoint must not write anything.** Both places that talk to it follow the same
+rule. `RefreshToken` stores only a reply that actually carries an access token, and hands the caller a copy
+with nothing to send for this call; `NexusLoginHandler.StateToStore` decides the same thing for the login
+window, and keeps the stored `ApiKey`, which that exchange says nothing about. Storing the failure
+destroyed a login whose refresh token the next attempt might have used — and since the login tile reads the
+credential from its own constructor and its Log in button now works while logged in, both paths are
+reachable with a working login to lose. Neither throws: a browser operation is driven from an `async void`
+handler.
+
+A refused refresh also stands for `RefreshRetryDelay` (a minute) before another is attempted. `GetAuthInfo`
+refreshes an expired token on the way to every authenticated call, so an offline machine would otherwise
+post a doomed refresh once per request; the old behaviour hid that by writing the failure and never trying
+again at all.
+
 `CanDownload` answers "can this machine download from Nexus Mods" and nothing else; the collection upload
 and download paths build their own GraphQL requests with `Authorization: Bearer`, so they need an unexpired
 OAuth access token specifically and read the stored state for one. A stored API key passes `CanDownload`

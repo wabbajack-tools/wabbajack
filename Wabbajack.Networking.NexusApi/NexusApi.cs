@@ -32,9 +32,12 @@ public class NexusApi
     private readonly ILogger<NexusApi> _logger;
     public readonly ITokenProvider<NexusOAuthState> AuthInfo;
     private DateTime _lastValidated;
-    private (ValidateInfo info, ResponseMetadata header) _lastValidatedInfo; 
+    private (ValidateInfo info, ResponseMetadata header) _lastValidatedInfo;
     private readonly AsyncLock _authLock = new();
     private readonly AsyncLock _authValidationLock = new();
+
+    /// <summary>When the last refresh was refused. Read and written under <see cref="_authLock" />.</summary>
+    private DateTime _lastRefreshFailure = DateTime.MinValue;
 
     public NexusApi(ITokenProvider<NexusOAuthState> authInfo, ILogger<NexusApi> logger, HttpClient client,
         IResource<HttpClient> limiter, ApplicationInfo appInfo, JsonSerializerOptions jsonOptions)
@@ -306,9 +309,17 @@ public class NexusApi
     /// </summary>
     private async Task<NexusOAuthState> RefreshToken(NexusOAuthState state, CancellationToken cancel)
     {
+        // A refusal is taken at its word for a while. Every authenticated call comes through here while the
+        // stored token is expired, so without this a machine that is offline, or holding a token Nexus has
+        // revoked, posts a doomed refresh once per request - which the old behaviour hid by writing the
+        // failure and never trying again at all.
+        if (DateTime.UtcNow - _lastRefreshFailure < RefreshRetryDelay)
+            return Unusable(state);
+
         if (string.IsNullOrWhiteSpace(state.OAuth?.RefreshToken))
         {
             _logger.LogError("The stored Nexus login has expired and carries no refresh token");
+            _lastRefreshFailure = DateTime.UtcNow;
             return Unusable(state);
         }
 
@@ -333,14 +344,24 @@ public class NexusApi
             // Nothing usable came back, so nothing is written: the refresh token that is stored may well
             // work on the next attempt, and it is the only way back to a login without the browser.
             _logger.LogWarning("Keeping the stored Nexus login: the refresh returned no access token");
+            _lastRefreshFailure = DateTime.UtcNow;
             return Unusable(state);
         }
 
         newJwt.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
         state.OAuth = newJwt;
+        _lastRefreshFailure = DateTime.MinValue;
         await AuthInfo.SetToken(state);
         return state;
     }
+
+    /// <summary>
+    ///     How long a refused refresh stands before another is attempted. Long enough that a run of
+    ///     downloads does not re-post a doomed refresh once per request, short enough that a user who
+    ///     reconnects is not held to a stale answer. A login stored by the browser is not affected either
+    ///     way: it is not expired, so nothing here is asked about it.
+    /// </summary>
+    protected virtual TimeSpan RefreshRetryDelay => TimeSpan.FromMinutes(1);
 
     /// <summary>A body that is not the reply we asked for is a refusal like any other, not an exception.</summary>
     private async Task<JwtTokenReply?> ReadJwt(HttpResponseMessage response, CancellationToken cancel)

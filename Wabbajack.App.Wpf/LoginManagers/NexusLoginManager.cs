@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -28,6 +29,9 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     private readonly NexusApi _api;
     private readonly IServiceProvider _serviceProvider;
     private readonly Subject<Unit> _refreshed = new();
+
+    /// <summary>1 while a login window is open. Set here, cleared by that window's Closed event.</summary>
+    private int _loginWindowOpen;
 
     public string SiteName { get; } = "Nexus Mods";
     public ICommand TriggerLogin { get; set; }
@@ -84,10 +88,17 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
 
         // Calls the work directly rather than executing the commands above, so the settings tile cannot
         // execute one that refuses either: LoggedIn can change between the check and the execution.
+        //
+        // It is the tile's only button, so it also has to have somewhere to go when logging out cannot
+        // change anything. LoggedIn means a usable credential is in reach, not that there is a stored login
+        // to delete: a host can hand this app one through NEXUS_OAUTH_INFO, and Delete then removes nothing
+        // while LoggedIn stays true - a button that says "Log out", does nothing, and never says anything
+        // else. Falling through to the login is the one action left that changes the answer, since a login
+        // stored in the file shadows the variable.
         var toggleLogin = ReactiveCommand.CreateFromTask(async () =>
         {
-            if (LoggedIn) await ClearLoginToken();
-            else StartLogin();
+            if (LoggedIn && await ClearLoginToken()) return;
+            StartLogin();
         });
         ToggleLogin = toggleLogin;
 
@@ -100,17 +111,52 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         }
     }
 
-    private async Task ClearLoginToken()
+    /// <summary>
+    ///     Deletes the stored login and re-reads what is left. False when there was no stored login to
+    ///     delete, which is not the same as being logged out: an environment-provided credential is still
+    ///     there afterwards, and the caller has to do something else about it.
+    /// </summary>
+    private async Task<bool> ClearLoginToken()
     {
-        await _token.Delete();
+        var deleted = await _token.Delete();
         await RefreshTokenState();
+        if (!deleted)
+            _logger.LogInformation(
+                "No stored {SiteName} login to delete; any credential left comes from this machine's environment",
+                SiteName);
+        return deleted;
     }
 
+    /// <summary>
+    ///     Opens the login window, unless one is already open. Two clicks, or the settings tile and
+    ///     preflight's Log in action together, would otherwise queue a second window behind the first -
+    ///     <c>MainWindowVM</c> serialises browser windows - and open it the moment the user finished with
+    ///     the one they were looking at.
+    /// </summary>
     private void StartLogin()
     {
-        var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
-        handler.Closed += async (_, _) => await RefreshTokenState();
-        ShowBrowserWindow.Send(handler);
+        if (Interlocked.Exchange(ref _loginWindowOpen, 1) == 1)
+        {
+            _logger.LogInformation("A {SiteName} login window is already open", SiteName);
+            return;
+        }
+
+        try
+        {
+            var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
+            handler.Closed += async (_, _) =>
+            {
+                Interlocked.Exchange(ref _loginWindowOpen, 0);
+                await RefreshTokenState();
+            };
+            ShowBrowserWindow.Send(handler);
+        }
+        catch (Exception)
+        {
+            // Nothing was opened, so nothing will close and clear this.
+            Interlocked.Exchange(ref _loginWindowOpen, 0);
+            throw;
+        }
     }
 
     /// <summary>
