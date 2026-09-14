@@ -55,6 +55,12 @@ Packages are pinned centrally in `Directory.Packages.props`. A `<PackageReferenc
 **FluentAssertions stays on 7.2.2 permanently.** 8.0 left Apache 2.0 for a paid Xceed licence. Do not
 upgrade it, and do not add it to a project that does not already use it.
 
+**SteamKit2 is LGPL-2.1-only, and that was accepted deliberately.** It is the only realistic way to talk to
+Steam, and LGPL is satisfied by unmodified dynamic linking, which is exactly what a `PackageReference` from
+NuGet does. So: keep it as an ordinary pinned `PackageReference`, never vendor or patch the source, and keep
+its types inside `Wabbajack.Networking.Steam` rather than letting them spread. This is the one copyleft
+dependency in the tree; adding another is a fresh decision, not a precedent.
+
 Logs are written to a `logs` folder next to the executable, configured in `App.xaml.cs`.
 
 ## Conventions
