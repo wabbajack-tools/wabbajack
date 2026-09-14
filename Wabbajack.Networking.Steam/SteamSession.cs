@@ -36,11 +36,20 @@ public class SteamSession : ISteamSession
     private readonly ISteamGuardPrompt _prompt;
     private readonly CancellationTokenSource _shutdown = new();
     private readonly SteamApps _steamApps;
+    private readonly SteamContent _steamContent;
     private readonly SteamUser _steamUser;
     private readonly ITokenProvider<SteamLoginState> _tokenProvider;
 
     private TaskCompletionSource<bool>? _connected;
     private bool _disposed;
+
+    /// <summary>
+    ///     Completed when Steam has sent the account's licences, which it does shortly after logon rather
+    ///     than as part of it. Anything deciding entitlement has to wait on this or it will read an empty
+    ///     list and conclude the account owns nothing.
+    /// </summary>
+    private TaskCompletionSource<bool> _licensesReceived = NewLicenseSignal();
+
     private TaskCompletionSource<SteamUser.LoggedOnCallback>? _loggedOn;
 
     public SteamSession(ILogger<SteamSession> logger, ITokenProvider<SteamLoginState> tokenProvider,
@@ -59,6 +68,7 @@ public class SteamSession : ISteamSession
         _manager = new CallbackManager(_client);
         _steamUser = _client.GetHandler<SteamUser>()!;
         _steamApps = _client.GetHandler<SteamApps>()!;
+        _steamContent = _client.GetHandler<SteamContent>()!;
 
         _manager.Subscribe<SteamClient.ConnectedCallback>(OnConnected);
         _manager.Subscribe<SteamClient.DisconnectedCallback>(OnDisconnected);
@@ -81,13 +91,52 @@ public class SteamSession : ISteamSession
 
     public SteamApps Apps => _steamApps;
 
+    /// <summary>
+    ///     The content handler: manifest request codes, CDN auth tokens and the SteamPipe server list.
+    /// </summary>
+    public SteamContent Content => _steamContent;
+
     public SteamConfiguration Configuration => _client.Configuration;
+
+    /// <summary>
+    ///     The cell Steam assigned this logon, which is its idea of where the machine is. Passing it to the
+    ///     server directory is what gets a nearby CDN rather than an arbitrary one. Null until a logon.
+    /// </summary>
+    public uint? CellId { get; private set; }
 
     public bool IsLoggedIn { get; private set; }
 
     public string? AccountName { get; private set; }
 
     public bool HaveStoredToken => _tokenProvider.HaveToken();
+
+    /// <summary>
+    ///     A CDN client bound to this connection. It is the caller's to dispose, and it carries its own
+    ///     HttpClient, so one per content client rather than one per download.
+    /// </summary>
+    public SteamKit2.CDN.Client CreateCdnClient()
+    {
+        return new SteamKit2.CDN.Client(_client);
+    }
+
+    /// <summary>
+    ///     Waits for Steam to send the account's licences. Returns false on timeout rather than throwing: an
+    ///     account can legitimately hold none, so "nothing arrived" and "nothing to send" look the same from
+    ///     here and neither is a reason to fail a download outright.
+    /// </summary>
+    public async Task<bool> WaitForLicensesAsync(TimeSpan timeout, CancellationToken token)
+    {
+        try
+        {
+            return await _licensesReceived.Task.WaitAsync(timeout, token).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            _logger.LogWarning("Steam did not send the account's licences within {Seconds}s",
+                timeout.TotalSeconds);
+            return false;
+        }
+    }
 
     public async Task<SteamLoginResult> LoginWithStoredTokenAsync(CancellationToken token)
     {
@@ -277,7 +326,19 @@ public class SteamSession : ISteamSession
         _connected = null;
         _loggedOn = null;
         IsLoggedIn = false;
+        CellId = null;
+        Licenses = Array.Empty<SteamApps.LicenseListCallback.License>();
+
+        // A fresh signal, so the next login waits for its own licence list rather than reading the one the
+        // previous account left behind.
+        _licensesReceived = NewLicenseSignal();
+
         if (_client.IsConnected) _client.Disconnect();
+    }
+
+    private static TaskCompletionSource<bool> NewLicenseSignal()
+    {
+        return new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     /// <summary>
@@ -412,6 +473,7 @@ public class SteamSession : ISteamSession
         }
 
         AccountName = accountName;
+        CellId = callback.CellID;
         IsLoggedIn = true;
         _logger.LogInformation("Logged into Steam as {AccountName}", accountName);
         return callback;
@@ -464,6 +526,10 @@ public class SteamSession : ISteamSession
             EResult.NoConnection, EResult.Invalid));
         _loggedOn?.TrySetException(new SteamException("Disconnected from Steam while logging in",
             EResult.NoConnection, EResult.Invalid));
+
+        // Nothing is going to arrive over a dropped connection, so release anyone waiting on the licence
+        // list now rather than leaving them on a timeout.
+        _licensesReceived.TrySetResult(false);
     }
 
     private void OnLoggedOn(SteamUser.LoggedOnCallback callback)
@@ -482,10 +548,15 @@ public class SteamSession : ISteamSession
         if (callback.Result != EResult.OK)
         {
             _logger.LogWarning("Steam did not return the account's licences ({Result})", callback.Result);
+
+            // Still release anything waiting. A failed licence list is an entitlement answer of "nothing
+            // known", which the free-content fallback can still get past; blocking forever is not.
+            _licensesReceived.TrySetResult(false);
             return;
         }
 
         Licenses = callback.LicenseList.ToArray();
         _logger.LogInformation("Steam returned {Count} licences", Licenses.Count);
+        _licensesReceived.TrySetResult(true);
     }
 }
