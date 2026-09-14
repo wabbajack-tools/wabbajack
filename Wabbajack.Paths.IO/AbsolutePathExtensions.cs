@@ -68,6 +68,23 @@ public static class AbsolutePathExtensions
         return new FileInfo(nativePath).Length;
     }
 
+    /// <summary>
+    ///     One snapshot of a file's metadata. Existence, both timestamps and the length all come back
+    ///     together; asking for them through <see cref="FileExists" />, <see cref="LastModifiedUtc" />,
+    ///     <see cref="CreatedUtc" /> and <see cref="Size" /> costs one call into the file system each,
+    ///     which adds up over a folder of thousands of files. The snapshot is taken on first use and does
+    ///     not update on its own; call <see cref="FileSystemInfo.Refresh" /> after changing the file, or
+    ///     before reading it again at a point where something else may have.
+    ///     <para>
+    ///         Throws on a default path, where <see cref="FileExists" /> answers false. Check for one first
+    ///         if the caller may hold a path it has not filled in.
+    ///     </para>
+    /// </summary>
+    public static FileInfo Info(this AbsolutePath file)
+    {
+        return new FileInfo(file.ToNativePath());
+    }
+
     public static DateTime LastModifiedUtc(this AbsolutePath file)
     {
         return new FileInfo(file.ToNativePath()).LastWriteTimeUtc;
