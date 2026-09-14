@@ -97,14 +97,41 @@ public static class UIUtils
     ///         ShellExecute runs whatever it is given, and some of what reaches here comes out of a
     ///         modlist, so only the schemes a website can have are passed on.
     ///     </para>
+    ///     <para>
+    ///         A bare domain - "www.nexusmods.com/skyrim/mods/1" - is not an absolute URI, but it is what a
+    ///         modlist author writes in a readme or website field often enough that <c>cmd /c start</c>
+    ///         opening it was load-bearing. A scheme is assumed for those, the way an address bar does,
+    ///         rather than leaving the button dead.
+    ///     </para>
     /// </summary>
     public static string? WebsiteTarget(string url)
     {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var parsed)) return null;
-        return parsed.Scheme is var scheme &&
-               (scheme == Uri.UriSchemeHttp || scheme == Uri.UriSchemeHttps || scheme == Uri.UriSchemeMailto)
-            ? parsed.AbsoluteUri
-            : null;
+        if (string.IsNullOrWhiteSpace(url)) return Rejected(url, "it is empty");
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var parsed))
+        {
+            // Only for something with no scheme at all. Uri is lenient enough to accept "https://not a url"
+            // with "not" as the host, so the result has to look like a domain before it is used.
+            if (!Uri.TryCreate($"{Uri.UriSchemeHttps}://{url}", UriKind.Absolute, out parsed) ||
+                !parsed.Host.Contains('.'))
+                return Rejected(url, "it is not a URL");
+        }
+
+        if (parsed.Scheme != Uri.UriSchemeHttp && parsed.Scheme != Uri.UriSchemeHttps &&
+            parsed.Scheme != Uri.UriSchemeMailto)
+            return Rejected(url, $"\"{parsed.Scheme}\" is not a web address");
+
+        return parsed.AbsoluteUri;
+    }
+
+    /// <summary>
+    ///     A button that does nothing and says nothing is the failure this whole area is being fixed for, so
+    ///     anything dropped here leaves a trace in the log.
+    /// </summary>
+    private static string? Rejected(string url, string why)
+    {
+        NLog.LogManager.GetCurrentClassLogger().Warn("Not opening \"{0}\": {1}", url, why);
+        return null;
     }
 
     public static void OpenFolder(AbsolutePath path)

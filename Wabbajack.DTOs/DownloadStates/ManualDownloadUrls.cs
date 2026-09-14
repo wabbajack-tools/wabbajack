@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace Wabbajack.DTOs.DownloadStates;
 
@@ -78,24 +77,25 @@ public static class ManualDownloadUrls
     /// </summary>
     private static ManualDownloadTarget NexusTarget(Nexus nexus)
     {
-        var page = $"https://www.nexusmods.com/{NexusDomain(nexus.Game)}/mods/{nexus.ModID}?tab=files";
-        return nexus.FileID > 0
-            ? new ManualDownloadTarget(new Uri($"{page}&file_id={nexus.FileID}"), "Nexus Mods", DefaultInstructions)
-            : new ManualDownloadTarget(new Uri(page), "Nexus Mods",
-                "This list doesn't record which file, so find it by name in the Files tab");
-    }
+        var meta = nexus.Game.MetaData();
+        var page = $"https://www.nexusmods.com/{meta.NexusDomain}/mods/{nexus.ModID}?tab=files";
+        var url = nexus.FileID > 0 ? new Uri($"{page}&file_id={nexus.FileID}") : new Uri(page);
 
-    /// <summary>
-    ///     A game's Nexus domain. The registry's <c>NexusName</c> where it has one; where it does not, the
-    ///     game's own name stripped to letters and digits and lowercased, which is how Nexus spells the
-    ///     domains of the games concerned.
-    /// </summary>
-    private static string NexusDomain(Game game)
-    {
-        var name = game.MetaData().NexusName;
-        return string.IsNullOrWhiteSpace(name)
-            ? new string(game.ToString().Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant()
-            : name;
+        // Where the domain came from matters to what the card can promise. With one from the registry the
+        // link lands where it says it does; with one worked out from the game's name it is a good guess and
+        // no more, so the card says so rather than telling the user to download from a page that may 404.
+        var named = !string.IsNullOrWhiteSpace(meta.NexusName);
+        var instructions = (nexus.FileID > 0, named) switch
+        {
+            (true, true) => DefaultInstructions,
+            (false, true) => "This list doesn't record which file, so find it by name in the Files tab",
+            (true, false) => "Wabbajack has no Nexus address recorded for this game, so if this page doesn't " +
+                             "open, search Nexus Mods for the file by name",
+            (false, false) => "Wabbajack has no Nexus address recorded for this game and this list doesn't " +
+                              "record which file, so you may have to search Nexus Mods for it by name"
+        };
+
+        return new ManualDownloadTarget(url, "Nexus Mods", instructions);
     }
 
     private static ManualDownloadTarget Ips4(string site, string siteName, IPS4OAuth2 state)

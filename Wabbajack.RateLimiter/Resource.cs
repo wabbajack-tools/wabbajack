@@ -109,12 +109,20 @@ public class Resource<T> : IResource<T>
     ///         The cap is read once. It can be changed from the settings window while this is running, and
     ///         which side of that change a single report falls on is not worth synchronising over.
     ///     </para>
+    ///     <para>
+    ///         A cap of zero or less is "uncapped" here rather than a cap of nothing. A negative one used to
+    ///         reach the pump, which turned it into a negative <see cref="TimeSpan" />, threw out of
+    ///         <see cref="Task.Delay(TimeSpan, CancellationToken)" /> and ended the pump for good, leaving
+    ///         every later report on the resource waiting on a completion source nothing would ever
+    ///         complete. Nothing in the product sets one - <c>ResourceLimitConfiguration</c>'s -1 default
+    ///         has no readers - but this is where it stops.
+    ///     </para>
     /// </summary>
     public async ValueTask Report(Job<T> job, int size, CancellationToken token)
     {
         await _initialized;
 
-        if (MaxThroughput is long.MaxValue or 0)
+        if (MaxThroughput <= 0 || MaxThroughput == long.MaxValue)
         {
             Interlocked.Add(ref _totalUsed, size);
             return;

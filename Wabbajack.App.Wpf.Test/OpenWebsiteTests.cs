@@ -39,12 +39,31 @@ public class OpenWebsiteTests
             UIUtils.WebsiteTarget("https://authored-files.wabbajack.org/Tonal Architect_WJ_TEST_FILES.zip"));
     }
 
+    /// <summary>
+    ///     A modlist's Readme and Website are free text off the list, checked for nothing but emptiness, so
+    ///     an author who wrote a bare domain has to keep working. <c>cmd /c start</c> opened these, and
+    ///     <see cref="Uri.TryCreate(string, UriKind, out Uri)" /> with <see cref="UriKind.Absolute" /> does
+    ///     not, so replacing one with the other would have traded a truncated link for a dead one.
+    /// </summary>
+    [Theory]
+    [InlineData("www.nexusmods.com/skyrim/mods/1", "https://www.nexusmods.com/skyrim/mods/1")]
+    [InlineData("example.com", "https://example.com/")]
+    [InlineData("wabbajack.org/modlist/x?tab=files&file_id=9", "https://wabbajack.org/modlist/x?tab=files&file_id=9")]
+    public void AssumesASchemeForABareDomain(string url, string expected)
+    {
+        Assert.Equal(expected, UIUtils.WebsiteTarget(url));
+    }
+
     [Theory]
     [InlineData("C:\\Windows\\System32\\calc.exe")]
     [InlineData("file:///C:/Windows/System32/calc.exe")]
     [InlineData("ms-settings:windowsupdate")]
+    [InlineData("javascript:alert(1)")]
+    // Uri accepts "https://not a url at all" with "not" as the host, so assuming a scheme is not enough on
+    // its own - the result still has to look like a domain.
     [InlineData("not a url at all")]
     [InlineData("")]
+    [InlineData("   ")]
     public void OpensNothingThatIsNotAWebsite(string url)
     {
         Assert.Null(UIUtils.WebsiteTarget(url));

@@ -75,11 +75,20 @@ public class ManualDownloadUrlsTests
                 "This list doesn't record which file, so find it by name in the Files tab"
             },
             // Terraria is one of the two games the registry gives no NexusName; without the fallback this
-            // would be https://www.nexusmods.com//mods/2547, which resolves to nothing.
+            // would be https://www.nexusmods.com//mods/2547, which resolves to nothing. The domain is worked
+            // out from the game's name and is therefore a good guess rather than a fact, so the card says so
+            // instead of promising the page is there.
             new object[]
             {
                 new Nexus {Game = Game.Terraria, ModID = 2547, FileID = 10432},
-                "https://www.nexusmods.com/terraria/mods/2547?tab=files&file_id=10432", "Nexus Mods", "Download the file from this page"
+                "https://www.nexusmods.com/terraria/mods/2547?tab=files&file_id=10432", "Nexus Mods",
+                "Wabbajack has no Nexus address recorded for this game, so if this page doesn't open, search Nexus Mods for the file by name"
+            },
+            new object[]
+            {
+                new Nexus {Game = Game.KarrynsPrison, ModID = 61},
+                "https://www.nexusmods.com/karrynsprison/mods/61?tab=files", "Nexus Mods",
+                "Wabbajack has no Nexus address recorded for this game and this list doesn't record which file, so you may have to search Nexus Mods for it by name"
             },
             new object[]
             {
@@ -152,6 +161,25 @@ public class ManualDownloadUrlsTests
             Assert.DoesNotContain("//mods/", url.AbsolutePath + url.Query);
             Assert.EndsWith("/mods/1", url.AbsolutePath);
             Assert.Equal("?tab=files&file_id=2", url.Query);
+        }
+    }
+
+    /// <summary>
+    ///     The mod link on the state itself and the file link built here are two different pages, but they
+    ///     have to agree about which game they are on: both go through <see cref="GameMetaData.NexusDomain" />
+    ///     so that the empty-domain case cannot be fixed in one and left in the other.
+    /// </summary>
+    [Fact]
+    public void TheModLinkAndTheFileLinkAgreeOnTheGame()
+    {
+        foreach (var game in GameRegistry.Games.Keys)
+        {
+            var state = new Nexus {Game = game, ModID = 7, FileID = 8};
+            Assert.True(ManualDownloadUrls.TryGet(state, out var target));
+
+            Assert.Equal($"https://www.nexusmods.com/{game.MetaData().NexusDomain}/mods/7", state.LinkUrl!.AbsoluteUri);
+            Assert.StartsWith($"https://www.nexusmods.com/{game.MetaData().NexusDomain}/mods/7?", target!.Url.AbsoluteUri);
+            Assert.DoesNotContain("//mods/", state.LinkUrl.AbsolutePath);
         }
     }
 

@@ -28,7 +28,10 @@ public class ResourceReportTests
     [Fact]
     public async Task AnUncappedReportDoesNotGoThroughThePump()
     {
-        foreach (var uncapped in new[] {long.MaxValue, 0L})
+        // A negative cap counts as uncapped. Sent to the pump it became a negative TimeSpan, threw out of
+        // Task.Delay and ended the pump, after which every later report on the resource waited forever on a
+        // completion source nothing would complete.
+        foreach (var uncapped in new[] {long.MaxValue, 0L, -1L})
         {
             var resource = new Resource<TestResource>("Test", 1, uncapped);
             using var job = await resource.Begin("Reporting", 1024, CancellationToken.None);
@@ -56,6 +59,22 @@ public class ResourceReportTests
         }));
 
         Assert.Equal(40000, resource.StatusReport.Transferred);
+    }
+
+    /// <summary>
+    ///     A negative cap does not take the pump down with it: reports keep being served afterwards. Timed
+    ///     out rather than awaited forever, because the failure this pins is a hang.
+    /// </summary>
+    [Fact]
+    public async Task ANegativeCapDoesNotStrandLaterReports()
+    {
+        var resource = new Resource<TestResource>("Test", 1, -1);
+        using var job = await resource.Begin("Reporting", 100, CancellationToken.None);
+
+        for (var i = 0; i < 10; i++)
+            await job.Report(10, CancellationToken.None).AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Equal(100, resource.StatusReport.Transferred);
     }
 
     /// <summary>
