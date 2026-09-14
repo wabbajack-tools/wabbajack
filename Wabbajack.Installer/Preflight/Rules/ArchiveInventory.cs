@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,39 +72,71 @@ public static class ArchiveInventory
         IResource<IInstaller> limiter, ILogger logger, CancellationToken token,
         Action<int>? onFilesToHash = null, Action? onFileHashed = null)
     {
-        // Enumerate downloads + every game folder, filtering out any paths that
-        // don't survive the AbsolutePath round-trip (e.g. UNC/device paths like \\.\nul)
-        var allFiles = downloads.EnumerateFiles()
-            .Concat(gameFolders.Where(p => p.DirectoryExists()).SelectMany(p => p.EnumerateFiles()))
-            .Where(f => f.FileExists())
+        // Size and last-modified come off the directory scan rather than being asked for again per file.
+        // A downloads folder is tens of thousands of entries and each of Size(), LastModified() and
+        // FileExists() is a separate call into the file system; on a network share or a spinning disk that
+        // is most of what this method used to cost.
+        var allFiles = Enumerate(downloads)
+            .Concat(gameFolders.Where(p => p.DirectoryExists()).SelectMany(Enumerate))
             .ToList();
 
         logger.LogInformation("Getting archive sizes");
-        var hashDict = (await allFiles.PMapAllBatched(limiter,
-                x => (x, x.Size())).ToList())
-            .GroupBy(f => f.Item2)
-            .ToDictionary(g => g.Key, g => g.Select(v => v.x));
+        var hashDict = allFiles
+            .GroupBy(f => f.Size)
+            .ToDictionary(g => g.Key, g => g.ToList());
 
         logger.LogInformation("Linking archives to downloads");
-        var toHash = archives.Where(a => hashDict.ContainsKey(a.Size))
-            .SelectMany(a => hashDict[a.Size])
-            .ToList();
+        // Two archives of the same size point at the same candidate files, so the same file would
+        // otherwise be queued - and hashed - once per archive that matches its size.
+        var seen = new HashSet<AbsolutePath>();
+        var toHash = new List<FoundFile>();
+        foreach (var archive in archives)
+        {
+            if (!hashDict.TryGetValue(archive.Size, out var candidates)) continue;
+            foreach (var candidate in candidates)
+                if (seen.Add(candidate.Path))
+                    toHash.Add(candidate);
+        }
 
         onFilesToHash?.Invoke(toHash.Count);
         logger.LogInformation("Found {count} total files, {hashedCount} matching filesize",
             allFiles.Count, toHash.Count);
 
-        var hashResults = await toHash.PMapAll(async e =>
+        // Under the installer's limiter, as the rest of the pass is: unbounded hashing starts a read per
+        // candidate file at once, which on one disk is slower than doing them a few at a time.
+        var hashResults = await toHash.PMapAll(limiter, async e =>
         {
+            var hash = await hashCache.FileHashCachedAsync(e.Path, token);
+            // After the hash, not before: reported first, the whole queue is announced as done the moment
+            // it is built and the check then sits at 100% for as long as the hashing actually takes.
             onFileHashed?.Invoke();
-            return (await hashCache.FileHashCachedAsync(e, token), e);
+            return (Hash: hash, File: e);
         }).ToList();
 
         return hashResults
-            .OrderByDescending(e => e.Item2.LastModified())
-            .GroupBy(e => e.Item1)
+            .OrderByDescending(e => e.File.LastModified)
+            .GroupBy(e => e.Hash)
             .Select(e => e.First())
-            .Where(x => x.Item1 != default)
-            .ToDictionary(kv => kv.Item1, kv => kv.e);
+            .Where(x => x.Hash != default)
+            .ToDictionary(kv => kv.Hash, kv => kv.File.Path);
+    }
+
+    /// <summary>What one directory scan already knows about a file, so nothing has to be asked again.</summary>
+    private readonly record struct FoundFile(AbsolutePath Path, long Size, DateTime LastModified);
+
+    /// <summary>
+    ///     Every file under <paramref name="folder" />, skipping any whose path does not survive the
+    ///     <see cref="AbsolutePath" /> round-trip (UNC and device paths such as <c>\\.\nul</c>), which is
+    ///     what the <c>FileExists</c> filter here used to be for.
+    /// </summary>
+    private static IEnumerable<FoundFile> Enumerate(AbsolutePath folder)
+    {
+        foreach (var info in new DirectoryInfo(folder.ToString())
+                     .EnumerateFiles("*", SearchOption.AllDirectories))
+        {
+            var path = info.FullName.ToAbsolutePath();
+            if (!path.FileExists()) continue;
+            yield return new FoundFile(path, info.Length, info.LastWriteTime);
+        }
     }
 }
