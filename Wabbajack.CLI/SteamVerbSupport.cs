@@ -64,6 +64,10 @@ internal static class SteamVerbSupport
                 logger.LogError("{Message}", entitlement.Message);
                 return 1;
 
+            case SteamEntitlementUnconfirmedException unconfirmed:
+                logger.LogError("{Message}", unconfirmed.Message);
+                return 1;
+
             case SteamManifestUnavailableException manifest:
                 logger.LogError("{Message}", manifest.Message);
                 return 1;

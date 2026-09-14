@@ -70,6 +70,23 @@ public class SteamNoEntitlementException : Exception
 }
 
 /// <summary>
+///     The licence list never arrived, so entitlement could not be established either way. Deliberately not
+///     <see cref="SteamNoEntitlementException" />: that one asserts the account does not own the thing, and
+///     saying so on the strength of a timeout sends an owner off to buy what they already have.
+/// </summary>
+public class SteamEntitlementUnconfirmedException : Exception
+{
+    public SteamEntitlementUnconfirmedException(string message, uint appId, uint depotId) : base(message)
+    {
+        AppId = appId;
+        DepotId = depotId;
+    }
+
+    public uint AppId { get; }
+    public uint DepotId { get; }
+}
+
+/// <summary>
 ///     Steam refused to issue a manifest request code, which it signals by returning zero rather than an
 ///     error. It means one of two things and neither is worth retrying: the account cannot reach the depot,
 ///     or the manifest has been withdrawn -- which is what an old game version eventually becomes.

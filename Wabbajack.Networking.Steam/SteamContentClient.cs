@@ -160,11 +160,11 @@ public class SteamContentClient : IDisposable
     ///     download. Asked before anything is fetched, because Steam's own answer to an unentitled request is
     ///     a refused decryption key several calls further on.
     /// </summary>
-    public async Task<bool> HasAccessAsync(uint appId, uint depotId, CancellationToken token)
+    public async Task<DepotAccess> CheckAccessAsync(uint appId, uint depotId, CancellationToken token)
     {
         EnsureLoggedIn();
 
-        await _session.WaitForLicensesAsync(LicenseWait, token).ConfigureAwait(false);
+        var licensesArrived = await _session.WaitForLicensesAsync(LicenseWait, token).ConfigureAwait(false);
 
         // The licence carries the package's access token. Without it PICS answers about the package with
         // nothing useful, so the depot list would come back empty and a perfectly entitled account would be
@@ -178,7 +178,7 @@ public class SteamContentClient : IDisposable
             var infos = await GetPackageInfos(packages);
 
             if (infos.Values.Any(info => DepotEntitlement.PackageGrantsDepot(info?.KeyValues, depotId)))
-                return true;
+                return DepotAccess.Granted;
         }
 
         var app = await GetAppProductInfo(appId);
@@ -186,21 +186,36 @@ public class SteamContentClient : IDisposable
         {
             _logger.LogInformation("App {AppId} is free to download, so depot {DepotId} needs no licence",
                 appId, depotId);
-            return true;
+            return DepotAccess.Granted;
         }
 
-        return false;
+        // The free-content check above is the only one that means anything without a licence list, and it
+        // said no. Without the list, "not entitled" is a guess -- and telling someone to go and buy a game
+        // they already own because their connection was slow is a worse answer than admitting the doubt.
+        return licensesArrived ? DepotAccess.NotEntitled : DepotAccess.Unconfirmed;
     }
 
-    /// <summary>As <see cref="HasAccessAsync" />, but says so rather than returning false.</summary>
+    /// <summary>As <see cref="CheckAccessAsync" />, but says so rather than returning an answer.</summary>
     public async Task EnsureAccessAsync(uint appId, uint depotId, CancellationToken token)
     {
-        if (await HasAccessAsync(appId, depotId, token).ConfigureAwait(false)) return;
+        switch (await CheckAccessAsync(appId, depotId, token).ConfigureAwait(false))
+        {
+            case DepotAccess.Granted:
+                return;
 
-        throw new SteamNoEntitlementException(
-            $"The Steam account {_session.AccountName} holds no licence for depot {depotId} of app {appId}, " +
-            "and the app is not free to download. Log in with an account that owns it.",
-            appId, depotId);
+            case DepotAccess.Unconfirmed:
+                throw new SteamEntitlementUnconfirmedException(
+                    $"Could not confirm what the Steam account {_session.AccountName} has a licence for: Steam " +
+                    $"did not send the licence list within {LicenseWait.TotalSeconds:0}s. This says nothing " +
+                    $"about whether you own depot {depotId} of app {appId}. Check your connection and try again.",
+                    appId, depotId);
+
+            default:
+                throw new SteamNoEntitlementException(
+                    $"The Steam account {_session.AccountName} holds no licence for depot {depotId} of app " +
+                    $"{appId}, and the app is not free to download. Log in with an account that owns it.",
+                    appId, depotId);
+        }
     }
 
     public async ValueTask<byte[]> GetDepotKey(uint depotId, uint appId)
