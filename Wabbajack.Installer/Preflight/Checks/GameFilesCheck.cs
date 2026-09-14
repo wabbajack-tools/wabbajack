@@ -23,7 +23,7 @@ public sealed class GameFilesCheck : IPreflightCheck
 
     public string Id => PreflightCheckIds.GameFiles;
     public string Title => "Game files";
-    public int Order => 300;
+    public int Order => 200;
     public IReadOnlyList<string> DependsOn => new[] {PreflightCheckIds.GameInstalled};
 
     public async Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token)

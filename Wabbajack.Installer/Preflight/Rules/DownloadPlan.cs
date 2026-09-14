@@ -90,7 +90,12 @@ public sealed record DownloadPlan(
         var policy = await pipeline.LoadPolicy(token);
 
         foreach (var archive in ArchiveDownloadPipeline.Reroute(missing, policy.Mirrors, ctx.Logger))
+        {
+            // Remembered because the reroute rewrites the modlist's own archive: nothing downstream can
+            // otherwise tell a state this run introduced from one the list shipped with.
+            ctx.State.Rerouted.Add(archive.Name);
             pipeline.SendMetric("rerouted", archive.Hash.ToString());
+        }
 
         var premium = await pipeline.NexusPremium(missing, token);
         var split = ArchiveDownloadPipeline.Split(missing, premium);

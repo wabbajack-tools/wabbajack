@@ -19,7 +19,7 @@ public sealed class GameInstalledCheck : IPreflightCheck
 {
     public string Id => PreflightCheckIds.GameInstalled;
     public string Title => "Game installed";
-    public int Order => 200;
+    public int Order => 100;
     public IReadOnlyList<string> DependsOn => Array.Empty<string>();
 
     public Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token)

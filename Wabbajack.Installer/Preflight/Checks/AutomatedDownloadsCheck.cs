@@ -32,6 +32,12 @@ public sealed class AutomatedDownloadsCheck : IPreflightCheck
     public int Order => 700;
     public IReadOnlyList<string> DependsOn => new[] {PreflightCheckIds.ManualDownloads};
 
+    /// <summary>
+    ///     As with manual-downloads: NeedsUser here means archives went back on the queue, which is work for
+    ///     the user rather than something they got wrong, and disk-space still has something to say about it.
+    /// </summary>
+    public bool NeedsUserStopsRun => false;
+
     public async Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token)
     {
         if (ctx.State.Missing.Count == 0)
