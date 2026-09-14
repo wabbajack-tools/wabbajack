@@ -12,8 +12,7 @@ public static class ServiceExtensions
 
         services.AddSingleton<SteamSession>();
         services.AddSingleton<ISteamSession>(s => s.GetRequiredService<SteamSession>());
-        services.AddSingleton<Client>();
-        services.AddSingleton<DepotDownloader>();
+        services.AddSingleton<SteamContentClient>();
         return services;
     }
 }
