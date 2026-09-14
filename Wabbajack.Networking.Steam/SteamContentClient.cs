@@ -44,10 +44,10 @@ public class SteamContentClient : IDisposable
     /// </summary>
     private static readonly TimeSpan LicenseWait = TimeSpan.FromSeconds(30);
 
+    private readonly DepotFileAssembler _assembler;
     private readonly ConcurrentDictionary<(uint DepotId, string Host), string> _cdnAuthTokens = new();
     private readonly ManifestRequestCodeCache _codes = new();
     private readonly DTOSerializer _dtos;
-    private readonly IResource<HttpClient> _limiter;
     private readonly ILogger<SteamContentClient> _logger;
     private readonly SteamSession _session;
 
@@ -63,7 +63,7 @@ public class SteamContentClient : IDisposable
         _logger = logger;
         _session = session;
         _dtos = dtos;
-        _limiter = limiter;
+        _assembler = new DepotFileAssembler(logger, limiter);
     }
 
     public ConcurrentDictionary<uint, ulong> PackageTokens { get; } = new();
@@ -318,86 +318,14 @@ public class SteamContentClient : IDisposable
         var depotKey = await GetDepotKey(depotId, appId).ConfigureAwait(false);
         var cdn = GetCdn();
 
-        output.Parent.CreateDirectory();
-        var incoming = output.Parent.Combine(output.FileName + ".wj_incoming");
+        await _assembler.AssembleAsync(file, output,
+            (chunk, buffer, chunkToken) => WithServerAsync(appId, depotId,
+                (server, proxy, authToken) => cdn.DownloadDepotChunkAsync(depotId, chunk, server, buffer,
+                    depotKey, proxy, authToken), chunkToken),
+            token, parentJob).ConfigureAwait(false);
 
-        if (parentJob != null) parentJob.Size = (long) file.TotalSize;
-
-        var chunks = file.Chunks ?? new List<DepotManifest.ChunkData>();
-
-        try
-        {
-            using (var handle = File.OpenHandle(incoming.ToString(), FileMode.Create, FileAccess.Write,
-                       FileShare.None, FileOptions.Asynchronous, (long) file.TotalSize))
-            {
-                // Chunks land at their own offsets, so the writes do not overlap and the order they finish
-                // in does not matter. Preallocating means no chunk ever has to grow the file.
-                RandomAccess.SetLength(handle, (long) file.TotalSize);
-
-                await chunks.OrderBy(c => c.Offset).PDoAll(async chunk =>
-                {
-                    // The job comes first and the buffer second. A chunk is about a megabyte, and a large
-                    // file has thousands of them; renting before waiting on the limiter would have every
-                    // chunk in the file holding a buffer while only a handful were downloading.
-                    using var job = await _limiter.Begin($"Downloading a chunk of {file.FileName}",
-                        chunk.CompressedLength, token).ConfigureAwait(false);
-
-                    var buffer = ArrayPool<byte>.Shared.Rent((int) chunk.UncompressedLength);
-                    try
-                    {
-                        var written = await WithServerAsync(appId, depotId,
-                            (server, proxy, authToken) => cdn.DownloadDepotChunkAsync(depotId, chunk, server,
-                                buffer, depotKey, proxy, authToken), token).ConfigureAwait(false);
-
-                        await RandomAccess.WriteAsync(handle, buffer.AsMemory(0, written), (long) chunk.Offset,
-                            token).ConfigureAwait(false);
-
-                        await job.Report(written, token).ConfigureAwait(false);
-                        if (parentJob != null) await parentJob.Report(written, token).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        ArrayPool<byte>.Shared.Return(buffer);
-                    }
-                }).ConfigureAwait(false);
-            }
-
-            await VerifyAsync(incoming, file, token).ConfigureAwait(false);
-            await incoming.MoveToAsync(output, true, token).ConfigureAwait(false);
-
-            _logger.LogInformation("Fetched {FileName} ({Bytes} bytes) from depot {DepotId}", file.FileName,
-                file.TotalSize, depotId);
-        }
-        catch
-        {
-            incoming.Delete();
-            throw;
-        }
-    }
-
-    /// <summary>
-    ///     Checks the assembled file against the hash the manifest carries for it -- a SHA-1 of the whole
-    ///     file, written by Valve at build time. SteamKit checks each chunk's own checksum as it decrypts,
-    ///     so this is really a check that the chunks went to the right offsets and that nothing was left
-    ///     unwritten, which no per-chunk check can see.
-    /// </summary>
-    private async Task VerifyAsync(AbsolutePath file, DepotManifest.FileData expected, CancellationToken token)
-    {
-        if (expected.FileHash is not {Length: > 0})
-        {
-            _logger.LogWarning("Manifest carries no hash for {FileName}, so it cannot be verified",
-                expected.FileName);
-            return;
-        }
-
-        await using var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-        var actual = await SHA1.HashDataAsync(stream, token).ConfigureAwait(false);
-
-        if (actual.AsSpan().SequenceEqual(expected.FileHash)) return;
-
-        throw new SteamContentVerificationException(
-            $"'{expected.FileName}' does not match the hash the depot manifest carries for it " +
-            $"(expected {Convert.ToHexString(expected.FileHash)}, got {Convert.ToHexString(actual)})");
+        _logger.LogInformation("Fetched {FileName} ({Bytes} bytes) from depot {DepotId}", file.FileName,
+            file.TotalSize, depotId);
     }
 
     private async Task<SteamApps.PICSProductInfoCallback.PICSProductInfo> GetAppProductInfo(uint appId)
