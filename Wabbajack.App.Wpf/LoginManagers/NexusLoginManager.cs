@@ -15,6 +15,7 @@ using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Networking.NexusApi;
 using Wabbajack.UserIntervention;
 
 namespace Wabbajack.LoginManagers;
@@ -23,6 +24,7 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
 {
     private readonly ILogger<NexusLoginManager> _logger;
     private readonly ITokenProvider<NexusOAuthState> _token;
+    private readonly NexusApi _api;
     private readonly IServiceProvider _serviceProvider;
     private readonly Subject<Unit> _refreshed = new();
 
@@ -48,10 +50,12 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     /// </summary>
     public IObservable<Unit> Refreshed => _refreshed;
 
-    public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusOAuthState> token, IServiceProvider serviceProvider)
+    public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusOAuthState> token, NexusApi api,
+        IServiceProvider serviceProvider)
     {
         _logger = logger;
         _token = token;
+        _api = api;
         _serviceProvider = serviceProvider;
         Task.Run(RefreshTokenState);
         
@@ -89,19 +93,28 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
         ShowBrowserWindow.Send(handler);
     }
 
+    /// <summary>
+    ///     Asks the same question the downloader and preflight ask: <see cref="NexusCredential.CanDownload" />
+    ///     over what <see cref="NexusApi.CredentialSource" /> resolves. This tile used to decide for itself -
+    ///     a stored token whose OAuth had not expired - which made it a third definition of being logged in:
+    ///     a stored API key showed as logged out here while preflight read "Logged in (API key)", and an
+    ///     expired token showed as logged out although the next call would have refreshed it in place. An
+    ///     account whose refresh Nexus refuses now falls out of all three at once.
+    /// </summary>
     private async Task RefreshTokenState()
     {
-        NexusOAuthState token = null;
         try
         {
-            token = await _token.Get();
+            LoggedIn = (await _api.CredentialSource()).CanDownload();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            _logger.LogError("Failed to refresh Nexus token state: {ex}", ex.ToString());
+            // Reading the credential can refresh the token, so this covers a network failure as well as an
+            // unreadable store. Nothing usable was established either way.
+            _logger.LogError(ex, "Failed to refresh Nexus token state");
+            LoggedIn = false;
         }
-            
-        LoggedIn = _token.HaveToken() && !(token?.OAuth?.IsExpired ?? true);
+
         _refreshed.OnNext(Unit.Default);
     }
 }

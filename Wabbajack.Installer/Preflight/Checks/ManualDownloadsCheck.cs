@@ -33,7 +33,7 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
 
     public IReadOnlyList<string> DependsOn => new[]
     {
-        PreflightCheckIds.ArchiveInventory, PreflightCheckIds.NexusLogin, PreflightCheckIds.UnsupportedArchives
+        PreflightCheckIds.ArchiveInventory, PreflightCheckIds.UnsupportedArchives, PreflightCheckIds.NexusLogin
     };
 
     /// <summary>

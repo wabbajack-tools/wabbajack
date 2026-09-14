@@ -43,25 +43,55 @@ public class NexusCredentialTests : IDisposable
         Environment.SetEnvironmentVariable(EnvironmentKey, _originalKey);
     }
 
-    public static TheoryData<bool, bool, bool, NexusCredentialSource> Cases()
+    /// <summary>What a stored login's OAuth half amounts to.</summary>
+    public enum StoredOAuth
     {
-        return new TheoryData<bool, bool, bool, NexusCredentialSource>
+        /// <summary>No OAuth in the stored state at all.</summary>
+        None,
+
+        /// <summary>An access token that is not about to expire.</summary>
+        Usable,
+
+        /// <summary>
+        ///     An OAuth object with no access token in it. This is what a refused refresh leaves behind:
+        ///     <c>RefreshToken</c> logs the failure, deserializes the error body into a reply whose
+        ///     <c>access_token</c> is absent, and stores it over the state that was there.
+        /// </summary>
+        NoAccessToken,
+
+        /// <summary>An access token of nothing but spaces, which no request can be built from either.</summary>
+        BlankAccessToken
+    }
+
+    public static TheoryData<StoredOAuth, bool, bool, NexusCredentialSource> Cases()
+    {
+        return new TheoryData<StoredOAuth, bool, bool, NexusCredentialSource>
         {
             // stored OAuth, stored API key, NEXUS_API_KEY set, what the API would use
-            {false, false, false, NexusCredentialSource.None},
-            {false, false, true, NexusCredentialSource.EnvironmentApiKey},
-            {true, false, false, NexusCredentialSource.OAuth},
-            {true, false, true, NexusCredentialSource.OAuth},
-            {false, true, false, NexusCredentialSource.StoredApiKey},
-            {false, true, true, NexusCredentialSource.StoredApiKey},
+            {StoredOAuth.None, false, false, NexusCredentialSource.None},
+            {StoredOAuth.None, false, true, NexusCredentialSource.EnvironmentApiKey},
+            {StoredOAuth.Usable, false, false, NexusCredentialSource.OAuth},
+            {StoredOAuth.Usable, false, true, NexusCredentialSource.OAuth},
+            {StoredOAuth.None, true, false, NexusCredentialSource.StoredApiKey},
+            {StoredOAuth.None, true, true, NexusCredentialSource.StoredApiKey},
             // A stored login carrying both: OAuth is what the API reaches for.
-            {true, true, true, NexusCredentialSource.OAuth}
+            {StoredOAuth.Usable, true, true, NexusCredentialSource.OAuth},
+            // An OAuth state with nothing to send is not a credential, however it got that way. The API
+            // would throw building the request, so nothing may report it as a login.
+            {StoredOAuth.NoAccessToken, false, false, NexusCredentialSource.None},
+            {StoredOAuth.BlankAccessToken, false, false, NexusCredentialSource.None},
+            // ...and it does not fall through to the environment: a stored login shadows the variable
+            // whether or not it turned out to be usable.
+            {StoredOAuth.NoAccessToken, false, true, NexusCredentialSource.None},
+            // The stored API key in the same state is still a login, though.
+            {StoredOAuth.NoAccessToken, true, false, NexusCredentialSource.StoredApiKey},
+            {StoredOAuth.BlankAccessToken, true, true, NexusCredentialSource.StoredApiKey}
         };
     }
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public async Task TheApiReportsTheCredentialItWouldUse(bool oauth, bool storedKey, bool environmentKey,
+    public async Task TheApiReportsTheCredentialItWouldUse(StoredOAuth oauth, bool storedKey, bool environmentKey,
         NexusCredentialSource expected)
     {
         var api = Api(oauth, storedKey, environmentKey);
@@ -75,7 +105,7 @@ public class NexusCredentialTests : IDisposable
     /// </summary>
     [Theory]
     [MemberData(nameof(Cases))]
-    public async Task TheProbeAndTheDownloaderAgree(bool oauth, bool storedKey, bool environmentKey,
+    public async Task TheProbeAndTheDownloaderAgree(StoredOAuth oauth, bool storedKey, bool environmentKey,
         NexusCredentialSource expected)
     {
         var api = Api(oauth, storedKey, environmentKey);
@@ -97,7 +127,7 @@ public class NexusCredentialTests : IDisposable
     [Fact]
     public async Task AnEnvironmentApiKeyAloneIsNotALogin()
     {
-        var api = Api(false, false, true);
+        var api = Api(StoredOAuth.None, false, true);
 
         var status = await new NexusApiLoginProbe(api).Probe(CancellationToken.None);
 
@@ -108,10 +138,30 @@ public class NexusCredentialTests : IDisposable
         Assert.Equal(0, api.Validations);
     }
 
+    /// <summary>
+    ///     The direction the environment variable did not cover: a stored OAuth state is the credential the
+    ///     downloader trusts most, so an empty one has to read as no login rather than as a login that fails
+    ///     on its first request.
+    /// </summary>
+    [Fact]
+    public async Task ARefusedRefreshLeavesNoLoginBehind()
+    {
+        var api = Api(StoredOAuth.NoAccessToken, false, false);
+        var downloader = new NexusDownloader(NullLogger<NexusDownloader>.Instance, null!, api);
+
+        var status = await new NexusApiLoginProbe(api).Probe(CancellationToken.None);
+
+        Assert.False(status.HasToken);
+        Assert.False(status.LoggedIn);
+        Assert.Equal(NexusCredentialSource.None, status.Credential);
+        Assert.False(await downloader.Prepare());
+        Assert.Equal(0, api.Validations);
+    }
+
     [Fact]
     public async Task AStoredLoginIsProbedAgainstTheApi()
     {
-        var api = Api(true, false, false);
+        var api = Api(StoredOAuth.Usable, false, false);
 
         var status = await new NexusApiLoginProbe(api).Probe(CancellationToken.None);
 
@@ -132,7 +182,7 @@ public class NexusCredentialTests : IDisposable
         Assert.Equal(expected, source.CanDownload());
     }
 
-    private TestApi Api(bool oauth, bool storedKey, bool environmentKey)
+    private TestApi Api(StoredOAuth oauth, bool storedKey, bool environmentKey)
     {
         Environment.SetEnvironmentVariable(EnvironmentKey, environmentKey ? "an-api-key" : null);
         return new TestApi(new FakeTokenProvider(oauth, storedKey));
@@ -164,21 +214,26 @@ public class NexusCredentialTests : IDisposable
     {
         private readonly NexusOAuthState? _state;
 
-        public FakeTokenProvider(bool oauth, bool storedKey)
+        public FakeTokenProvider(StoredOAuth oauth, bool storedKey)
         {
-            if (!oauth && !storedKey) return;
+            if (oauth == StoredOAuth.None && !storedKey) return;
             _state = new NexusOAuthState
             {
-                // A token that is not about to expire: refreshing one is a network call, and nothing here is
-                // testing the refresh.
-                OAuth = oauth
-                    ? new JwtTokenReply
+                // Always a token that is not about to expire: refreshing one is a network call, and the
+                // states under test here are what a refusal leaves behind rather than the refresh itself.
+                OAuth = oauth == StoredOAuth.None
+                    ? null
+                    : new JwtTokenReply
                     {
-                        AccessToken = "an-access-token",
+                        AccessToken = oauth switch
+                        {
+                            StoredOAuth.Usable => "an-access-token",
+                            StoredOAuth.BlankAccessToken => "   ",
+                            _ => null
+                        },
                         ReceivedAt = DateTime.UtcNow.ToFileTimeUtc(),
                         ExpiresIn = 3600
-                    }
-                    : null,
+                    },
                 ApiKey = storedKey ? "a-stored-key" : string.Empty
             };
         }

@@ -1,5 +1,7 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.DTOs;
@@ -40,17 +42,66 @@ public class NexusLoginCheckTests : IDisposable
         };
     }
 
+    /// <summary>
+    ///     The context as the checks before this one leave it. This check runs after archive-inventory and
+    ///     unsupported-archives and asks about what they left in <c>Missing</c>, so that is what a test sets;
+    ///     by default nothing is on disk yet.
+    /// </summary>
+    private PreflightContext Context(IEnumerable<Archive>? missing = null)
+    {
+        var ctx = _host.Context();
+        ctx.State.Missing = (missing ?? _host.Config.ModList.Archives).ToList();
+        return ctx;
+    }
+
     [Fact]
     public async Task PassesWithoutProbingWhenTheListHasNoNexusFiles()
     {
         _host.Config.ModList.Archives = new[] {await PreflightTestHost.ArchiveFor("http.7z", "plain http")};
-        var ctx = _host.Context();
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Contains("this list has no Nexus Mods files", result.Message);
         Assert.Equal(0, _host.Nexus.Calls);
         Assert.Null(ctx.State.Nexus);
+    }
+
+    /// <summary>
+    ///     The user this check used to stop for no reason: a list full of Nexus files, every one of them
+    ///     already in the downloads folder. There is nothing to log in for, so nothing is asked and the run
+    ///     carries on to what they can still act on.
+    /// </summary>
+    [Fact]
+    public async Task PassesWithoutProbingWhenEveryNexusFileIsAlreadyOnDisk()
+    {
+        await WithNexusArchives();
+        var ctx = Context(Array.Empty<Archive>());
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Contains("nothing left to download from Nexus Mods", result.Message);
+        Assert.Equal(0, _host.Nexus.Calls);
+        Assert.Null(ctx.State.Nexus);
+    }
+
+    /// <summary>
+    ///     What the count means: the files this install still has to fetch, not every Nexus file in the list.
+    ///     Counting the list is what made the message unrecognisable to someone half-way through a download.
+    /// </summary>
+    [Fact]
+    public async Task CountsOnlyTheFilesStillToDownload()
+    {
+        await WithNexusArchives();
+        _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.None);
+        var ctx = Context(new[] {_host.Config.ModList.Archives[1]});
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.Contains("1 file this install still needs", result.Message);
     }
 
     [Fact]
@@ -58,7 +109,7 @@ public class NexusLoginCheckTests : IDisposable
     {
         await WithNexusArchives();
         _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.None);
-        var ctx = _host.Context();
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
@@ -82,7 +133,7 @@ public class NexusLoginCheckTests : IDisposable
         await WithNexusArchives();
         _host.Nexus.Status =
             new NexusLoginStatus(false, false, null, null, NexusCredentialSource.EnvironmentApiKey);
-        var ctx = _host.Context();
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
@@ -98,7 +149,7 @@ public class NexusLoginCheckTests : IDisposable
     {
         await WithNexusArchives();
         _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.StoredApiKey);
-        var ctx = _host.Context();
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
@@ -112,7 +163,7 @@ public class NexusLoginCheckTests : IDisposable
         await WithNexusArchives();
         _host.Nexus.Status =
             new NexusLoginStatus(false, false, null, "Http Error 401 - Unauthorized", NexusCredentialSource.OAuth);
-        var ctx = _host.Context();
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
@@ -127,7 +178,7 @@ public class NexusLoginCheckTests : IDisposable
     {
         await WithNexusArchives();
         _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.OAuth);
-        var ctx = _host.Context();
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
@@ -141,7 +192,7 @@ public class NexusLoginCheckTests : IDisposable
     {
         await WithNexusArchives();
         _host.Nexus.Status = new NexusLoginStatus(true, false, "someone", null, NexusCredentialSource.OAuth);
-        var ctx = _host.Context();
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 

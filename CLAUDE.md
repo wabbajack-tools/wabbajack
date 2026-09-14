@@ -96,9 +96,10 @@ made to rehash a downloads folder.
 
 ## Preflight
 
-`Wabbajack.Installer/Preflight` runs a checklist before an install starts: Nexus login and premium status,
-game installed, game files, archive inventory, unsupported archives, manual downloads, automated downloads,
-disk space. `PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
+`Wabbajack.Installer/Preflight` runs a checklist before an install starts: game installed (100), game files
+(200), archive inventory (300), unsupported archives (400), Nexus login and premium status (500), manual
+downloads (600), automated downloads (700), disk space (900).
+`PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
 DI as `IPreflightCheck` and run in `Order` (100–900, gaps left on purpose), each declaring `DependsOn`. A
 check that fails or needs the user makes its dependents `Skipped`; `RunCheck(id)` re-runs one and resets
 what depends on it. The engine has no UI and no DynamicData anywhere. The runner is event-based: it raises
@@ -117,6 +118,14 @@ checklist in front of them. What did not run stays `Pending`, not `Skipped`: "Sk
 pass" belongs to a dependent. Every way back in — retry, rescan, acknowledge, pick a game folder — ends in
 `RunAll`, which picks the `Pending` ones up where the stopped run left them.
 
+Because a halt is that blunt, **a check that stops a run has to ask about work the user actually has left.**
+nexus-login is why the rule reads that way: at Order 100 with no dependencies it stopped an un-logged-in
+user at the first row, before they had learned whether their game was installed or what was already on
+disk, and its "N files" came from every Nexus archive in the modlist rather than the missing ones — so a
+user whose downloads folder was already complete was halted over files nobody was going to fetch. It now
+runs at 500, after archive-inventory and unsupported-archives, and asks about `Missing`: no missing Nexus
+archive means "not needed" and the run carries on. The download checks still depend on it.
+
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every
 install has to go through preflight first. Automated sources are WabbajackCDN, Http and premium Nexus; every other state
@@ -125,7 +134,7 @@ type**, never by which downloader the dispatcher would choose.
 
 **Manual downloads run before automated ones** (600 then 700, disk space still last): the user does the part
 that needs their hands first, then walks away while the rest is fetched. manual-downloads depends on
-archive-inventory, nexus-login and unsupported-archives; automated-downloads depends on manual-downloads.
+archive-inventory, unsupported-archives and nexus-login; automated-downloads depends on manual-downloads.
 The split both work from is `Rules/DownloadPlan` — the allow-list and mirror load, the mirror reroute, the
 Nexus premium probe, the automated/manual partition and the screening of what came out automated — computed
 on demand by whichever of them asks first and memoised on the blackboard, so the probe and the policy load
@@ -152,7 +161,17 @@ browser. A green "logged in" row and a pile of manual links. The variable stays 
 suite's way into the raw API; it is simply not a login. Whatever `NexusLoginCheck` reports has to be
 something the download path can deliver, and the row says *how* the user is authenticated: a stored API key
 reads "Logged in as X (API key)", and `NEXUS_API_KEY` with nothing stored reads as logged out with a detail
-naming the variable, because the variable working everywhere else is exactly what makes it confusing.
+naming the variable, because the variable working everywhere else is exactly what makes it confusing. The
+WPF Nexus tile (`NexusLoginManager`) asks the same predicate rather than testing the stored token itself,
+which is what kept a stored API key reading "logged out" there and "Logged in (API key)" in preflight.
+
+A source is only reported when there is something to send with it. `GetAuthInfo` rejects an empty API key
+either side, and equally an OAuth state carrying no access token — which is not hypothetical: `RefreshToken`
+logs a refusal, then deserializes the error body into a `JwtTokenReply` with a null `access_token` and
+**stores it**, so a revoked login or a changed password leaves exactly that behind. Reported as `OAuth` it
+would pass `CanDownload` and then throw out of `AddAuthHeaders` on the first real request. The stored API
+key in the same state is still a login; the environment variable is not consulted, because a stored login
+shadows it whether or not it turned out to be usable. `NexusCredentialTests` is the table.
 
 An automated download can still turn out to need a browser once it is running — a
 `ManualDownloadRequiredException`, a stall, a server refusal, bytes that do not hash — which fills a queue

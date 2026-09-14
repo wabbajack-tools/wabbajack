@@ -12,7 +12,9 @@ public enum NexusCredentialSource
 
     /// <summary>
     ///     An OAuth login: what the app stores when the user logs in, and what a host can hand it as
-    ///     <c>NEXUS_OAUTH_INFO</c>. Refreshable, and tied to the account the user signed in as.
+    ///     <c>NEXUS_OAUTH_INFO</c>. Refreshable, and tied to the account the user signed in as. Reported only
+    ///     when the stored state carries an access token to send: a refresh Nexus refuses leaves one behind
+    ///     that does not, and that is no more a login than an empty variable is.
     /// </summary>
     OAuth,
 

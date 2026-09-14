@@ -142,11 +142,14 @@ public sealed class ArchiveDownloadPipeline
     }
 
     /// <summary>
-    ///     Whether Nexus archives in <paramref name="missing" /> download on their own. nexus-login skips the
-    ///     probe when the list has no Nexus archives, but a mirror reroute can introduce one afterwards; the
-    ///     account is then probed here, once, and recorded on the blackboard for whatever asks next. Not
-    ///     being logged in or premium is not a failure at this point: the archive goes to the manual queue
-    ///     with its Nexus page, as it would have had the list carried it from the start.
+    ///     Whether Nexus archives in <paramref name="missing" /> download on their own. Both this and
+    ///     nexus-login ask about the same set - what is still to be fetched - so the probe happens once, in
+    ///     the check, whenever that set already held a Nexus archive. The gap left is the reroute below,
+    ///     which can put a Nexus state on an archive that did not have one when the check looked; the account
+    ///     is then probed here, once, and recorded on the blackboard for whatever asks next. Not being logged
+    ///     in or premium is not a failure at this point, and deliberately does not stop the run the way
+    ///     nexus-login would have: the archive goes to the manual queue with its Nexus page, as it would have
+    ///     had the list carried it from the start.
     /// </summary>
     public async Task<bool> NexusPremium(IEnumerable<Archive> missing, CancellationToken token)
     {

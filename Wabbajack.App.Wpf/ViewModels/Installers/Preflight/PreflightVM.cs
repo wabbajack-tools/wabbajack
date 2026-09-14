@@ -93,6 +93,11 @@ public partial class PreflightVM : ViewModel
         // and a token Nexus has revoked stays locally valid: logging in again would change nothing to watch.
         nexusLogin.Refreshed
             .ObserveOnGuiThread()
+            // Only once the checklist has actually asked. nexus-login runs after the archive inventory now,
+            // so re-running it while that is still Pending would mark it Skipped over a login the user has
+            // just completed; the run that reaches it asks again anyway.
+            .Where(_ => _runner.Checks.Any(c =>
+                c.Id == PreflightCheckIds.NexusLogin && c.State != PreflightState.Pending))
             .Subscribe(_ => Run(t => _actions.Execute(PreflightCheckIds.NexusLogin, "retry", t)).FireAndForget())
             .DisposeWith(CompositeDisposable);
 

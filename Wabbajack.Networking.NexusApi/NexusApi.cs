@@ -260,8 +260,17 @@ public class NexusApi
             {
                 if (info.OAuth.IsExpired)
                     info = await RefreshToken(info, CancellationToken.None);
-                return (NexusCredentialSource.OAuth, info.OAuth!.AccessToken!);
+
+                // The same rule the API key gets, for the same reason. A refresh Nexus refuses - a revoked
+                // token, a changed password - is logged and then stored anyway: the error body deserializes
+                // into a reply whose access token is null, which RefreshToken writes over the old state. An
+                // OAuth state is therefore not by itself a credential, and reporting one would put the lie
+                // back where it was: CanDownload true, and the first real request throwing from AddAuthHeaders.
+                if (!string.IsNullOrWhiteSpace(info.OAuth?.AccessToken))
+                    return (NexusCredentialSource.OAuth, info.OAuth.AccessToken!);
             }
+
+            // A stored API key is still a login when the OAuth half of the same state is unusable.
             if (!string.IsNullOrWhiteSpace(info.ApiKey))
             {
                 return (NexusCredentialSource.StoredApiKey, info.ApiKey);

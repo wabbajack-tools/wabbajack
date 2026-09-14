@@ -44,8 +44,8 @@ public sealed class PreflightBlackboard
     private volatile DownloadPlan? _plan;
 
     /// <summary>
-    ///     Set by nexus-login. Null when the list has no Nexus archives, in which case the download plan
-    ///     fills it in if a mirror reroute introduces one.
+    ///     Set by nexus-login. Null when nothing this install still has to fetch comes from Nexus Mods, in
+    ///     which case the download plan fills it in if a mirror reroute introduces one.
     /// </summary>
     public NexusLoginStatus? Nexus { get; set; }
 

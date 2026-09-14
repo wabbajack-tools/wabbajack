@@ -7,10 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Test.Preflight.Fakes;
 using Wabbajack.Networking.NexusApi;
+using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Xunit;
@@ -41,6 +44,21 @@ public class PreflightRunnerTests : IDisposable
     private static PreflightState StateOf(PreflightRunner runner, string id)
     {
         return runner.Checks.Single(c => c.Id == id).State;
+    }
+
+    /// <summary>
+    ///     A modlist that reads every one of <paramref name="archives" />. The inventory prunes archives no
+    ///     directive extracts from, so archives on their own would leave a run with nothing missing and
+    ///     nothing to ask the user about.
+    /// </summary>
+    private void ModListOf(params Archive[] archives)
+    {
+        _host.Config.ModList.Archives = archives;
+        _host.Config.ModList.Directives = archives.Select((a, i) => (Directive) new FromArchive
+        {
+            To = $"mods/{i}.txt".ToRelativePath(), Hash = a.Hash, Size = a.Size,
+            ArchiveHashPath = new HashRelativePath(a.Hash, "file.txt".ToRelativePath())
+        }).ToArray();
     }
 
     [Fact]
@@ -221,13 +239,11 @@ public class PreflightRunnerTests : IDisposable
     [Fact]
     public async Task ANexusListWithoutALoginStopsAtTheLoginAndQueuesNothing()
     {
-        _host.Config.ModList.Archives = new[]
-        {
+        ModListOf(
             await PreflightTestHost.ArchiveFor("one.7z", "nexus one",
                 new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 1, FileID = 1}),
             await PreflightTestHost.ArchiveFor("two.7z", "nexus two!",
-                new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 2, FileID = 2})
-        };
+                new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 2, FileID = 2}));
         _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.EnvironmentApiKey);
 
         var context = _host.Context();
@@ -240,16 +256,52 @@ public class PreflightRunnerTests : IDisposable
         Assert.Contains(PreflightAction.Login, login.Actions);
         Assert.Contains("NEXUS_API_KEY", login.Detail!);
 
+        // What comes before the login has run and had its say: the user learns their game is fine and what
+        // is on disk, which is why the login is worth asking about at all.
         foreach (var id in new[]
                  {
                      PreflightCheckIds.GameInstalled, PreflightCheckIds.GameFiles, PreflightCheckIds.ArchiveInventory,
-                     PreflightCheckIds.UnsupportedArchives, PreflightCheckIds.ManualDownloads,
-                     PreflightCheckIds.AutomatedDownloads, PreflightCheckIds.DiskSpace
+                     PreflightCheckIds.UnsupportedArchives
+                 })
+            Assert.Equal(PreflightState.Passed, StateOf(runner, id));
+
+        // What comes after it does not, so no queue of Nexus links is ever built.
+        foreach (var id in new[]
+                 {
+                     PreflightCheckIds.ManualDownloads, PreflightCheckIds.AutomatedDownloads,
+                     PreflightCheckIds.DiskSpace
                  })
             Assert.Equal(PreflightState.Pending, StateOf(runner, id));
 
         Assert.Empty(context.State.ManualQueue);
-        Assert.Empty(runner.Archives);
+        Assert.All(runner.Archives.Values, a => Assert.Equal(ArchiveState.Missing, a.State));
+    }
+
+    /// <summary>
+    ///     The other half of the same rule: a login is only worth stopping for when something still needs it.
+    ///     With every Nexus file already in the downloads folder the checklist runs to the end, rather than
+    ///     halting a user who has nothing to log in for.
+    /// </summary>
+    [Fact]
+    public async Task ANexusListAlreadyDownloadedDoesNotStopAtTheLogin()
+    {
+        var one = await PreflightTestHost.WriteArchive(_host.Config.Downloads, "one.7z", "nexus one",
+            new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 1, FileID = 1});
+        var two = await PreflightTestHost.WriteArchive(_host.Config.Downloads, "two.7z", "nexus two!",
+            new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 2, FileID = 2});
+        ModListOf(one, two);
+        _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.EnvironmentApiKey);
+
+        var context = _host.Context();
+        var runner = new PreflightRunner(_provider.GetServices<IPreflightCheck>(), context);
+        var outcome = await runner.RunAll(CancellationToken.None);
+
+        Assert.True(outcome.Ready);
+        var login = outcome.Checks.Single(c => c.Id == PreflightCheckIds.NexusLogin);
+        Assert.Equal(PreflightState.Passed, login.State);
+        Assert.Contains("nothing left to download from Nexus Mods", login.Message);
+        Assert.Equal(0, _host.Nexus.Calls);
+        Assert.Empty(context.State.ManualQueue);
     }
 
     /// <summary>
