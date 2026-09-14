@@ -113,6 +113,13 @@ public class CommandLineBuilder
     private static List<(Type Type, VerbDefinition Definition, Func<object, Delegate> Handler)> _commands { get; set; } = new();
     public static IEnumerable<Type> Verbs => _commands.Select(c => c.Type);
 
+    /// <summary>
+    ///     The option types a verb may declare. A verb using anything else throws at startup, when the
+    ///     command tree is built, rather than when someone runs it -- so this is what the test that checks
+    ///     every verb reads, instead of keeping a second copy of the list that can quietly fall behind.
+    /// </summary>
+    public static IEnumerable<Type> SupportedOptionTypes => _optionCtors.Keys;
+
     public static void RegisterCommand<T>(VerbDefinition definition, Func<object, Delegate> handler)
     {
         _commands.Add((typeof(T), definition, handler));
