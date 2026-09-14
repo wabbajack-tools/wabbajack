@@ -68,12 +68,19 @@ public static class PreflightInstall
             return result == InstallResult.Succeeded ? Succeeded : InstallFailed;
         }
 
-        foreach (var check in outcome.Checks.Where(c => !c.IsSatisfied))
+        // A run that stopped at a check the user has to act on leaves the rest Pending. Those have nothing
+        // to report - they never ran - so only what actually produced a result is printed.
+        foreach (var check in outcome.Checks.Where(c => !c.IsSatisfied && c.State != PreflightState.Pending))
         {
             logger.LogError("[{State}] {Title}: {Message}", check.State, check.Title, check.Message);
             if (!string.IsNullOrWhiteSpace(check.Detail))
                 logger.LogError("{Detail}", check.Detail);
         }
+
+        var notRun = outcome.Checks.Where(c => c.State == PreflightState.Pending).ToList();
+        if (notRun.Count > 0)
+            logger.LogError("Preflight stopped before {Count} further checks: {Checks}", notRun.Count,
+                string.Join(", ", notRun.Select(c => c.Title)));
 
         if (manual.Count == 0)
             manual = runner.Context.State.ManualQueue.Select(q => (q.Archive, q.Target)).ToList();

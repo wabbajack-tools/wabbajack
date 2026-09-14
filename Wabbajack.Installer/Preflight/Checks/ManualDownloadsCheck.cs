@@ -36,6 +36,13 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
         PreflightCheckIds.ArchiveInventory, PreflightCheckIds.NexusLogin, PreflightCheckIds.UnsupportedArchives
     };
 
+    /// <summary>
+    ///     Ending NeedsUser here is the normal shape of a list with files behind a browser: the queue has been
+    ///     published and the user has work to do. The run carries on so they also learn whether the disk has
+    ///     room for it.
+    /// </summary>
+    public bool NeedsUserStopsRun => false;
+
     public async Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token)
     {
         // The only shortcut past the plan: with nothing missing there is nothing to partition, so no split

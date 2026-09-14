@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Test.Preflight.Fakes;
+using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Xunit;
@@ -18,9 +20,11 @@ namespace Wabbajack.Installer.Test.Preflight;
 public class PreflightRunnerTests : IDisposable
 {
     private readonly PreflightTestHost _host;
+    private readonly IServiceProvider _provider;
 
     public PreflightRunnerTests(IServiceProvider provider)
     {
+        _provider = provider;
         _host = new PreflightTestHost(provider);
     }
 
@@ -83,6 +87,8 @@ public class PreflightRunnerTests : IDisposable
     [InlineData(PreflightState.NeedsUser)]
     public async Task DependentsAreSkippedWhenADependencyDoesNotPass(PreflightState dependencyState)
     {
+        // The run stops at "a", so the dependents are only reachable through RunCheck. What matters here is
+        // the reason they refuse to run, which is the same one either way.
         var a = new FakeCheck("a", 10)
         {
             Body = (_, _, _) => Task.FromResult(new PreflightResult(dependencyState, "no"))
@@ -96,12 +102,182 @@ public class PreflightRunnerTests : IDisposable
 
         Assert.False(outcome.Ready);
         Assert.Equal(dependencyState, StateOf(runner, "a"));
-        Assert.Equal(PreflightState.Skipped, StateOf(runner, "b"));
-        Assert.Equal(PreflightState.Skipped, StateOf(runner, "c"));
-        Assert.Equal(PreflightState.Passed, StateOf(runner, "d"));
+
+        Assert.Equal(PreflightState.Skipped, (await runner.RunCheck("b", CancellationToken.None)).State);
+        Assert.Equal(PreflightState.Skipped, (await runner.RunCheck("c", CancellationToken.None)).State);
         Assert.Equal(0, b.Runs);
         Assert.Equal(0, c.Runs);
+        Assert.Equal(0, d.Runs);
         Assert.Contains("\"a\"", runner.Checks.Single(x => x.Id == "b").Message);
+    }
+
+    /// <summary>
+    ///     The halt rule, and the reason for it: with a failed login the user should be told to log in, not
+    ///     handed the consequences of not having done so. Independent checks later in the order are exactly
+    ///     what used to keep going - the download checks are independent of nothing, but game files and disk
+    ///     space are - so an independent check is what this pins.
+    /// </summary>
+    [Theory]
+    [InlineData(PreflightState.Failed)]
+    [InlineData(PreflightState.NeedsUser)]
+    public async Task AFailedCheckStopsTheRunAndLaterIndependentChecksDoNotRun(PreflightState state)
+    {
+        var a = new FakeCheck("a", 10)
+        {
+            Body = (_, _, _) => Task.FromResult(new PreflightResult(state, "no"))
+        };
+        var b = new FakeCheck("b", 20);
+        var c = new FakeCheck("c", 30);
+
+        var runner = Runner(a, b, c);
+        var outcome = await runner.RunAll(CancellationToken.None);
+
+        Assert.False(outcome.Ready);
+        Assert.Equal(state, StateOf(runner, "a"));
+        Assert.Equal(PreflightState.Pending, StateOf(runner, "b"));
+        Assert.Equal(PreflightState.Pending, StateOf(runner, "c"));
+        Assert.Equal(0, b.Runs);
+        Assert.Equal(0, c.Runs);
+    }
+
+    /// <summary>
+    ///     manual-downloads and automated-downloads end NeedsUser in normal flow: the user has files to fetch,
+    ///     which is work rather than a mistake, and disk-space still has something worth saying.
+    /// </summary>
+    [Fact]
+    public async Task ANeedsUserTheCheckCallsNormalDoesNotStopTheRun()
+    {
+        var a = new FakeCheck("a", 10)
+        {
+            NeedsUserStopsRun = false,
+            Body = (_, _, _) => Task.FromResult(PreflightResult.NeedsUser("fetch these"))
+        };
+        var b = new FakeCheck("b", 20);
+
+        var runner = Runner(a, b);
+        var outcome = await runner.RunAll(CancellationToken.None);
+
+        Assert.False(outcome.Ready);
+        Assert.Equal(PreflightState.NeedsUser, StateOf(runner, "a"));
+        Assert.Equal(PreflightState.Passed, StateOf(runner, "b"));
+        Assert.Equal(1, b.Runs);
+    }
+
+    /// <summary>
+    ///     A dependent of a check that ended NeedsUser without stopping the run is still Skipped, with the
+    ///     reason naming what it was waiting for; an unrelated check further down still runs.
+    /// </summary>
+    [Fact]
+    public async Task ANonStoppingNeedsUserStillSkipsItsDependents()
+    {
+        var a = new FakeCheck("a", 10)
+        {
+            NeedsUserStopsRun = false,
+            Body = (_, _, _) => Task.FromResult(PreflightResult.NeedsUser("fetch these"))
+        };
+        var b = new FakeCheck("b", 20, "a");
+        var c = new FakeCheck("c", 30);
+
+        var runner = Runner(a, b, c);
+        await runner.RunAll(CancellationToken.None);
+
+        Assert.Equal(PreflightState.Skipped, StateOf(runner, "b"));
+        Assert.Equal(PreflightState.Passed, StateOf(runner, "c"));
+        Assert.Equal(0, b.Runs);
+        Assert.Contains("\"a\"", runner.Checks.Single(x => x.Id == "b").Message);
+    }
+
+    /// <summary>
+    ///     A Warning never stops a run, acknowledged or not: it is a judgement the user makes, and they should
+    ///     be making it with the rest of the checklist in front of them.
+    /// </summary>
+    [Fact]
+    public async Task AWarningDoesNotStopTheRunAndAcknowledgingItMakesTheRunReady()
+    {
+        var a = new FakeCheck("a", 10)
+        {
+            Body = (_, _, _) => Task.FromResult(PreflightResult.Warning("careful"))
+        };
+        var b = new FakeCheck("b", 20);
+
+        var runner = Runner(a, b);
+        var outcome = await runner.RunAll(CancellationToken.None);
+
+        Assert.False(outcome.Ready);
+        Assert.Equal(PreflightState.Warning, StateOf(runner, "a"));
+        Assert.Equal(PreflightState.Passed, StateOf(runner, "b"));
+        Assert.Equal(1, b.Runs);
+
+        runner.Acknowledge("a");
+        Assert.True(runner.Outcome.Ready);
+    }
+
+    /// <summary>
+    ///     The reported bug end to end, over the checks the app actually registers: a Nexus list, no login the
+    ///     downloader can use, and NEXUS_API_KEY sitting in the environment. The user gets one thing to do -
+    ///     log in - and not a queue of Nexus links, because the checks that would have built that queue never
+    ///     run.
+    /// </summary>
+    [Fact]
+    public async Task ANexusListWithoutALoginStopsAtTheLoginAndQueuesNothing()
+    {
+        _host.Config.ModList.Archives = new[]
+        {
+            await PreflightTestHost.ArchiveFor("one.7z", "nexus one",
+                new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 1, FileID = 1}),
+            await PreflightTestHost.ArchiveFor("two.7z", "nexus two!",
+                new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 2, FileID = 2})
+        };
+        _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.EnvironmentApiKey);
+
+        var context = _host.Context();
+        var runner = new PreflightRunner(_provider.GetServices<IPreflightCheck>(), context);
+        var outcome = await runner.RunAll(CancellationToken.None);
+
+        Assert.False(outcome.Ready);
+        var login = outcome.Checks.Single(c => c.Id == PreflightCheckIds.NexusLogin);
+        Assert.Equal(PreflightState.NeedsUser, login.State);
+        Assert.Contains(PreflightAction.Login, login.Actions);
+        Assert.Contains("NEXUS_API_KEY", login.Detail!);
+
+        foreach (var id in new[]
+                 {
+                     PreflightCheckIds.GameInstalled, PreflightCheckIds.GameFiles, PreflightCheckIds.ArchiveInventory,
+                     PreflightCheckIds.UnsupportedArchives, PreflightCheckIds.ManualDownloads,
+                     PreflightCheckIds.AutomatedDownloads, PreflightCheckIds.DiskSpace
+                 })
+            Assert.Equal(PreflightState.Pending, StateOf(runner, id));
+
+        Assert.Empty(context.State.ManualQueue);
+        Assert.Empty(runner.Archives);
+    }
+
+    /// <summary>
+    ///     What a stopped run leaves behind has to be resumable, because that is the whole user-facing point:
+    ///     fix the one thing, and the checklist carries on from where it stopped rather than starting over.
+    /// </summary>
+    [Fact]
+    public async Task FixingTheStoppingCheckLetsTheRunCarryOn()
+    {
+        var attempts = 0;
+        var a = new FakeCheck("a", 10)
+        {
+            Body = (_, _, _) => Task.FromResult(++attempts == 1
+                ? PreflightResult.NeedsUser("log in")
+                : PreflightResult.Passed("ok"))
+        };
+        var b = new FakeCheck("b", 20);
+        var c = new FakeCheck("c", 30);
+
+        var runner = Runner(a, b, c);
+        Assert.False((await runner.RunAll(CancellationToken.None)).Ready);
+        Assert.Equal(0, b.Runs);
+
+        Assert.Equal(PreflightState.Passed, (await runner.RunCheck("a", CancellationToken.None)).State);
+        Assert.True((await runner.RunAll(CancellationToken.None)).Ready);
+        Assert.Equal(2, a.Runs);
+        Assert.Equal(1, b.Runs);
+        Assert.Equal(1, c.Runs);
     }
 
     [Fact]
@@ -380,7 +556,9 @@ public class PreflightRunnerTests : IDisposable
         Assert.Equal(PreflightState.Failed, status.State);
         Assert.Contains("boom", status.Message);
         Assert.Contains(PreflightAction.Retry, status.Actions);
-        Assert.Equal(PreflightState.Skipped, StateOf(runner, "b"));
+        // A throw is a failure like any other, so the run stops there and "b" never gets its turn.
+        Assert.Equal(PreflightState.Pending, StateOf(runner, "b"));
+        Assert.Equal(0, b.Runs);
     }
 
     [Fact]
@@ -462,16 +640,15 @@ public class PreflightRunnerTests : IDisposable
     public async Task CancellationKeepsFailedAndNeedsUserResults()
     {
         var started = new TaskCompletionSource();
+        // A NeedsUser the check calls normal, so the run reaches the one that hangs; a stopping one would
+        // end the run itself and there would be nothing left to cancel.
         var a = new FakeCheck("a", 10)
         {
-            Body = (_, _, _) => Task.FromResult(PreflightResult.Failed("version mismatch"))
-        };
-        var b = new FakeCheck("b", 20)
-        {
+            NeedsUserStopsRun = false,
             Body = (_, _, _) => Task.FromResult(PreflightResult.NeedsUser("log in"))
         };
-        var c = new FakeCheck("c", 30, "a");
-        var d = new FakeCheck("d", 40)
+        var b = new FakeCheck("b", 20, "a");
+        var c = new FakeCheck("c", 30)
         {
             Body = async (_, _, token) =>
             {
@@ -480,9 +657,16 @@ public class PreflightRunnerTests : IDisposable
                 return PreflightResult.Passed("never");
             }
         };
-        var e = new FakeCheck("e", 50);
+        var d = new FakeCheck("d", 40);
+        // Failed on its own, the way a retried check leaves a result the run never reaches.
+        var e = new FakeCheck("e", 50)
+        {
+            Body = (_, _, _) => Task.FromResult(PreflightResult.Failed("version mismatch"))
+        };
 
         var runner = Runner(a, b, c, d, e);
+        Assert.Equal(PreflightState.Failed, (await runner.RunCheck("e", CancellationToken.None)).State);
+
         using var cts = new CancellationTokenSource();
         var run = runner.RunAll(cts.Token);
         await started.Task;
@@ -490,13 +674,13 @@ public class PreflightRunnerTests : IDisposable
         await run;
 
         // What the user has to act on survives the cancellation; only what did not get to run is reset.
-        Assert.Equal(PreflightState.Failed, StateOf(runner, "a"));
-        Assert.Equal("version mismatch", runner.Checks.Single(x => x.Id == "a").Message);
-        Assert.Equal(PreflightState.NeedsUser, StateOf(runner, "b"));
-        Assert.Equal(PreflightState.Pending, StateOf(runner, "c"));
-        Assert.Equal(PreflightState.Cancelled, StateOf(runner, "d"));
-        Assert.Equal(PreflightState.Pending, StateOf(runner, "e"));
-        Assert.Equal(0, e.Runs);
+        Assert.Equal(PreflightState.NeedsUser, StateOf(runner, "a"));
+        Assert.Equal(PreflightState.Pending, StateOf(runner, "b"));
+        Assert.Equal(PreflightState.Cancelled, StateOf(runner, "c"));
+        Assert.Equal(PreflightState.Pending, StateOf(runner, "d"));
+        Assert.Equal(PreflightState.Failed, StateOf(runner, "e"));
+        Assert.Equal("version mismatch", runner.Checks.Single(x => x.Id == "e").Message);
+        Assert.Equal(0, d.Runs);
     }
 
     [Fact]
