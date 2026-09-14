@@ -2,18 +2,12 @@ using Wabbajack.DTOs.Interventions;
 
 namespace Wabbajack.Networking.Steam.UserInterventions;
 
-public class GetUsernameAndPassword : IUserIntervention
-{
-    public void Cancel()
-    {
-        throw new NotImplementedException();
-    }
+public record SteamCredentials(string Username, string Password);
 
-    public bool Handled { get; }
-    public CancellationToken Token { get; }
-    
-    public void SetException(Exception exception)
-    {
-        throw new NotImplementedException();
-    }
+/// <summary>
+///     Asks the user for a Steam account name and password. Only ever held in memory: the password is handed
+///     straight to the authentication flow and never stored.
+/// </summary>
+public class GetUsernameAndPassword : AUserIntervention<SteamCredentials>
+{
 }

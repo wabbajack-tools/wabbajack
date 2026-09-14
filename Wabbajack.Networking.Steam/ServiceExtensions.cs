@@ -1,13 +1,19 @@
 using Microsoft.Extensions.DependencyInjection;
-using Wabbajack.Networking.Steam;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Wabbajack.Networking.NexusApi;
+namespace Wabbajack.Networking.Steam;
 
 public static class ServiceExtensions
 {
-    public static void AddSteam(this IServiceCollection services)
+    public static IServiceCollection AddSteam(this IServiceCollection services)
     {
+        // TryAdd, so a host that wants its own prompt can register one before calling this.
+        services.TryAddSingleton<ISteamGuardPrompt, InterventionSteamGuardPrompt>();
+
+        services.AddSingleton<SteamSession>();
+        services.AddSingleton<ISteamSession>(s => s.GetRequiredService<SteamSession>());
         services.AddSingleton<Client>();
         services.AddSingleton<DepotDownloader>();
+        return services;
     }
 }
