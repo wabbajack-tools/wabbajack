@@ -23,6 +23,13 @@ namespace Wabbajack.Installer.Preflight;
 ///     linked cancellation source. Hosts read <see cref="Checks" /> and <see cref="Archives" /> for the
 ///     current picture and subscribe to <see cref="Changed" /> for transitions; the event is raised from
 ///     whatever thread made the change.
+///     <para>
+///         A run leaves the calling thread before the first check starts. Checks hash files and walk whole
+///         download folders, and a host that calls in from a UI thread would otherwise have every await in
+///         every check - including the ones inside the shared <c>PMapAll</c> helpers, which this assembly
+///         cannot annotate - resume on it. Hopping once here is what makes the engine independent of its
+///         caller's synchronization context; individual checks do not have to think about it.
+///     </para>
 /// </summary>
 public sealed class PreflightRunner
 {
@@ -122,7 +129,12 @@ public sealed class PreflightRunner
     ///     Runs every check that still needs running: anything not yet Passed, plus anything whose
     ///     dependencies produced a new result since it last passed.
     /// </summary>
-    public async Task<PreflightOutcome> RunAll(CancellationToken token)
+    public Task<PreflightOutcome> RunAll(CancellationToken token)
+    {
+        return Task.Run(() => RunAllCore(token));
+    }
+
+    private async Task<PreflightOutcome> RunAllCore(CancellationToken token)
     {
         try
         {
@@ -173,9 +185,15 @@ public sealed class PreflightRunner
     ///     Re-runs one check. Everything that transitively depends on it goes back to Pending first, so the
     ///     next <see cref="RunAll" /> revisits them.
     /// </summary>
-    public async Task<PreflightResult> RunCheck(string id, CancellationToken token)
+    public Task<PreflightResult> RunCheck(string id, CancellationToken token)
     {
+        // Find first, so an unknown id still throws at the caller rather than inside the task.
         var entry = Find(id);
+        return Task.Run(() => RunCheckCore(entry, token));
+    }
+
+    private async Task<PreflightResult> RunCheckCore(Entry entry, CancellationToken token)
+    {
 
         try
         {
