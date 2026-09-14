@@ -106,6 +106,17 @@ plain events (`CheckChanged`, `ArchiveChanged`, `ManualQueueChanged`, `RunFinish
 hosts project those however they like. The acquirer exposes `IObservable`s via `System.Reactive` (already
 a transitive dependency).
 
+**A run stops at the first check the user has to act on.** `PreflightRunner.StopsRun` is the rule: `Failed`
+always stops; `NeedsUser` stops unless the check sets `IPreflightCheck.NeedsUserStopsRun` to false; nothing
+else does. Past a failure the checklist is describing an install the user is not going to get, and the work
+it does to say so — hashing a game folder, walking a downloads folder, downloading archives — is work they
+then watch happen twice. The two download checks are the exceptions: `NeedsUser` is their ordinary ending
+(the user has files to fetch, which is work rather than a mistake), so the run carries on to disk-space. A
+`Warning` never stops a run, acknowledged or not — the user decides, and should decide with the whole
+checklist in front of them. What did not run stays `Pending`, not `Skipped`: "Skipped because X did not
+pass" belongs to a dependent. Every way back in — retry, rescan, acknowledge, pick a game folder — ends in
+`RunAll`, which picks the `Pending` ones up where the stopped run left them.
+
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every
 install has to go through preflight first. Automated sources are WabbajackCDN, Http and premium Nexus; every other state
@@ -125,12 +136,23 @@ against the new answer.
 Splitting by state type is only half of it. An archive whose state is automated still needs a downloader the
 dispatcher has, one that will `Prepare()`, and a URL the allow-list permits, and none of those takes a
 download to establish, so `ArchiveDownloadPipeline.Screen` settles them while the plan is being computed.
-That matters because the two can disagree: `NexusApiLoginProbe` counts `NEXUS_API_KEY` as a login while
-`NexusDownloader.Prepare` only looks at the stored token, so an account the probe calls premium can still
-have nothing to download with. Screened out at plan time, those archives reach the manual queue before
-manual-downloads reads it; screened out later, they would arrive after it had already passed and reported
-nothing to do by hand. `ManualDownloadsCheck` reads the queue only after asking for the plan for the same
-reason — the only shortcut past it is nothing missing at all.
+Screened out at plan time, those archives reach the manual queue before manual-downloads reads it; screened
+out later, they would arrive after it had already passed and reported nothing to do by hand.
+`ManualDownloadsCheck` reads the queue only after asking for the plan for the same reason — the only
+shortcut past it is nothing missing at all.
+
+**One definition of being logged in to Nexus Mods, and it is the downloader's.** `NexusCredential.CanDownload`
+in `Wabbajack.Networking.NexusApi` is it, over the `NexusCredentialSource` that `NexusApi.CredentialSource()`
+resolves from the same code that builds the request headers. `NexusDownloader.Prepare` and
+`NexusApiLoginProbe` both ask it and nothing else. They used to decide separately, and disagreed over
+`NEXUS_API_KEY`: `NexusApi` falls back to that variable for its own calls, so the probe validated with it and
+reported a premium login, while `Prepare` — which reads the stored OAuth state before every download, and
+whose `ITokenProvider.Get` throws when nothing is stored — returned false and sent every Nexus archive to the
+browser. A green "logged in" row and a pile of manual links. The variable stays the CLI's and the test
+suite's way into the raw API; it is simply not a login. Whatever `NexusLoginCheck` reports has to be
+something the download path can deliver, and the row says *how* the user is authenticated: a stored API key
+reads "Logged in as X (API key)", and `NEXUS_API_KEY` with nothing stored reads as logged out with a detail
+naming the variable, because the variable working everywhere else is exactly what makes it confusing.
 
 An automated download can still turn out to need a browser once it is running — a
 `ManualDownloadRequiredException`, a stall, a server refusal, bytes that do not hash — which fills a queue
