@@ -228,4 +228,31 @@ public class ArchiveInventoryTests : IDisposable
         Assert.Equal(new[] {"needed.7z"}, ctx.State.RequiredArchives.Select(a => a.Name));
         Assert.Equal(new[] {"needed.7z"}, ctx.State.Missing.Select(a => a.Name));
     }
+
+    /// <summary>
+    ///     Candidates are found by size, so every archive of a given size claims every file of that size. A
+    ///     file claimed by several archives used to be queued once per archive and hashed once per archive,
+    ///     which on a list with a few common sizes is a lot of a large downloads folder read twice over.
+    /// </summary>
+    [Fact]
+    public async Task AFileMatchingSeveralArchivesBySizeIsHashedOnce()
+    {
+        var wanted = await PreflightTestHost.WriteArchive(Downloads, "wanted.7z", "twelve bytes");
+
+        // Same size, different bytes: both archives claim the one file on disk as a candidate.
+        var sameSize = await PreflightTestHost.ArchiveFor("other.7z", "TWELVE BYTES");
+        Assert.Equal(wanted.Size, sameSize.Size);
+        Assert.NotEqual(wanted.Hash, sameSize.Hash);
+
+        var announced = 0;
+        var hashed = 0;
+        var found = await ArchiveInventory.Scan(new[] {wanted, sameSize}, Downloads,
+            Array.Empty<AbsolutePath>(), _host.Cache, _host.Limiter, NullLogger.Instance, CancellationToken.None,
+            count => announced = count, () => Interlocked.Increment(ref hashed));
+
+        Assert.Equal(Downloads.Combine("wanted.7z"), found[wanted.Hash]);
+        Assert.False(found.ContainsKey(sameSize.Hash));
+        Assert.Equal(1, announced);
+        Assert.Equal(1, hashed);
+    }
 }

@@ -196,17 +196,35 @@ public class FileHashCache
 
     public async Task<Hash> TryGetHashCache(AbsolutePath file)
     {
-        if (!file.FileExists()) return default;
+        // new FileInfo("") throws where File.Exists("") answered false, and callers used to be able to ask
+        // about a path they had not filled in.
+        if (file == default) return default;
+
+        // Existence, both timestamps and the size all come from one FileInfo. Each of FileExists(),
+        // LastModifiedUtc(), CreatedUtc() and Size() is its own call into the file system, and a hit on
+        // this cache made six of them; hashing a downloads folder does this once per file.
+        var info = file.Info();
+        if (!info.Exists) return default;
 
         var result = await Get(file);
         if (result == default || result.Hash == default)
             return default;
-        
-        // Fix for strange issue where dates are messed up on some systems
-        if (file.LastModifiedUtc() < file.CreatedUtc())
-            file.Touch();
 
-        if (result.LastModified != file.LastModifiedUtc().ToFileTimeUtc())
+        // Taken again once the row is in hand, because that is when it used to be read. A file rewritten
+        // while the row was being fetched - new bytes, a new timestamp, the same length - would otherwise be
+        // answered from a snapshot that predates it, and the size column exists precisely to catch damage a
+        // timestamp does not. Both halves of the check now come from one snapshot, so they describe the same
+        // moment, which reading them one at a time never guaranteed.
+        info.Refresh();
+
+        // Fix for strange issue where dates are messed up on some systems
+        if (info.LastWriteTimeUtc < info.CreationTimeUtc)
+        {
+            file.Touch();
+            info.Refresh();
+        }
+
+        if (result.LastModified != info.LastWriteTimeUtc.ToFileTimeUtc())
         {
             await PurgeAsync(file);
             return default;
@@ -214,7 +232,7 @@ public class FileHashCache
 
         // A file damaged in place often keeps its timestamp, so the timestamp alone does not establish that
         // the cached hash still describes the file. Size is cheap to check and catches truncation.
-        var size = file.Size();
+        var size = info.Length;
 
         if (result.Size == null)
         {
@@ -235,8 +253,11 @@ public class FileHashCache
 
     private async Task WriteHashCache(AbsolutePath file, Hash hash)
     {
-        if (!file.FileExists()) return;
-        await Upsert(file, file.LastModifiedUtc().ToFileTimeUtc(), hash, file.Size());
+        if (file == default) return;
+
+        var info = file.Info();
+        if (!info.Exists) return;
+        await Upsert(file, info.LastWriteTimeUtc.ToFileTimeUtc(), hash, info.Length);
     }
 
     public async Task FileHashWriteCache(AbsolutePath file, Hash hash)
@@ -249,7 +270,7 @@ public class FileHashCache
         var hash = await TryGetHashCache(file);
         if (hash != default) return hash;
 
-        using var job = await _limiter.Begin($"Hashing {file.FileName}", file.Size(), token);
+        using var job = await _limiter.Begin($"Hashing {file.FileName}", file.Info().Length, token);
         await using var fs = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
 
         hash = await fs.HashingCopy(Stream.Null, token, job);

@@ -243,4 +243,41 @@ public class FileHashCacheSizeTests : IDisposable
 
         Assert.Equal(expected, await cache.TryGetHashCache(file.Path));
     }
+
+    /// <summary>
+    ///     The whole point of the cache is that a hit costs metadata and nothing else, so a file nothing else
+    ///     can open still answers from it. Metadata is readable whatever the sharing mode, so this does not
+    ///     say how many separate questions the cache asks the file system, only that reading the file is not
+    ///     one of them.
+    /// </summary>
+    [Fact]
+    public async Task AHitDoesNotReopenTheFile()
+    {
+        var cache = NewCache(NewCacheLocation());
+
+        var file = _manager.CreateFile();
+        await file.Path.WriteAllTextAsync("Cheese for Everyone!");
+        var hash = await cache.FileHashCachedAsync(file.Path, CancellationToken.None);
+        Assert.NotEqual(default, hash);
+
+        await using (file.Path.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            Assert.Equal(hash, await cache.TryGetHashCache(file.Path));
+            Assert.Equal(hash, await cache.FileHashCachedAsync(file.Path, CancellationToken.None));
+        }
+    }
+
+    /// <summary>
+    ///     Asking about a path nobody filled in answers "not cached" rather than throwing. No caller does
+    ///     this today; the point is that reading the file's metadata in one go does not quietly turn a
+    ///     question that had an answer into an exception.
+    /// </summary>
+    [Fact]
+    public async Task ADefaultPathIsNotCached()
+    {
+        var cache = NewCache(NewCacheLocation());
+
+        Assert.Equal(default, await cache.TryGetHashCache(default));
+        await cache.FileHashWriteCache(default, Hash.FromLong(1));
+    }
 }

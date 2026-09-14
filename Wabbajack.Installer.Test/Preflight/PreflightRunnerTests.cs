@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,6 +10,7 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Test.Preflight.Fakes;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Xunit;
 
 namespace Wabbajack.Installer.Test.Preflight;
@@ -564,5 +566,155 @@ public class PreflightRunnerTests : IDisposable
         Assert.Equal(PreflightState.Failed, StateOf(runner, "a"));
         Assert.Equal(PreflightState.Skipped, (await runner.RunCheck("b", CancellationToken.None)).State);
         Assert.Equal(0, b.Runs);
+    }
+
+    /// <summary>
+    ///     The WPF app starts a run from the UI thread. If the run kept that thread's synchronization
+    ///     context, every await in every check - the hashing loops included - would resume on it and the
+    ///     window would stop redrawing. The engine has to leave the caller's context on its own rather than
+    ///     leaving it to hosts or to a ConfigureAwait on every call site.
+    /// </summary>
+    [Fact]
+    public async Task ARunDoesNotKeepTheCallersSynchronizationContext()
+    {
+        const int awaitsPerCheck = 200;
+
+        SynchronizationContext? seenByRunAll = null;
+        SynchronizationContext? seenByRunCheck = null;
+
+        var check = new FakeCheck("only", 10);
+        var runner = Runner(check);
+
+        using var caller = new PumpedSynchronizationContext();
+        await caller.Run(async () =>
+        {
+            check.Body = async (_, _, _) =>
+            {
+                seenByRunAll = SynchronizationContext.Current;
+                for (var i = 0; i < awaitsPerCheck; i++) await Task.Yield();
+                return PreflightResult.Passed("ok");
+            };
+            await runner.RunAll(CancellationToken.None);
+
+            // The caller gets its own thread back, the way a UI thread does, so the second call is made
+            // under the context just as the first was rather than under whatever the first await left.
+            Assert.Same(caller, SynchronizationContext.Current);
+
+            check.Body = async (_, _, _) =>
+            {
+                seenByRunCheck = SynchronizationContext.Current;
+                for (var i = 0; i < awaitsPerCheck; i++) await Task.Yield();
+                return PreflightResult.Passed("ok");
+            };
+            await runner.RunCheck("only", CancellationToken.None);
+        });
+
+        Assert.NotSame(caller, seenByRunAll);
+        Assert.NotSame(caller, seenByRunCheck);
+
+        // The two calls above hand their own continuations back, which is the caller's business. The four
+        // hundred awaits inside the checks must not land there too, and every one of them used to.
+        Assert.True(caller.Posted < awaitsPerCheck,
+            $"the caller's context was asked to run {caller.Posted} continuations");
+    }
+
+    /// <summary>
+    ///     A check hashing a downloads folder reports progress per file, which is tens of thousands of calls.
+    ///     Every one of them reaching the host would be one dispatcher operation each; the runner collapses
+    ///     them to roughly one per throttle window.
+    /// </summary>
+    [Fact]
+    public async Task AStormOfProgressReportsIsCollapsed()
+    {
+        const int reports = 50000;
+
+        var check = new FakeCheck("busy", 10)
+        {
+            Body = (_, progress, _) =>
+            {
+                for (var i = 0; i < reports; i++) progress.Report(i, reports);
+                return Task.FromResult(PreflightResult.Passed("ok"));
+            }
+        };
+
+        var runner = Runner(check);
+        var changes = 0;
+        runner.Changed += e =>
+        {
+            if (e is CheckChanged) Interlocked.Increment(ref changes);
+        };
+
+        await runner.RunAll(CancellationToken.None);
+
+        // Running, then at most one tick per throttle window, then the result. The loop is far quicker than
+        // a single window, so this is a handful either way; what it pins is that it is not per report.
+        Assert.InRange(changes, 2, 100);
+        Assert.Equal(Percent.One, runner.Checks.Single().Progress);
+    }
+
+    /// <summary>
+    ///     Stands in for a UI thread: one thread with its own queue, and the context stays current on it, so
+    ///     a continuation posted back runs with the context still in place and whatever that continuation
+    ///     goes on to await comes back here as well.
+    ///     <para>
+    ///         A plain <see cref="SynchronizationContext" /> cannot show this. Its Post hands the callback to
+    ///         the thread pool, where the context is gone, so a chain of a hundred awaits posts once rather
+    ///         than a hundred times and the count says nothing about what a dispatcher would have been asked
+    ///         to run.
+    ///     </para>
+    /// </summary>
+    private sealed class PumpedSynchronizationContext : SynchronizationContext, IDisposable
+    {
+        private readonly BlockingCollection<(SendOrPostCallback Callback, object? State)> _queue = new();
+        private readonly Thread _thread;
+        private int _posted;
+
+        public PumpedSynchronizationContext()
+        {
+            _thread = new Thread(() =>
+            {
+                SetSynchronizationContext(this);
+                foreach (var work in _queue.GetConsumingEnumerable()) work.Callback(work.State);
+            }) {IsBackground = true, Name = "preflight test pump"};
+            _thread.Start();
+        }
+
+        /// <summary>How many continuations this context has been asked to run.</summary>
+        public int Posted => Volatile.Read(ref _posted);
+
+        public void Dispose()
+        {
+            _queue.CompleteAdding();
+            _thread.Join(TimeSpan.FromSeconds(5));
+        }
+
+        public override void Post(SendOrPostCallback d, object? state)
+        {
+            Interlocked.Increment(ref _posted);
+            _queue.Add((d, state));
+        }
+
+        /// <summary>Runs <paramref name="body" /> on the pump thread; the returned task completes with it.</summary>
+        public Task Run(Func<Task> body)
+        {
+            var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            SendOrPostCallback start = async _ =>
+            {
+                try
+                {
+                    await body();
+                    done.SetResult();
+                }
+                catch (Exception ex)
+                {
+                    done.SetException(ex);
+                }
+            };
+
+            // Straight onto the queue rather than through Post: starting the body is the test's doing, and
+            // it is the code under test that Posted is counting.
+            _queue.Add((start, null));
+            return done.Task;
+        }
     }
 }
