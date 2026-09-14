@@ -119,15 +119,18 @@ public class SteamSession : ISteamSession
         try
         {
             await ConnectAsync(token).ConfigureAwait(false);
-            var stored = await TryGetStoredStateAsync().ConfigureAwait(false);
 
             var details = new AuthSessionDetails
             {
                 DeviceFriendlyName = DeviceFriendlyName,
-                GuardData = stored?.GuardData,
                 IsPersistentSession = true
+
                 // Deliberately no Authenticator. A QR session's only confirmation type is the mobile app's
                 // device confirmation, and SteamKit throws outright if an authenticator declines it.
+
+                // Deliberately no GuardData either. Which account is scanning is not known until the poll
+                // comes back, and guard data belongs to one account; there is nothing here it could suppress
+                // anyway, since the confirmation is the scan itself.
             };
 
             var session = await _client.Authentication.BeginAuthSessionViaQRAsync(details).ConfigureAwait(false);
