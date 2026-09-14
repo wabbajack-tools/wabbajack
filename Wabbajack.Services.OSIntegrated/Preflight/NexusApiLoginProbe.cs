@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Installer.Preflight;
@@ -10,6 +9,13 @@ namespace Wabbajack.Services.OSIntegrated.Preflight;
 /// <summary>
 ///     Asks the Nexus API whether the stored login still works. A token the API rejects reads as expired; a
 ///     network failure propagates so the check fails with a retry rather than sending the user to log in.
+///     <para>
+///         What counts as a login is <see cref="NexusCredential.CanDownload" />, the same predicate
+///         <c>NexusDownloader.Prepare</c> gates on, so the row can never promise a download the installer
+///         would refuse to start. <c>NEXUS_API_KEY</c> is the case that matters: <see cref="NexusApi" /> will
+///         happily validate with it, but the downloader cannot use it, so it is reported as what it is -
+///         a credential present, no login - rather than as a green row.
+///     </para>
 /// </summary>
 public class NexusApiLoginProbe : INexusLoginProbe
 {
@@ -22,20 +28,18 @@ public class NexusApiLoginProbe : INexusLoginProbe
 
     public async Task<NexusLoginStatus> Probe(CancellationToken token)
     {
-        // NexusApi itself falls back to NEXUS_API_KEY when nothing is stored, so treat that as a token too.
-        var hasToken = _api.AuthInfo.HaveToken() ||
-                       !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("NEXUS_API_KEY"));
-        if (!hasToken)
-            return new NexusLoginStatus(false, false, false, null, null);
+        var credential = await _api.CredentialSource();
+        if (!credential.CanDownload())
+            return new NexusLoginStatus(false, false, null, null, credential);
 
         try
         {
             var (info, _) = await _api.Validate(token);
-            return new NexusLoginStatus(true, true, info.IsPremium, info.Name, null);
+            return new NexusLoginStatus(true, info.IsPremium, info.Name, null, credential);
         }
         catch (HttpException ex)
         {
-            return new NexusLoginStatus(true, false, false, null, ex.Message);
+            return new NexusLoginStatus(false, false, null, ex.Message, credential);
         }
     }
 }

@@ -11,6 +11,7 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Preflight.Checks;
 using Wabbajack.Installer.Test.Preflight.Fakes;
+using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Xunit;
@@ -170,7 +171,7 @@ public class DownloadOrderTests : IDisposable
         {
             Name = archive.Name, Hash = archive.Hash, Size = archive.Size, State = mirror
         });
-        _host.Nexus.Status = new NexusLoginStatus(true, true, true, "someone", null);
+        _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.OAuth);
         var ctx = Context(new FakeManualDownloadAcquirer(), archive);
         var runner = Runner(ctx);
 
@@ -242,7 +243,7 @@ public class DownloadOrderTests : IDisposable
         {
             Name = rerouted.Name, Hash = rerouted.Hash, Size = rerouted.Size, State = mirror
         });
-        _host.Nexus.Status = new NexusLoginStatus(true, true, true, "someone", null);
+        _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.OAuth);
         _host.NexusDownloader.CanPrepare = false;
         var acquirer = new FakeManualDownloadAcquirer();
         var ctx = Context(acquirer, automated, rerouted);
@@ -297,7 +298,7 @@ public class DownloadOrderTests : IDisposable
         {
             Name = rerouted.Name, Hash = rerouted.Hash, Size = rerouted.Size, State = mirror
         });
-        _host.Nexus.Status = new NexusLoginStatus(true, true, false, "someone", null);
+        _host.Nexus.Status = new NexusLoginStatus(true, false, "someone", null, NexusCredentialSource.OAuth);
         var acquirer = new FakeManualDownloadAcquirer();
         var ctx = Context(acquirer, rerouted);
         var runner = Runner(ctx);

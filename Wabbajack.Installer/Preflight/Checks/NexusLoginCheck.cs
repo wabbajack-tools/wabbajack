@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.Networking.NexusApi;
 
 namespace Wabbajack.Installer.Preflight.Checks;
 
@@ -36,7 +37,7 @@ public sealed class NexusLoginCheck : IPreflightCheck
 
         if (!status.HasToken)
             return PreflightResult.NeedsUser($"Log in to Nexus Mods to download {Plural.Of(count, "file")} ({size})",
-                actions: new[] {PreflightAction.Login});
+                NotALoginDetail(status.Credential), new[] {PreflightAction.Login});
 
         if (!status.LoggedIn)
             return PreflightResult.NeedsUser("Your Nexus Mods login has expired, log in again", status.Error,
@@ -44,9 +45,35 @@ public sealed class NexusLoginCheck : IPreflightCheck
 
         var name = status.UserName ?? "Nexus Mods user";
         if (status.IsPremium)
-            return PreflightResult.Passed($"Logged in as {name} (Premium)");
+            return PreflightResult.Passed($"Logged in as {name}{Tags(status)}");
 
         return PreflightResult.Passed(
-            $"Logged in as {name} - {Plural.Of(count, "Nexus file")} will be downloaded manually ({size})");
+            $"Logged in as {name}{Tags(status)} - {Plural.Of(count, "Nexus file")} will be downloaded manually ({size})");
+    }
+
+    /// <summary>
+    ///     What is worth saying about the login beyond the name: whether it is premium, and whether it was
+    ///     made with anything other than the ordinary sign-in, so a machine set up by hand does not read the
+    ///     same as a user who logged in through the app.
+    /// </summary>
+    private static string Tags(NexusLoginStatus status)
+    {
+        var tags = new List<string>();
+        if (status.IsPremium) tags.Add("Premium");
+        if (status.Credential == NexusCredentialSource.StoredApiKey) tags.Add("API key");
+        return tags.Count == 0 ? "" : $" ({string.Join(", ", tags)})";
+    }
+
+    /// <summary>
+    ///     Why there is no login when something that looks like a credential is nevertheless present. Without
+    ///     this the row is the one thing that cannot explain itself: the environment variable does drive the
+    ///     Nexus API, so the user has every reason to expect it to count.
+    /// </summary>
+    private static string? NotALoginDetail(NexusCredentialSource credential)
+    {
+        return credential == NexusCredentialSource.EnvironmentApiKey
+            ? "NEXUS_API_KEY is set in this environment. It drives the Nexus API, but downloads need a login " +
+              "stored by this app, so it does not count as being logged in here."
+            : null;
     }
 }

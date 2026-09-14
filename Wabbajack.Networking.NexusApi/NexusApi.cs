@@ -49,10 +49,22 @@ public class NexusApi
         _lastValidatedInfo = default;
     }
 
+    /// <summary>
+    ///     Which credential this API would authenticate with right now, resolved by the same code that builds
+    ///     the request headers. <c>NexusDownloader.Prepare</c> and preflight's Nexus login check both go
+    ///     through this and <see cref="NexusCredential.CanDownload" />, so neither can claim a login the other
+    ///     would not honour.
+    /// </summary>
+    public virtual async ValueTask<NexusCredentialSource> CredentialSource()
+    {
+        return (await GetAuthInfo()).Source;
+    }
+
     public virtual async Task<(ValidateInfo info, ResponseMetadata header)> Validate(
         CancellationToken token = default)
     {
-        var (isApi, code) = await GetAuthInfo();
+        var (source, _) = await GetAuthInfo();
+        var isApi = source is NexusCredentialSource.StoredApiKey or NexusCredentialSource.EnvironmentApiKey;
 
         using var _ = await _authValidationLock.WaitAsync();
 
@@ -220,11 +232,11 @@ public class NexusApi
     
     private async ValueTask AddAuthHeaders(HttpRequestMessage msg)
     {
-        var (isApi, code) = await GetAuthInfo();
+        var (source, code) = await GetAuthInfo();
         if (string.IsNullOrWhiteSpace(code))
             throw new Exception("No API Key or OAuth Token found for NexusMods");
-        
-        if (isApi)
+
+        if (source is NexusCredentialSource.StoredApiKey or NexusCredentialSource.EnvironmentApiKey)
             msg.Headers.Add("apikey", code);
         else
         {
@@ -233,7 +245,12 @@ public class NexusApi
 
     }
 
-    private async ValueTask<(bool IsApiKey, string code)> GetAuthInfo()
+    /// <summary>
+    ///     The single place that decides what this API authenticates with. Every caller that wants to know
+    ///     whether there is a login - not just whether a call would go out - reads the source it returns
+    ///     rather than testing <see cref="AuthInfo" /> for itself.
+    /// </summary>
+    private async ValueTask<(NexusCredentialSource Source, string code)> GetAuthInfo()
     {
         using var _ = await _authLock.WaitAsync();
         if (AuthInfo.HaveToken())
@@ -243,22 +260,25 @@ public class NexusApi
             {
                 if (info.OAuth.IsExpired)
                     info = await RefreshToken(info, CancellationToken.None);
-                return (false, info.OAuth!.AccessToken!);
+                return (NexusCredentialSource.OAuth, info.OAuth!.AccessToken!);
             }
             if (!string.IsNullOrWhiteSpace(info.ApiKey))
             {
-                return (true, info.ApiKey);
+                return (NexusCredentialSource.StoredApiKey, info.ApiKey);
             }
         }
         else
         {
-            if (Environment.GetEnvironmentVariable("NEXUS_API_KEY") is { } apiKey)
+            // Whitespace is treated as nothing: an empty variable would otherwise read as a credential and
+            // only fail once a request was being built.
+            if (Environment.GetEnvironmentVariable("NEXUS_API_KEY") is { } apiKey &&
+                !string.IsNullOrWhiteSpace(apiKey))
             {
-                return (true, apiKey);
+                return (NexusCredentialSource.EnvironmentApiKey, apiKey);
             }
         }
 
-        return default;
+        return (NexusCredentialSource.None, string.Empty);
     }
     
     private async Task<NexusOAuthState> RefreshToken(NexusOAuthState state, CancellationToken cancel)

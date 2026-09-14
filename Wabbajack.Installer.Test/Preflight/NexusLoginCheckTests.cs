@@ -7,6 +7,7 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Preflight.Checks;
 using Wabbajack.Installer.Test.Preflight.Fakes;
+using Wabbajack.Networking.NexusApi;
 using Xunit;
 
 namespace Wabbajack.Installer.Test.Preflight;
@@ -56,23 +57,61 @@ public class NexusLoginCheckTests : IDisposable
     public async Task NoTokenNeedsTheUserToLogIn()
     {
         await WithNexusArchives();
-        _host.Nexus.Status = new NexusLoginStatus(false, false, false, null, null);
+        _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.None);
         var ctx = _host.Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.NeedsUser, result.State);
         Assert.Contains("Log in to Nexus Mods to download 2 files", result.Message);
+        Assert.Null(result.Detail);
         Assert.Contains(PreflightAction.Login, result.Actions!);
         Assert.Equal(1, _host.Nexus.Calls);
         Assert.False(ctx.State.Nexus!.HasToken);
+    }
+
+    /// <summary>
+    ///     The reported bug: NEXUS_API_KEY in the environment drives the Nexus API, so the probe used to
+    ///     validate with it and report a premium login, while NexusDownloader.Prepare - which cannot use it -
+    ///     sent every Nexus archive to the browser. The row has to read as logged out, and has to say why,
+    ///     because the variable working for everything else is exactly what makes it confusing.
+    /// </summary>
+    [Fact]
+    public async Task AnEnvironmentApiKeyIsNotALoginAndTheRowSaysSo()
+    {
+        await WithNexusArchives();
+        _host.Nexus.Status =
+            new NexusLoginStatus(false, false, null, null, NexusCredentialSource.EnvironmentApiKey);
+        var ctx = _host.Context();
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.Contains("Log in to Nexus Mods to download 2 files", result.Message);
+        Assert.Contains("NEXUS_API_KEY", result.Detail!);
+        Assert.Contains(PreflightAction.Login, result.Actions!);
+        Assert.False(ctx.State.Nexus!.HasToken);
+    }
+
+    [Fact]
+    public async Task AStoredApiKeyIsALoginAndTheRowSaysHow()
+    {
+        await WithNexusArchives();
+        _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.StoredApiKey);
+        var ctx = _host.Context();
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Equal("Logged in as someone (Premium, API key)", result.Message);
     }
 
     [Fact]
     public async Task AnExpiredTokenNeedsTheUserToLogInAgain()
     {
         await WithNexusArchives();
-        _host.Nexus.Status = new NexusLoginStatus(true, false, false, null, "Http Error 401 - Unauthorized");
+        _host.Nexus.Status =
+            new NexusLoginStatus(false, false, null, "Http Error 401 - Unauthorized", NexusCredentialSource.OAuth);
         var ctx = _host.Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
@@ -87,7 +126,7 @@ public class NexusLoginCheckTests : IDisposable
     public async Task APremiumAccountPasses()
     {
         await WithNexusArchives();
-        _host.Nexus.Status = new NexusLoginStatus(true, true, true, "someone", null);
+        _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.OAuth);
         var ctx = _host.Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
@@ -101,7 +140,7 @@ public class NexusLoginCheckTests : IDisposable
     public async Task AFreeAccountPassesAndSaysTheFilesWillBeManual()
     {
         await WithNexusArchives();
-        _host.Nexus.Status = new NexusLoginStatus(true, true, false, "someone", null);
+        _host.Nexus.Status = new NexusLoginStatus(true, false, "someone", null, NexusCredentialSource.OAuth);
         var ctx = _host.Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
