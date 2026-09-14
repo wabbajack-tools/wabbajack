@@ -68,19 +68,41 @@ public static class RequiredArchives
             .Where(b => b.Item1 == false).Select(t => t.b.To.RelativeTo(install))
             .ToHashSet();
 
+        // Both of these were being rebuilt inside the filter: the prefix string once per directive, and one
+        // path per not-built BSA per directive under the build folder. A list has hundreds of thousands of
+        // directives, so they are built once here instead.
+        var creationDir = Consts.BSACreationDir.ToString();
+        var notBuiltFolders = bsasToNotBuild
+            .Select(b => install.Combine(Consts.BSACreationDir, b))
+            .ToList();
+
         indexed = indexed.Values
             .Where(d =>
             {
                 return d switch
                 {
                     CreateBSA bsa => !bsasToNotBuild.Contains(bsa.TempID),
-                    FromArchive a when a.To.StartsWith($"{Consts.BSACreationDir}") => !bsasToNotBuild.Any(b =>
-                        a.To.RelativeTo(install).InFolder(install.Combine(Consts.BSACreationDir, b))),
+                    FromArchive a when a.To.StartsWith(creationDir) => !FeedsABsaToNotBuild(a, install,
+                        notBuiltFolders),
                     _ => true
                 };
             }).ToDictionary(d => d.To);
 
         return new Plan(indexed, bsasToNotBuild, bsaPathsToNotBuild);
+    }
+
+    /// <summary>Whether this directive only exists to feed a BSA that is not going to be built.</summary>
+    private static bool FeedsABsaToNotBuild(FromArchive directive, AbsolutePath install,
+        List<AbsolutePath> notBuiltFolders)
+    {
+        if (notBuiltFolders.Count == 0) return false;
+
+        var destination = directive.To.RelativeTo(install);
+        foreach (var folder in notBuiltFolders)
+            if (destination.InFolder(folder))
+                return true;
+
+        return false;
     }
 
     /// <summary>
