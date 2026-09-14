@@ -20,6 +20,10 @@ public class DepotPathsTests
     [InlineData("Data\\Skyrim.esm\\", "Data\\Skyrim.esm")]
     [InlineData(".\\Data\\Skyrim.esm", "Data\\Skyrim.esm")]
     [InlineData("  Data/Skyrim.esm  ", "Data\\Skyrim.esm")]
+    // Windows reads a run of separators as one, so two paths that differ only in that are one path.
+    [InlineData("Data\\\\Skyrim.esm", "Data\\Skyrim.esm")]
+    [InlineData("Data//Skyrim.esm", "Data\\Skyrim.esm")]
+    [InlineData("Data\\/\\Skyrim.esm", "Data\\Skyrim.esm")]
     [InlineData("", "")]
     public void NormalisingRemovesOnlySpelling(string input, string expected)
     {
@@ -81,6 +85,35 @@ public class DepotPathsTests
         };
 
         Assert.Equal("SkyrimSE\\Data\\Skyrim.esm", DepotPaths.Find(files, "Data\\Skyrim.esm")!.FileName);
+    }
+
+    [Fact]
+    public void ABareFileNameFindsTheOneFileWithThatName()
+    {
+        // A name with no separators is just a path with no separators, so the suffix rule covers it. Worth
+        // pinning because it is the loosest thing the matcher will do.
+        var files = new[]
+        {
+            File("SkyrimSE\\Data\\Skyrim.esm"),
+            File("SkyrimSE\\SkyrimSE.exe")
+        };
+
+        Assert.Equal("SkyrimSE\\Data\\Skyrim.esm", DepotPaths.Find(files, "Skyrim.esm")!.FileName);
+    }
+
+    [Fact]
+    public void ABareFileNameSharedByTwoFilesFindsNeither()
+    {
+        // The uniqueness guard is the only reason matching a bare name is safe at all. Depots repeat names
+        // across folders constantly, and picking one of two would write the wrong bytes under the right
+        // name -- which nothing downstream would catch.
+        var files = new[]
+        {
+            File("Data\\Textures\\readme.txt"),
+            File("Data\\Meshes\\readme.txt")
+        };
+
+        Assert.Null(DepotPaths.Find(files, "readme.txt"));
     }
 
     [Fact]

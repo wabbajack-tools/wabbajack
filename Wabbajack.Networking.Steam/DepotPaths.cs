@@ -22,7 +22,10 @@ namespace Wabbajack.Networking.Steam;
 ///             bytes end up on someone's disk.
 ///         </item>
 ///     </list>
-///     Matching on the file name alone is deliberately not a step. Depots are full of repeated names.
+///     A bare file name is a path with no separators in it, so the second rule covers that case too: asking
+///     for <c>Skyrim.esm</c> finds <c>Data\Skyrim.esm</c> when that is the only file in the depot with the
+///     name. Depots are full of repeated names, and this is safe only because of the uniqueness guard --
+///     the moment a second file shares the name, the answer is "not found" rather than a coin toss.
 /// </summary>
 public static class DepotPaths
 {
@@ -35,6 +38,11 @@ public static class DepotPaths
         if (string.IsNullOrWhiteSpace(path)) return string.Empty;
 
         var normalized = path.Trim().Replace('/', '\\');
+
+        // A run of separators is one separator. Windows reads "Data\\Skyrim.esm" as "Data\Skyrim.esm", so
+        // anything that only collapsed the ends would fail to match a path that is spelled that way.
+        while (normalized.Contains("\\\\", StringComparison.Ordinal))
+            normalized = normalized.Replace("\\\\", "\\", StringComparison.Ordinal);
 
         while (normalized.StartsWith(".\\", StringComparison.Ordinal))
             normalized = normalized[2..];
