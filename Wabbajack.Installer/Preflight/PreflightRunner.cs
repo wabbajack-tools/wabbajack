@@ -127,7 +127,8 @@ public sealed class PreflightRunner
 
     /// <summary>
     ///     Runs every check that still needs running: anything not yet Passed, plus anything whose
-    ///     dependencies produced a new result since it last passed.
+    ///     dependencies produced a new result since it last passed. Stops early at a check the user has to
+    ///     act on - see <see cref="StopsRun" /> - leaving the rest Pending for the next call.
     /// </summary>
     public Task<PreflightOutcome> RunAll(CancellationToken token)
     {
@@ -159,7 +160,12 @@ public sealed class PreflightRunner
                 {
                     if (cts.IsCancellationRequested) break;
                     if (CanSkip(entry)) continue;
-                    await RunEntry(entry, cts.Token);
+                    var result = await RunEntry(entry, cts.Token);
+                    if (!StopsRun(entry, result)) continue;
+                    Context.Logger.LogInformation(
+                        "Preflight stopped at {Check} ({State}): {Message}", entry.Check.Id, result.State,
+                        result.Message);
+                    break;
                 }
             }
             finally
@@ -298,6 +304,35 @@ public sealed class PreflightRunner
         if (!_byId.TryGetValue(id, out var entry))
             throw new ArgumentException($"No preflight check with id '{id}'", nameof(id));
         return entry;
+    }
+
+    /// <summary>
+    ///     The halt rule. A run stops at the first check that ends Failed, and at the first NeedsUser from a
+    ///     check that declares one worth stopping for (<see cref="IPreflightCheck.NeedsUserStopsRun" />):
+    ///     past that point the checklist is describing an install the user is not going to get, and the work
+    ///     it does to say so - hashing a game folder, walking a downloads folder, fetching archives - is work
+    ///     they will have to watch happen twice.
+    ///     <para>
+    ///         Nothing else stops a run. A Warning is a judgement call the user makes, acknowledged or not, so
+    ///         the rest of the checklist still runs and they decide with all of it in front of them; a Skipped
+    ///         check has already had its say through the dependency that skipped it; a Cancelled one ends the
+    ///         loop on the cancellation itself.
+    ///     </para>
+    ///     <para>
+    ///         What did not run stays Pending rather than becoming Skipped: "Skipped because X did not pass"
+    ///         belongs to a dependent, and most of what is left usually is not one. Every way back into the
+    ///         runner - retry, rescan, acknowledging a warning, picking a game folder - ends in
+    ///         <see cref="RunAll" />, which picks Pending checks up where the stopped run left them.
+    ///     </para>
+    /// </summary>
+    private static bool StopsRun(Entry entry, PreflightResult result)
+    {
+        return result.State switch
+        {
+            PreflightState.Failed => true,
+            PreflightState.NeedsUser => entry.Check.NeedsUserStopsRun,
+            _ => false
+        };
     }
 
     private bool CanSkip(Entry entry)

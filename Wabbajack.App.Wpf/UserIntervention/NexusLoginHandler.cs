@@ -76,16 +76,57 @@ public class NexusLoginHandler : BrowserWindowViewModel
         var code = ctx["code"].FirstOrDefault();
 
         var result = await AuthorizeToken(codeVerifier, code, token);
-        
-        if (result != null) 
-            result.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
-
-        await _tokenProvider.SetToken(new NexusOAuthState()
+        var next = StateToStore(await Stored(), result);
+        if (next == null)
         {
-            OAuth = result!
-        });
+            // Nexus did not hand back a login, so whatever is stored is left exactly as it is. This window
+            // is reachable while already logged in - that is what preflight's "log in again" row asks for -
+            // so writing a refusal over a working login is a real way to lose one. Nothing is thrown either:
+            // the caller of RunBrowserOperation is an async void message handler.
+            _logger.LogError("Nexus Mods did not return a login; anything already stored is unchanged");
+            return;
+        }
+
+        await _tokenProvider.SetToken(next);
     }
-    
+
+    /// <summary>
+    ///     What to write to the token store once the authorize round-trip is over, or null when the answer is
+    ///     "nothing worth writing": <see cref="AuthorizeToken" /> returns null on any non-2xx, and a reply
+    ///     with no access token in it is no more a login than that. Both used to be stored anyway, which
+    ///     turned a five-hundred from the token endpoint into a lost login.
+    ///     <para>
+    ///         The API key half of the stored login is carried over. This exchange says nothing about it, and
+    ///         <c>NexusApi</c> falls back to it when the OAuth half is unusable, so dropping it here would
+    ///         quietly log out a machine set up with one.
+    ///     </para>
+    /// </summary>
+    public static NexusOAuthState? StateToStore(NexusOAuthState? stored, JwtTokenReply? received)
+    {
+        if (string.IsNullOrWhiteSpace(received?.AccessToken)) return null;
+
+        received.ReceivedAt = DateTime.UtcNow.ToFileTimeUtc();
+        return new NexusOAuthState {OAuth = received, ApiKey = stored?.ApiKey ?? string.Empty};
+    }
+
+    /// <summary>
+    ///     The login as stored, or null when there is none - including when reading it throws, which is what
+    ///     an unreadable store does. What cannot be read cannot be preserved, and must not stop the login
+    ///     that has just succeeded from being written.
+    /// </summary>
+    private async Task<NexusOAuthState?> Stored()
+    {
+        try
+        {
+            return _tokenProvider.HaveToken() ? await _tokenProvider.Get() : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not read the stored Nexus login; the new one replaces it");
+            return null;
+        }
+    }
+
     private async Task<JwtTokenReply?> AuthorizeToken(string verifier, string code, CancellationToken cancel)
     {
         var request = new Dictionary<string, string> {
@@ -106,7 +147,17 @@ public class NexusLoginHandler : BrowserWindowViewModel
             return null;
         }
         var responseString = await response.Content.ReadAsStringAsync(cancel);
-        return JsonSerializer.Deserialize<JwtTokenReply>(responseString);
+        try
+        {
+            return JsonSerializer.Deserialize<JwtTokenReply>(responseString);
+        }
+        catch (JsonException ex)
+        {
+            // A body that is not the reply we asked for is a refusal like any other. It must not throw:
+            // the whole browser operation is driven from an async void handler.
+            _logger.LogCritical(ex, "Nexus Mods returned something that is not a token");
+            return null;
+        }
     }
         
     internal static Uri GenerateAuthorizeUrl(string challenge, string state)

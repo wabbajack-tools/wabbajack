@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Wabbajack.Networking.NexusApi.Test;
 
+[Collection(NexusCredentialTests.SerialisedAroundTheApiKey)]
 public class NexusApiTests
 {
     private readonly NexusApi _api;

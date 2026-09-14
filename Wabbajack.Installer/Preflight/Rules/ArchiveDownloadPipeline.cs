@@ -114,7 +114,10 @@ public sealed class ArchiveDownloadPipeline
 
     /// <summary>
     ///     Points archives the mirror carries at the mirror, as the installer does. The archive objects are
-    ///     the modlist's own, so the rerouted state is what gets written to the <c>.meta</c> file.
+    ///     the modlist's own, so the rerouted state is what the downloader is handed and what gets written to
+    ///     the <c>.meta</c> file - which is the point, and also why the caller records what was rerouted on
+    ///     <c>PreflightBlackboard.Rerouted</c>: after this, the list looks as though it always carried these
+    ///     states.
     /// </summary>
     public static List<Archive> Reroute(IEnumerable<Archive> missing, ILookup<Hash, Archive> mirrors, ILogger logger)
     {
@@ -142,11 +145,20 @@ public sealed class ArchiveDownloadPipeline
     }
 
     /// <summary>
-    ///     Whether Nexus archives in <paramref name="missing" /> download on their own. nexus-login skips the
-    ///     probe when the list has no Nexus archives, but a mirror reroute can introduce one afterwards; the
-    ///     account is then probed here, once, and recorded on the blackboard for whatever asks next. Not
-    ///     being logged in or premium is not a failure at this point: the archive goes to the manual queue
-    ///     with its Nexus page, as it would have had the list carried it from the start.
+    ///     Whether Nexus archives in <paramref name="missing" /> download on their own. Both this and
+    ///     nexus-login ask about the same set - what is still to be fetched - so the probe happens once, in
+    ///     the check, whenever that set already held a Nexus archive. The gap left is the reroute below,
+    ///     which can put a Nexus state on an archive that did not have one when the check looked; the account
+    ///     is then probed here, once, and recorded on the blackboard for whatever asks next. Not being logged
+    ///     in or premium is not a failure at this point, and deliberately does not stop the run the way
+    ///     nexus-login would have: the archive goes to the manual queue with its Nexus page, as it would have
+    ///     had the list carried it from the start.
+    ///     <para>
+    ///         A second pass over the same list has to reach the same conclusion, and that is what
+    ///         <c>PreflightBlackboard.Rerouted</c> is for: the reroute has by then rewritten the archive's
+    ///         state, so nexus-login would otherwise see a Nexus download the list never had and halt the run
+    ///         over it - the one thing this paragraph says will not happen.
+    ///     </para>
     /// </summary>
     public async Task<bool> NexusPremium(IEnumerable<Archive> missing, CancellationToken token)
     {

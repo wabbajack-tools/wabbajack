@@ -35,7 +35,9 @@ public sealed class PreflightActionDispatcher
         {
             case "login":
                 // The nexus-login check is re-run when NexusLoginManager refreshes its token, so nothing waits
-                // on the browser window here.
+                // on the browser window here. TriggerLogin takes no canExecute for this call's sake: the check
+                // offers this action for an expired or revoked login as well as a missing one, and the tile
+                // reads both of those as logged in.
                 _nexusLogin.TriggerLogin.Execute(null);
                 break;
 
