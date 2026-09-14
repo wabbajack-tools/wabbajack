@@ -21,7 +21,20 @@ public class SteamLogout
 
     public async Task<int> Run()
     {
-        switch (await _session.LogoutAsync())
+        SteamLogoutResult result;
+        try
+        {
+            result = await _session.LogoutAsync();
+        }
+        catch (SteamLoginInProgressException ex)
+        {
+            // Logout takes the login lock, so it refuses rather than racing a login that is about to store
+            // a fresh token over the one being deleted.
+            _logger.LogError("{Message}", ex.Message);
+            return 1;
+        }
+
+        switch (result)
         {
             case SteamLogoutResult.Deleted:
                 _logger.LogInformation("Logged out of Steam and deleted the saved login");
