@@ -28,10 +28,12 @@ public class SteamLogin
             new OptionDefinition(typeof(string), "u", "username",
                 "Steam account name, to log in with a password instead of a QR code"),
             new OptionDefinition(typeof(bool), "f", "force",
-                "Ignore any saved login and authenticate from scratch")
+                "Ignore any saved login and authenticate from scratch"),
+            new OptionDefinition(typeof(bool), "i", "invert",
+                "Draw the QR code inverted, for a terminal with light text on a dark background")
         });
 
-    public async Task<int> Run(bool qr, string username, bool force, CancellationToken token)
+    public async Task<int> Run(bool qr, string username, bool force, bool invert, CancellationToken token)
     {
         if (!force && _session.HaveStoredToken)
             try
@@ -50,7 +52,7 @@ public class SteamLogin
         try
         {
             var result = useQr
-                ? await LoginWithQrCode(token)
+                ? await LoginWithQrCode(invert, token)
                 : await LoginWithCredentials(username, token);
             Report(result);
             return 0;
@@ -88,15 +90,22 @@ public class SteamLogin
         }
     }
 
-    private async Task<SteamLoginResult> LoginWithQrCode(CancellationToken token)
+    private async Task<SteamLoginResult> LoginWithQrCode(bool invert, CancellationToken token)
     {
-        Console.WriteLine("Open the Steam mobile app, go to the Steam Guard screen and scan this URL as a QR code.");
+        Console.WriteLine("Open the Steam mobile app, go to the Steam Guard screen and scan this code.");
         Console.WriteLine("This flow needs the mobile authenticator; use --username to log in with a password instead.");
-        Console.WriteLine();
+        Console.WriteLine("If your terminal draws light text on a dark background, re-run with --invert.");
 
         // Steam rotates the URL every few seconds as a side effect of polling, and calls this back from the
-        // polling thread. Writing a line is all this does, so there is nothing here to marshal.
-        return await _session.LoginWithQrCodeAsync(url => Console.WriteLine($"  {url}"), token);
+        // polling thread. Drawing is all this does, and Console serialises its own writes, so there is
+        // nothing here to marshal.
+        return await _session.LoginWithQrCodeAsync(url =>
+        {
+            Console.WriteLine();
+            Console.Write(ConsoleQrCode.Render(url, invert));
+            // The URL is printed too, so a terminal that mangles block characters still has a way through.
+            Console.WriteLine(url);
+        }, token);
     }
 
     private async Task<SteamLoginResult> LoginWithCredentials(string username, CancellationToken token)

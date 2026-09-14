@@ -29,6 +29,7 @@
         <PackageReference Include="Microsoft.Extensions.Hosting" />
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+        <PackageReference Include="Net.Codecrete.QrCodeGenerator" />
         <PackageReference Include="Newtonsoft.Json" />
         <PackageReference Include="NLog" />
         <PackageReference Include="NLog.Extensions.Logging" />
