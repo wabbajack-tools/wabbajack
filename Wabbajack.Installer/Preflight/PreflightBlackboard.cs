@@ -127,6 +127,15 @@ public sealed class PreflightBlackboard
     public long RemainingDownloadBytes { get; set; }
 
     /// <summary>
+    ///     Set by game-files: the game files this install needs that are neither on disk nor the right
+    ///     version, with which of the two is wrong. What <c>GameFileRepair</c> works from when the user asks
+    ///     for the repair, which happens after the check has finished and reported - so the answer has to
+    ///     outlive the check rather than be recomputed from a game folder that may since have changed.
+    /// </summary>
+    public IReadOnlyList<RepairableGameFile> RepairableGameFiles { get; set; } =
+        Array.Empty<RepairableGameFile>();
+
+    /// <summary>
     ///     The run's download plan, computed by <paramref name="compute" /> the first time it is asked for
     ///     and reused after: both download checks partition the same way, and the reroute and the Nexus
     ///     probe behind it are not repeatable. A failed computation is not remembered, so a retry recomputes.

@@ -17,8 +17,10 @@ public sealed class PreflightContext
     public PreflightContext(InstallerConfiguration config, PreflightOptions options, IGameLocator gameLocator,
         FileHashCache hashCache, DownloadDispatcher dispatcher, IResource<DownloadDispatcher> downloadLimiter,
         Client wjClient, INexusLoginProbe nexusLogin, IDownloadPolicySource downloadPolicy,
-        IManualDownloadAcquirer acquirer, IResource<IInstaller> limiter, ILogger logger)
+        IManualDownloadAcquirer acquirer, IResource<IInstaller> limiter, ILogger logger,
+        IGameFileRestorer? gameFileRestorer = null)
     {
+        GameFileRestorer = gameFileRestorer;
         Config = config;
         Options = options;
         GameLocator = gameLocator;
@@ -56,6 +58,14 @@ public sealed class PreflightContext
     ///     watched folder) while manual-downloads is running.
     /// </summary>
     public IManualDownloadAcquirer Acquirer { get; }
+
+    /// <summary>
+    ///     Fetches a game's own files from wherever the game came from, or null when this host has no way
+    ///     to. Optional on purpose: the repair it drives is something the user opts into - it needs an
+    ///     account handed to a third-party tool - and a host that offers no such thing must still run every
+    ///     check, reporting a broken game install exactly as it always did.
+    /// </summary>
+    public IGameFileRestorer? GameFileRestorer { get; }
 
     public IResource<IInstaller> Limiter { get; }
     public ILogger Logger { get; }
