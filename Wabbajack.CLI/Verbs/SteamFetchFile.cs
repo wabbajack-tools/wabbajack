@@ -19,11 +19,11 @@ namespace Wabbajack.CLI.Verbs;
 /// </summary>
 public class SteamFetchFile
 {
-    private readonly SteamContentClient _content;
+    private readonly ISteamContentClient _content;
     private readonly ILogger<SteamFetchFile> _logger;
     private readonly ISteamSession _session;
 
-    public SteamFetchFile(ILogger<SteamFetchFile> logger, ISteamSession session, SteamContentClient content)
+    public SteamFetchFile(ILogger<SteamFetchFile> logger, ISteamSession session, ISteamContentClient content)
     {
         _logger = logger;
         _session = session;

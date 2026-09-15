@@ -1,18 +1,22 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.Downloaders.VerificationCache;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer.Preflight;
+using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Installer.Test.Preflight.Fakes;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -110,6 +114,13 @@ public sealed class PreflightTestHost : IDisposable
     public ManualDownloadAcquirer Acquirer { get; }
 
     public FakeGameLocator Locator { get; } = new();
+
+    /// <summary>
+    ///     The game file restorer the context is built with, or null for a host that has no way to fetch
+    ///     game files - which is what every test that is not about the repair wants.
+    /// </summary>
+    public IGameFileRestorer? Restorer { get; set; }
+
     public FakeNexusLoginProbe Nexus { get; } = new();
     public FakeDownloadPolicySource Policy { get; } = new();
     public InstallerConfiguration Config { get; }
@@ -136,7 +147,33 @@ public sealed class PreflightTestHost : IDisposable
     public PreflightContext Context(PreflightOptions? options = null, IManualDownloadAcquirer? acquirer = null)
     {
         return new PreflightContext(Config, options ?? DefaultOptions(), Locator, Cache, Dispatcher, DownloadLimiter,
-            _provider.GetRequiredService<Client>(), Nexus, Policy, acquirer ?? Acquirer, Limiter, NullLogger.Instance);
+            _provider.GetRequiredService<Client>(), Nexus, Policy, acquirer ?? Acquirer, Limiter, NullLogger.Instance,
+            Restorer);
+    }
+
+    /// <summary>
+    ///     What archive-inventory leaves behind for a modlist whose archives are all still needed: the
+    ///     required set, and where on disk each one was found. Goes through the real
+    ///     <see cref="ArchiveInventory.Scan" /> - the same call <c>AInstaller.HashArchives</c> makes - so a
+    ///     check reading the result is reading exactly what the installer would see. Tests that want the
+    ///     pruning itself have <c>RequiredArchivesTests</c>; this is for the checks that run after it.
+    /// </summary>
+    public async Task Inventory(PreflightContext ctx, CancellationToken token = default)
+    {
+        ctx.State.RequiredArchives = ctx.ModList.Archives;
+
+        var folders = new List<AbsolutePath>();
+        if (ctx.State.GameFolder != default) folders.Add(ctx.State.GameFolder);
+        folders.AddRange(ctx.State.OtherGameFolders.Values.Where(p => p != default));
+
+        ctx.Config.Downloads.CreateDirectory();
+        var byHash = await ArchiveInventory.Scan(ctx.ModList.Archives, ctx.Config.Downloads, folders, Cache,
+            Limiter, NullLogger.Instance, token);
+
+        ctx.State.HashedArchives.Clear();
+        foreach (var archive in ctx.ModList.Archives)
+            if (byHash.TryGetValue(archive.Hash, out var path))
+                ctx.State.HashedArchives[archive.Name] = path;
     }
 
     /// <summary>An archive for these bytes, without writing them anywhere.</summary>

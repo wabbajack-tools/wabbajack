@@ -13,3 +13,10 @@ namespace Wabbajack.Networking.Steam;
 ///     and it has nothing to do with the xxHash64 Wabbajack identifies archives by.
 /// </param>
 public record DepotFile(string Path, ulong Size, string Sha1);
+
+/// <summary>
+///     One depot and the manifest of it that is wanted: the pair that together names an immutable set of
+///     files. Everything that fetches content works from these, whether they came from the version index or
+///     from asking Steam what the app publishes today.
+/// </summary>
+public record DepotManifestId(uint DepotId, ulong ManifestId);

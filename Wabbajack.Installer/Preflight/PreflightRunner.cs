@@ -87,7 +87,9 @@ public sealed class PreflightRunner
             sp.GetRequiredService<IDownloadPolicySource>(),
             sp.GetRequiredService<IManualDownloadAcquirer>(),
             sp.GetRequiredService<IResource<IInstaller>>(),
-            sp.GetRequiredService<ILogger<PreflightRunner>>());
+            sp.GetRequiredService<ILogger<PreflightRunner>>(),
+            // Optional: a host with no way to fetch game files simply does not offer the repair.
+            sp.GetService<IGameFileRestorer>());
         return new PreflightRunner(sp.GetServices<IPreflightCheck>(), context);
     }
 
