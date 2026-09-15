@@ -47,6 +47,8 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<MirrorFile>();
         CommandLineBuilder.RegisterCommand<ModlistReport>(ModlistReport.Definition, c => ((ModlistReport)c).Run);
         services.AddSingleton<ModlistReport>();
+        CommandLineBuilder.RegisterCommand<RepairGameFiles>(RepairGameFiles.Definition, c => ((RepairGameFiles)c).Run);
+        services.AddSingleton<RepairGameFiles>();
         CommandLineBuilder.RegisterCommand<Reset>(Reset.Definition, c => ((Reset)c).Run);
         services.AddSingleton<Reset>();
         CommandLineBuilder.RegisterCommand<Restart>(Restart.Definition, c => ((Restart)c).Run);
