@@ -47,9 +47,17 @@ public interface ISteamContentClient
     ///         no-cost package granting exactly that app.
     ///     </para>
     ///     <para>
-    ///         This adds something to the user's Steam library, which nothing else here does, so it is only
-    ///         ever called for an app the caller already meant to fetch from and it says which app in the
-    ///         log before asking.
+    ///         This adds something to the user's Steam library, which nothing else here does, so three
+    ///         things hold. It is only ever called for an app whose depots are about to be read. It is not
+    ///         called when the account is merely <em>not known</em> to hold the licence - a licence list
+    ///         that never arrived is an unknown, not a no, and guessing wrong here puts a package in
+    ///         somebody's library. And the answer is remembered for the run, negative as well as positive,
+    ///         so a repair of fifty files asks once.
+    ///     </para>
+    ///     <para>
+    ///         A false is advisory rather than a reason to stop: the account may hold the licence and the
+    ///         scan simply could not confirm it, and Steam's own refusal from the depot call is the one
+    ///         worth showing the user.
     ///     </para>
     /// </summary>
     Task<bool> EnsureFreeLicenseAsync(uint appId, CancellationToken token);

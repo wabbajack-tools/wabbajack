@@ -57,6 +57,15 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     private readonly ManifestRequestCodeCache _codes = new();
 
     /// <summary>
+    ///     What <see cref="EnsureFreeLicenseAsync" /> settled for each app this run, negative as well as
+    ///     positive. Asking is a write to somebody's Steam library and a refusal costs a round trip, so
+    ///     neither is worth repeating once per repaired file.
+    /// </summary>
+    private readonly ConcurrentDictionary<uint, bool> _freeLicenses = new();
+
+    private readonly SemaphoreSlim _freeLicenseLock = new(1, 1);
+
+    /// <summary>
     ///     The file lists of manifests already downloaded and decrypted, so a repair that reads the same
     ///     build several times pays for it once. Bounded, because this object lives as long as its host and
     ///     a single manifest of a large game is tens of megabytes of <see cref="DepotManifest.FileData" />.
@@ -104,6 +113,7 @@ public class SteamContentClient : ISteamContentClient, IDisposable
         if (_disposed) return;
         _disposed = true;
         _cdn?.Dispose();
+        _freeLicenseLock.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -258,8 +268,48 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     {
         EnsureLoggedIn();
 
-        var (held, _) = await HoldsLicenseForAsync(appId, token).ConfigureAwait(false);
-        if (held) return true;
+        if (_freeLicenses.TryGetValue(appId, out var known)) return known;
+
+        // Serialised, and the memo re-read inside. Steam refreshes the licence list asynchronously after a
+        // grant, so two callers arriving together would both read the old list and both ask - and a repair
+        // of fifty missing files would ask fifty times over. One question per app per run, whatever the
+        // answer was.
+        await _freeLicenseLock.WaitAsync(token).ConfigureAwait(false);
+        try
+        {
+            if (_freeLicenses.TryGetValue(appId, out known)) return known;
+
+            var answer = await AskForFreeLicenseAsync(appId, token).ConfigureAwait(false);
+            _freeLicenses[appId] = answer;
+            return answer;
+        }
+        finally
+        {
+            _freeLicenseLock.Release();
+        }
+    }
+
+    private async Task<bool> AskForFreeLicenseAsync(uint appId, CancellationToken token)
+    {
+        var (held, licensesArrived) = await HoldsLicenseForAsync(appId, token).ConfigureAwait(false);
+
+        switch (DepotEntitlement.DecideFreeLicense(held, licensesArrived))
+        {
+            case FreeLicenseDecision.AlreadyHeld:
+                return true;
+
+            case FreeLicenseDecision.Unconfirmed:
+                // Remembered as a no all the same: a licence list that has not arrived in LicenseWait is
+                // not going to arrive later in this run, and asking again would cost the same wait per
+                // file. Nothing is lost by it - the depot call still goes ahead, and an account that does
+                // hold the licence will be served.
+                _logger.LogInformation(
+                    "Steam did not send the licence list within {Seconds:0}s, so whether the account already " +
+                    "holds app {AppId} is unknown. Not asking for a free licence: an unknown is not a no, and " +
+                    "asking would add a package the user may already have.",
+                    LicenseWait.TotalSeconds, appId);
+                return false;
+        }
 
         _logger.LogInformation(
             "The Steam account {Account} holds no licence for app {AppId}, asking Steam for the free one",
