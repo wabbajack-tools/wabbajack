@@ -36,6 +36,17 @@ public partial class GameFilesView : ReactiveUserControl<GameFilesVM>
                 .BindToStrict(this, x => x.ExplainText.Text)
                 .DisposeWith(dispose);
 
+            this.WhenAnyValue(x => x.ViewModel.ConsequenceText)
+                .ObserveOnGuiThread()
+                .Subscribe(text =>
+                {
+                    ConsequenceText.Text = text;
+                    ConsequenceRow.Visibility = string.IsNullOrWhiteSpace(text)
+                        ? Visibility.Collapsed
+                        : Visibility.Visible;
+                })
+                .DisposeWith(dispose);
+
             this.WhenAnyValue(x => x.ViewModel.Failed)
                 .BindToStrict(this, x => x.Card.Failure)
                 .DisposeWith(dispose);

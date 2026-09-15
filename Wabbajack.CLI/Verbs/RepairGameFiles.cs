@@ -102,6 +102,14 @@ public class RepairGameFiles
 
         Describe(repairable);
 
+        // The same sentence the app puts in its offer, and before the same decision: a repair that has to
+        // take a free tool licence puts that tool in the user's Steam library, and --report-only exists
+        // precisely so somebody can read this before running the thing.
+        foreach (var consequence in
+                 ctx.GameFileRestorer?.Consequences(repairable.Select(r => r.State.Game))
+                 ?? Array.Empty<string>())
+            _logger.LogWarning("{Consequence}", consequence);
+
         if (reportOnly) return 0;
 
         var restorer = ctx.GameFileRestorer;

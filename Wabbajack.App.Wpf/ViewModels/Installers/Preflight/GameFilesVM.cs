@@ -51,6 +51,7 @@ public partial class GameFilesVM : ViewModel
         HeaderText = "Game files";
         MessageText = string.Empty;
         ExplainText = string.Empty;
+        ConsequenceText = string.Empty;
         StatusText = string.Empty;
         ActionLabel = string.Empty;
         SummaryText = string.Empty;
@@ -76,6 +77,13 @@ public partial class GameFilesVM : ViewModel
 
     /// <summary>What fetching would do, or what logging in would buy - the restorer's own words.</summary>
     [Reactive] public partial string ExplainText { get; set; }
+
+    /// <summary>
+    ///     What the repair would do beyond downloading. Empty almost always; when it is not, it is the one
+    ///     thing here that changes something outside the downloads folder - a free tool licence taken on the
+    ///     user's Steam account - so it is said in the offer, in its own line, before they agree to it.
+    /// </summary>
+    [Reactive] public partial string ConsequenceText { get; set; }
 
     [Reactive] public partial string StatusText { get; set; }
 
@@ -204,6 +212,7 @@ public partial class GameFilesVM : ViewModel
             NeedsLogin = false;
             ActionLabel = string.Empty;
             ExplainText = string.Empty;
+            ConsequenceText = string.Empty;
             return;
         }
 
@@ -214,6 +223,11 @@ public partial class GameFilesVM : ViewModel
             ? $"{restorer.SourceName} can fetch these into your downloads folder, which is all the install " +
               "needs. Your game install is never written to, and the files can be deleted again afterwards."
             : status.Reason;
+
+        // Asked about the games actually on the card, so it appears when it is true and stays away when it
+        // is not: a warning shown on every repair is a warning nobody reads by the time it matters.
+        ConsequenceText = string.Join(" ",
+            restorer.Consequences(_runner.Context.State.RepairableGameFiles.Select(r => r.State.Game)));
     }
 
     private bool RowsMatch(IReadOnlyList<RepairableGameFile> repairable)

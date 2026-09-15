@@ -25,5 +25,10 @@ public record PreflightAction(string Id, string Title)
     ///     the check's detail says what the login would buy. Fixing the game install by hand stays an equal
     ///     way out.
     /// </summary>
-    public static readonly PreflightAction RepairGameFiles = new("repair-game-files", "Fetch missing game files");
+    /// <remarks>
+    ///     Short, like every other title here: these are drawn on a checklist row beside the check's own
+    ///     message, and "Fetch missing game files" was wide enough to be cut off there. The row already says
+    ///     Game files, and the panel under it says the rest.
+    /// </remarks>
+    public static readonly PreflightAction RepairGameFiles = new("repair-game-files", "Fetch files");
 }

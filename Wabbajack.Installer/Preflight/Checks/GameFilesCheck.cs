@@ -171,6 +171,12 @@ public sealed class GameFilesCheck : IPreflightCheck
               "written to, and the files can be deleted again afterwards."
             : status.Reason);
 
+        // Anything the repair would do beyond downloading - taking a free licence for a tool, which puts it
+        // in the user's library - goes in the offer itself rather than being discovered afterwards. Asked
+        // for the games actually being repaired, so it is said when it is true and not otherwise.
+        foreach (var consequence in restorer.Consequences(repairable.Select(r => r.State.Game)))
+            detail.Add(consequence);
+
         return new[] {PreflightAction.RepairGameFiles};
     }
 

@@ -71,6 +71,20 @@ public class SteamGameFileRestorer : IGameFileRestorer
             "written to, and nothing is fetched until you ask for it.");
     }
 
+    /// <summary>
+    ///     Names the free tools a repair of these games would have to take a licence for, and says what
+    ///     taking it does. Nothing at all for the ordinary case, which is a game the account already owns:
+    ///     its depots are reached with the licence the user already has and their library is untouched.
+    /// </summary>
+    public IReadOnlyList<string> Consequences(IEnumerable<Game> games)
+    {
+        return FreeLicenseApps.Describe(games
+            .Distinct()
+            .SelectMany(game => game.MetaData().SteamIDs)
+            .Where(id => id > 0)
+            .Select(id => (uint) id));
+    }
+
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
         AbsolutePath output, CancellationToken token)
     {

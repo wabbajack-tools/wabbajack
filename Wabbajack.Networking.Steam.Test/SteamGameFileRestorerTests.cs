@@ -53,6 +53,18 @@ public class SteamGameFileRestorerTests
         Assert.Contains("never written to", status.Reason);
     }
 
+    /// <summary>
+    ///     Repairing a game the account owns says nothing extra, because nothing extra happens: the depots
+    ///     are read with the licence the user already has and their library is untouched. The sentence that
+    ///     a free tool would produce is pinned in <see cref="FreeLicenseAppsTests" />; what matters here is
+    ///     that an ordinary repair does not carry it.
+    /// </summary>
+    [Fact]
+    public void RepairingAGameTheAccountOwnsAddsNothingToTheirLibrary()
+    {
+        Assert.Empty(Restorer().Consequences(new[] {Game.SkyrimSpecialEdition, Game.Fallout4}));
+    }
+
     [Fact]
     public void ASavedLoginIsReadyWithoutBeingRedeemedFirst()
     {

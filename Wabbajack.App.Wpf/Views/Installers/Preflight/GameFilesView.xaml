@@ -35,6 +35,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0">
@@ -88,7 +89,21 @@
 
                 <TextBlock x:Name="ExplainText" Grid.Row="3" FontSize="12" Foreground="{StaticResource Transparent66ForegroundBrush}" TextWrapping="Wrap" Margin="0, 10, 0, 0" />
 
-                <Grid x:Name="StatusRow" Grid.Row="4" Margin="0, 8, 0, 0" Visibility="Collapsed">
+                <!--
+                    The one thing a repair does outside the downloads folder, when it does it: taking a free
+                    licence for a tool puts it in the user's Steam library. Said in the offer, in the
+                    warning colour, so it is read before the button rather than found afterwards.
+                -->
+                <Grid x:Name="ConsequenceRow" Grid.Row="4" Margin="0, 8, 0, 0" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ic:SymbolIcon FontSize="16" IconVariant="Filled" Symbol="Warning" Foreground="{StaticResource WarningBrush}" VerticalAlignment="Top" Margin="1, 1, 0, 0" />
+                    <TextBlock x:Name="ConsequenceText" Grid.Column="1" FontSize="12" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" Margin="11, 0, 0, 0" VerticalAlignment="Center" />
+                </Grid>
+
+                <Grid x:Name="StatusRow" Grid.Row="5" Margin="0, 8, 0, 0" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -100,7 +115,7 @@
                     <TextBlock x:Name="StatusText" Grid.Column="1" FontSize="13" Margin="10, 0, 0, 0" VerticalAlignment="Center" TextWrapping="Wrap" />
                 </Grid>
 
-                <Grid Grid.Row="5" Margin="0, 12, 0, 0">
+                <Grid Grid.Row="6" Margin="0, 12, 0, 0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
