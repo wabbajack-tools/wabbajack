@@ -199,6 +199,46 @@ public class GameFileRepairTests : IDisposable
         Assert.False(_host.Config.Downloads.Combine(archive.Name).FileExists());
     }
 
+    /// <summary>
+    ///     A missing file asks the current build first, so its first answer is "nothing the game publishes
+    ///     now has that file" - true, and about a question the user never asked. What they can act on is the
+    ///     fallback's answer, that nobody indexed the build the list wants, so that is what gets reported.
+    /// </summary>
+    [Fact]
+    public async Task TheMostUsefulAnswerIsReportedRatherThanTheFirst()
+    {
+        var archive = await GameFile("Data/Skyrim.esm", "1.5.97 bytes", "1.5.97.0");
+        _host.Config.ModList.Archives = new[] {archive};
+
+        var (ctx, repairable) = await Detect();
+        Assert.Equal(GameFileProblem.Missing, Assert.Single(repairable).Problem);
+
+        var result = Assert.Single(await GameFileRepair.Run(ctx, repairable, _progress, CancellationToken.None));
+
+        Assert.Equal(new string?[] {null, "1.5.97.0"}, _restorer.Asked.Select(a => a.Version).ToArray());
+        Assert.Contains("no record of", result.Message);
+        Assert.Contains("1.5.97.0", result.Message);
+        Assert.DoesNotContain("the current build", result.Message);
+    }
+
+    /// <summary>
+    ///     And the reverse: when nothing better was learned, the first answer stands rather than being
+    ///     replaced by the fallback saying the same thing about a question nobody asked.
+    /// </summary>
+    [Fact]
+    public async Task WhenBothAnswersAreEquallyThinTheFirstOneStands()
+    {
+        var archive = await GameFile("Data/CreationKit.exe", "ck bytes");
+        _host.Config.ModList.Archives = new[] {archive};
+
+        var (ctx, repairable) = await Detect();
+        var result = Assert.Single(await GameFileRepair.Run(ctx, repairable, _progress, CancellationToken.None));
+
+        Assert.Equal(GameFileRepairStatus.Failed, result.Status);
+        Assert.Null(result.Version);
+        Assert.Contains("the current build", result.Message);
+    }
+
     [Fact]
     public async Task AFileNoManifestCarriesIsReportedAsNotFound()
     {

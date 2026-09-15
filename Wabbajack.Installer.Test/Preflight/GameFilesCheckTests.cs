@@ -190,6 +190,28 @@ public class GameFilesCheckTests : IDisposable
         Assert.Empty(_progress.Archives);
     }
 
+    /// <summary>
+    ///     This check owns RepairableGameFiles, so every exit from it has to leave that true - including the
+    ///     one that gives up before looking at a single archive. A stale list would have the action fetching
+    ///     files for a game folder that has since broken in a different way.
+    /// </summary>
+    [Fact]
+    public async Task AnIncompleteGameInstallClearsWhatAnEarlierRunFoundToRepair()
+    {
+        _host.Config.ModList.Archives = new[] {await GameFile(null, "Data/Dawnguard.esm", "dlc bytes")};
+        var ctx = await Context();
+
+        var first = await _check.Run(ctx, _progress, CancellationToken.None);
+        Assert.Equal(PreflightState.Failed, first.State);
+        Assert.NotEmpty(ctx.State.RepairableGameFiles);
+
+        _host.GameFolder.Combine("SkyrimSE.exe").Delete();
+        var second = await _check.Run(ctx, new RecordingProgress(), CancellationToken.None);
+
+        Assert.Contains("incomplete", second.Message);
+        Assert.Empty(ctx.State.RepairableGameFiles);
+    }
+
     [Fact]
     public async Task OtherGameFilesComeFromTheOtherGameFolder()
     {

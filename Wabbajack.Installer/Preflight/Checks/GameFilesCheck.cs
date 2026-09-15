@@ -59,6 +59,12 @@ public sealed class GameFilesCheck : IPreflightCheck
         var folder = ctx.State.GameFolder;
         var meta = game.MetaData();
 
+        // Before anything can fail: this check owns RepairableGameFiles and every exit from it has to leave
+        // that true. A run that found three files to repair, then re-ran against a game folder someone has
+        // since broken, would otherwise fail here while still advertising three files to whoever invokes
+        // the action next.
+        ctx.State.RepairableGameFiles = Array.Empty<RepairableGameFile>();
+
         var missingRequired = meta.RequiredFiles
             .Where(r => !folder.Combine(r).FileExists())
             .ToList();
@@ -72,10 +78,7 @@ public sealed class GameFilesCheck : IPreflightCheck
 
         var gameFiles = ctx.State.RequiredArchives.Where(a => a.State is GameFileSource).ToArray();
         if (gameFiles.Length == 0)
-        {
-            ctx.State.RepairableGameFiles = Array.Empty<RepairableGameFile>();
             return Task.FromResult(PreflightResult.Passed("This install takes no files from the game"));
-        }
 
         progress.Report(0, gameFiles.Length);
 

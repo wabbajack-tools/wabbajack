@@ -62,8 +62,15 @@ public enum GameFileRepairStatus
 
 /// <param name="Version">The version it was resolved at, for the report. Null means the current build.</param>
 /// <param name="Placed">Where it was written, when it was.</param>
+/// <param name="RestoreOutcome">
+///     What the restorer said, when the answer came from it rather than from the hash check here. Kept
+///     because a file can be asked for at two versions and the two answers are not equally worth repeating:
+///     "the index has no record of 1.5.97.0" tells the user what to do and "nothing the game publishes now
+///     contains that file" does not.
+/// </param>
 public sealed record GameFileRepairResult(Archive Archive, GameFileRepairStatus Status, string Message,
-    string? Version = null, AbsolutePath Placed = default)
+    string? Version = null, AbsolutePath Placed = default,
+    GameFileRestoreOutcome? RestoreOutcome = null)
 {
     public string VersionDescription => Version ?? "the current build";
 }
@@ -171,7 +178,7 @@ public static class GameFileRepair
             .Distinct()
             .ToArray();
 
-        GameFileRepairResult? first = null;
+        var failures = new List<GameFileRepairResult>();
 
         foreach (var version in attempts)
         {
@@ -183,12 +190,33 @@ public static class GameFileRepair
             // saying it once.
             if (attempt.Status == GameFileRepairStatus.NotAttempted) return attempt;
 
-            // The first answer is the one worth reporting: it came from the question this file's problem
-            // said to ask, and the fallback failing as well tells the user nothing more to act on.
-            first ??= attempt;
+            failures.Add(attempt);
         }
 
-        return first!;
+        // Not the first answer: the most useful one. A missing file asks the current build first, so its
+        // first answer is "nothing the game publishes now has that file" - true, and about a question the
+        // user never asked - while the fallback's "the index has no record of 1.5.97.0" is the one they can
+        // act on. Ties keep the earlier attempt, which is the question this file's problem said to ask.
+        return failures.MaxBy(Informativeness)!;
+    }
+
+    /// <summary>
+    ///     How much a failed attempt tells the user, highest first. Rejected content is the most specific
+    ///     thing that can be known - the file was reached and it was the wrong one. An unknown version names
+    ///     the build nobody recorded. A fetch that threw at least says what broke. That a manifest does not
+    ///     list the file is the weakest, because it is what both questions say when the other one has the
+    ///     real answer.
+    /// </summary>
+    private static int Informativeness(GameFileRepairResult result)
+    {
+        if (result.Status == GameFileRepairStatus.WrongContent) return 3;
+
+        return result.RestoreOutcome switch
+        {
+            GameFileRestoreOutcome.VersionUnknown => 2,
+            GameFileRestoreOutcome.FileNotFound => 0,
+            _ => 1
+        };
     }
 
     private static async Task<GameFileRepairResult> Attempt(PreflightContext ctx, IGameFileRestorer restorer,
@@ -209,7 +237,8 @@ public static class GameFileRepair
             if (!fetched.Fetched)
             {
                 return new GameFileRepairResult(item.Archive, StatusOf(fetched.Outcome),
-                    fetched.Detail ?? $"{restorer.SourceName} could not supply {name}.", version);
+                    fetched.Detail ?? $"{restorer.SourceName} could not supply {name}.", version,
+                    RestoreOutcome: fetched.Outcome);
             }
 
             var hash = await ctx.HashCache.FileHashCachedAsync(incoming, token);
@@ -224,6 +253,13 @@ public static class GameFileRepair
 
             await incoming.MoveToAsync(destination, true, token);
             await ctx.HashCache.FileHashWriteCache(destination, hash);
+
+            // The downloader's own MetaIni under [General], and deliberately without the "installed=true"
+            // that ManualDownloadAcquirer writes: that line is the mod manager's record that an archive has
+            // been unpacked into a mod, and StandardInstaller stamps it on every archive at the end of an
+            // install, once it is true. A file that has only been placed in the downloads folder has not
+            // been installed, so this matches ArchiveDownloadPipeline - which is the same act, a file
+            // fetched and put where the install will look for it - rather than the acquirer.
             await destination.WithExtension(Ext.Meta)
                 .WriteAllTextAsync(ctx.Dispatcher.MetaIniSection(item.Archive), token);
 
