@@ -216,38 +216,55 @@ public static class AbsolutePathExtensions
         await s.WriteAsync(data, token);
     }
 
+    /// <summary>
+    ///     Moves a file, waiting out the failures that are worth waiting out. See <see cref="IORetry" /> for
+    ///     which those are: a file another process holds open gets ten seconds, an ambiguous access denial
+    ///     about a second and a half, and a failure that cannot change — a destination that is a directory, a
+    ///     missing source, a full disk, a path the volume will not take — is thrown straight back.
+    /// </summary>
     public static async ValueTask MoveToAsync(this AbsolutePath src, AbsolutePath dest, bool overwrite,
         CancellationToken token)
     {
         // TODO: Make this async
         var srcStr = src.ToString();
         var destStr = dest.ToString();
-        var fi = new FileInfo(srcStr);
-        if (fi.IsReadOnly)
-            fi.IsReadOnly = false;
 
-        var fid = new FileInfo(destStr);
-        if (dest.FileExists() && fid.IsReadOnly)
-        {
-            fid.IsReadOnly = false;
-        }
+        // Best effort: if the flag cannot be read or cleared, the move below throws the error that actually
+        // describes the problem, which is more use to the caller than one thrown by this preparation.
+        TryClearReadOnly(srcStr);
+        TryClearReadOnly(destStr);
 
-        var retries = 0;
-        while (true)
+        await IORetry.RunAsync(() => File.Move(srcStr, destStr, overwrite),
+            ex => ClassifyMove(ex, srcStr, destStr), IORetryPolicy.Default, token);
+    }
+
+    private static void TryClearReadOnly(string path)
+    {
+        try
         {
-            try
-            {
-                File.Move(srcStr, destStr, overwrite);
-                return;
-            }
-            catch (Exception)
-            {
-                if (retries > 10)
-                    throw;
-                retries++;
-                await Task.Delay(TimeSpan.FromSeconds(1), token);
-            }
+            var info = new FileInfo(path);
+            if (info.Exists && info.IsReadOnly)
+                info.IsReadOnly = false;
         }
+        catch (Exception)
+        {
+            // Deliberately ignored; see MoveToAsync.
+        }
+    }
+
+    /// <summary>
+    ///     The error code of a failed move does not say everything about it. Windows reports a destination
+    ///     that is an existing directory as ERROR_ACCESS_DENIED, the same code it uses for a destination
+    ///     another process has open, and Unix reports it as a plain <see cref="IOException" />; neither is
+    ///     worth a retry, and both are recognised here by looking rather than by reading the code. A source
+    ///     that is not there is the same: it is not going to appear.
+    /// </summary>
+    private static IORetryKind ClassifyMove(Exception ex, string srcStr, string destStr)
+    {
+        var kind = IORetry.Classify(ex);
+        if (kind == IORetryKind.None) return kind;
+        if (Directory.Exists(destStr) || !File.Exists(srcStr)) return IORetryKind.None;
+        return kind;
     }
 
     public static async ValueTask CopyToAsync(this AbsolutePath src, AbsolutePath dest,
