@@ -35,6 +35,25 @@ public interface ISteamContentClient
     /// <summary>Whether the logged in account may open this depot.</summary>
     Task<DepotAccess> CheckAccessAsync(uint appId, uint depotId, CancellationToken token);
 
+    /// <summary>
+    ///     Makes sure the account holds a licence for an app Steam gives away, asking for one when it does
+    ///     not. Returns whether it now holds one.
+    ///     <para>
+    ///         The Creation Kit is why this exists. It is free, but it is not
+    ///         <see cref="DepotEntitlement.IsFreeToDownload" />-free: an account that has never installed it
+    ///         holds no package naming it, and Steam then refuses even the PICS access token, so the app
+    ///         cannot be so much as described, let alone read. What the Steam client does when someone
+    ///         presses Install on a free store page is ask for the licence, and the account gets a
+    ///         no-cost package granting exactly that app.
+    ///     </para>
+    ///     <para>
+    ///         This adds something to the user's Steam library, which nothing else here does, so it is only
+    ///         ever called for an app the caller already meant to fetch from and it says which app in the
+    ///         log before asking.
+    ///     </para>
+    /// </summary>
+    Task<bool> EnsureFreeLicenseAsync(uint appId, CancellationToken token);
+
     /// <summary>As <see cref="CheckAccessAsync" />, but throws rather than returning an answer.</summary>
     Task EnsureAccessAsync(uint appId, uint depotId, CancellationToken token);
 

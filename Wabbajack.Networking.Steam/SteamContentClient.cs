@@ -209,22 +209,8 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     {
         EnsureLoggedIn();
 
-        var licensesArrived = await _session.WaitForLicensesAsync(LicenseWait, token).ConfigureAwait(false);
-
-        // The licence carries the package's access token. Without it PICS answers about the package with
-        // nothing useful, so the depot list would come back empty and a perfectly entitled account would be
-        // told it owns nothing.
-        foreach (var license in _session.Licenses) PackageTokens[license.PackageID] = license.AccessToken;
-
-        var packages = _session.Licenses.Select(l => l.PackageID).Distinct().ToArray();
-
-        if (packages.Length > 0)
-        {
-            var infos = await GetPackageInfos(packages);
-
-            if (infos.Values.Any(info => DepotEntitlement.PackageGrantsDepot(info?.KeyValues, depotId)))
-                return DepotAccess.Granted;
-        }
+        var (held, licensesArrived) = await HoldsLicenseForAsync(depotId, token).ConfigureAwait(false);
+        if (held) return DepotAccess.Granted;
 
         var app = await GetAppProductInfo(appId);
         if (DepotEntitlement.IsFreeToDownload(app.KeyValues))
@@ -238,6 +224,64 @@ public class SteamContentClient : ISteamContentClient, IDisposable
         // said no. Without the list, "not entitled" is a guess -- and telling someone to go and buy a game
         // they already own because their connection was slow is a worse answer than admitting the doubt.
         return licensesArrived ? DepotAccess.NotEntitled : DepotAccess.Unconfirmed;
+    }
+
+    /// <summary>
+    ///     Whether any of the account's licences names <paramref name="id" />, and whether the licence list
+    ///     arrived at all. The second answer matters: "nothing we have covers it" and "we never found out
+    ///     what we have" look identical here and lead somewhere completely different for the user.
+    ///     <para>
+    ///         The id is checked against a package's <c>appids</c> as well as its <c>depotids</c>, so this
+    ///         answers for an app and for a depot alike - see <see cref="DepotEntitlement.PackageGrantsDepot" />.
+    ///     </para>
+    /// </summary>
+    private async Task<(bool Held, bool LicensesArrived)> HoldsLicenseForAsync(uint id, CancellationToken token)
+    {
+        var licensesArrived = await _session.WaitForLicensesAsync(LicenseWait, token).ConfigureAwait(false);
+
+        // The licence carries the package's access token. Without it PICS answers about the package with
+        // nothing useful, so the depot list would come back empty and a perfectly entitled account would be
+        // told it owns nothing.
+        foreach (var license in _session.Licenses) PackageTokens[license.PackageID] = license.AccessToken;
+
+        var packages = _session.Licenses.Select(l => l.PackageID).Distinct().ToArray();
+        if (packages.Length == 0) return (false, licensesArrived);
+
+        var infos = await GetPackageInfos(packages);
+
+        return (infos.Values.Any(info => DepotEntitlement.PackageGrantsDepot(info?.KeyValues, id)),
+            licensesArrived);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> EnsureFreeLicenseAsync(uint appId, CancellationToken token)
+    {
+        EnsureLoggedIn();
+
+        var (held, _) = await HoldsLicenseForAsync(appId, token).ConfigureAwait(false);
+        if (held) return true;
+
+        _logger.LogInformation(
+            "The Steam account {Account} holds no licence for app {AppId}, asking Steam for the free one",
+            _session.AccountName, appId);
+
+        var granted = await _session.Apps.RequestFreeLicense(appId);
+
+        if (granted.Result != EResult.OK || !granted.GrantedApps.Contains(appId))
+        {
+            _logger.LogInformation("Steam would not grant a free licence for app {AppId}: {Result}", appId,
+                granted.Result);
+            return false;
+        }
+
+        _logger.LogInformation("Steam granted a free licence for app {AppId} as package {Packages}", appId,
+            string.Join(", ", granted.GrantedPackages));
+
+        // Steam follows the grant with a fresh licence list, and the new packages will not be in anything
+        // already worked out from the old one. Drop them so the next entitlement question asks about them.
+        foreach (var package in granted.GrantedPackages) PackageInfos.TryRemove(package, out _);
+
+        return true;
     }
 
     /// <summary>As <see cref="CheckAccessAsync" />, but says so rather than returning an answer.</summary>
