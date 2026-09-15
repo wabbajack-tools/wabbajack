@@ -480,6 +480,7 @@ public partial class App
 
         // Login Managers
         services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
+        services.AddAllSingleton<INeedsLogin, SteamLoginManager>();
         services.AddSingleton<NexusCollectionDownloader>();
         // Verbs
         services.AddSingleton<CommandLineBuilder>();
