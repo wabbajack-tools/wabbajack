@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
+using SteamKit2;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.Networking.Steam.DTOs;
@@ -22,6 +23,10 @@ namespace Wabbajack.Networking.Steam.Test;
 public class SteamGameFileRestorerTests
 {
     private const uint SkyrimSE = 489830;
+
+    /// <summary>Skyrim Special Edition: Creation Kit, the one entry in the game's <c>SteamToolIDs</c>.</summary>
+    private const uint SkyrimSECreationKit = 1946180;
+
     private const string Version = "1.6.640.0";
 
     private readonly FakeContentClient _content = new();
@@ -236,6 +241,130 @@ public class SteamGameFileRestorerTests
         Assert.Equal("data\\SKYRIM.ESM", Assert.Single(_content.Downloaded).Path);
     }
 
+    /// <summary>
+    ///     The Creation Kit is a Steam app of its own, but it installs into the game's folder, so a modlist
+    ///     records <c>CreationKit.exe</c> as a file of Skyrim Special Edition. The game's own depots are
+    ///     searched first and do not carry it; the Kit's do.
+    /// </summary>
+    [Fact]
+    public async Task AFileTheGamesOwnDepotsDoNotCarryIsLookedForInTheCreationKits()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(1, 100));
+        _content.Manifests[(1u, 100ul)] = new[] {"Data\\Skyrim.esm"};
+        _content.Publishes(SkyrimSECreationKit).Add(new DepotManifestId(1946182, 500));
+        _content.Manifests[(1946182u, 500ul)] = new[] {"CreationKit.exe"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("CreationKit.exe"),
+            "c:\\out\\CreationKit.exe".ToAbsolutePath(), CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Equal(new[] {(SkyrimSE, 1u, 100ul), (SkyrimSECreationKit, 1946182u, 500ul)}, _content.Searched);
+        Assert.Equal((SkyrimSECreationKit, 1946182u, 500ul, "CreationKit.exe"),
+            Assert.Single(_content.Downloaded));
+        Assert.Contains("app 1946180", result.Detail);
+    }
+
+    /// <summary>
+    ///     The Kit is free but not licence-free, and Steam will not even describe the app to an account
+    ///     holding nothing that names it. So the licence is asked for on the way in - and only for the
+    ///     tool, never for the game, which the user bought.
+    /// </summary>
+    [Fact]
+    public async Task TheToolsFreeLicenceIsAskedForAndTheGamesIsNot()
+    {
+        _session.IsLoggedIn = true;
+        _content.NeedsLicense.Add(SkyrimSECreationKit);
+        _content.GrantsFreeLicense.Add(SkyrimSECreationKit);
+        _content.Publishes(SkyrimSECreationKit).Add(new DepotManifestId(1946182, 500));
+        _content.Manifests[(1946182u, 500ul)] = new[] {"CreationKit.exe"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("CreationKit.exe"),
+            "c:\\out\\CreationKit.exe".ToAbsolutePath(), CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Equal(new[] {SkyrimSECreationKit}, _content.FreeLicensesAsked);
+    }
+
+    /// <summary>
+    ///     An app Steam will not open says nothing about the game's own depots, which hold everything
+    ///     except the tool's own files, so the search carries on rather than failing there.
+    /// </summary>
+    [Fact]
+    public async Task AToolAppThatCannotBeReachedDoesNotEndTheSearch()
+    {
+        _session.IsLoggedIn = true;
+        _content.NeedsLicense.Add(SkyrimSECreationKit);
+        _content.Current.Add(new DepotManifestId(1, 100));
+        _content.Manifests[(1u, 100ul)] = new[] {"Data\\Skyrim.esm"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Skyrim.esm"),
+            "c:\\out\\Skyrim.esm".ToAbsolutePath(), CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Equal((SkyrimSE, 1u, 100ul, "Data\\Skyrim.esm"), Assert.Single(_content.Downloaded));
+    }
+
+    /// <summary>
+    ///     With the tool unreachable and the file in none of the game's depots, "no manifest has that file"
+    ///     would be a claim about a manifest nobody managed to read. The refusal is what to report.
+    /// </summary>
+    [Fact]
+    public async Task AToolThatRefusedIsReportedRatherThanCallingTheFileMissing()
+    {
+        _session.IsLoggedIn = true;
+        _content.NeedsLicense.Add(SkyrimSECreationKit);
+        _content.Current.Add(new DepotManifestId(1, 100));
+        _content.Manifests[(1u, 100ul)] = new[] {"Data\\Skyrim.esm"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("CreationKit.exe"),
+            default, CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Failed, result.Outcome);
+        Assert.Contains("1946180", result.Detail);
+        Assert.Empty(_content.Downloaded);
+    }
+
+    /// <summary>
+    ///     The version index records depot and manifest ids with no app beside them, so an id out of it can
+    ///     only be asked for under the game's own app. Nothing about a tool is touched, licence included.
+    /// </summary>
+    [Fact]
+    public async Task AVersionLookupNeverReachesTheTools()
+    {
+        _session.IsLoggedIn = true;
+        _index.Versions[Version] = new[] {new SteamManifest {Depot = 1, Manifest = 100}};
+        _content.Manifests[(1u, 100ul)] = new[] {"Data\\Skyrim.esm"};
+        _content.Publishes(SkyrimSECreationKit).Add(new DepotManifestId(1946182, 500));
+        _content.Manifests[(1946182u, 500ul)] = new[] {"CreationKit.exe"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, Version, File("CreationKit.exe"),
+            default, CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.FileNotFound, result.Outcome);
+        Assert.Equal(new[] {(SkyrimSE, 1u, 100ul)}, _content.Searched);
+        Assert.Empty(_content.FreeLicensesAsked);
+        Assert.Single(_index.Asked);
+    }
+
+    /// <summary>
+    ///     A game with no companion app behaves exactly as it did: one app, searched once.
+    /// </summary>
+    [Fact]
+    public async Task AGameWithNoToolsAsksAboutNothingElse()
+    {
+        _session.IsLoggedIn = true;
+        Assert.Empty(Game.Fallout3.MetaData().SteamToolIDs);
+        _content.Publishes(22300).Add(new DepotManifestId(1, 100));
+        _content.Manifests[(1u, 100ul)] = new[] {"Fallout3.exe"};
+
+        var result = await Restorer().Restore(Game.Fallout3, null, File("Fallout3.exe"),
+            "c:\\out\\Fallout3.exe".ToAbsolutePath(), CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Empty(_content.FreeLicensesAsked);
+    }
+
     private sealed class FakeIndex : ISteamManifestIndex
     {
         public Dictionary<string, SteamManifest[]> Versions { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -256,11 +385,37 @@ public class SteamGameFileRestorerTests
     /// </summary>
     private sealed class FakeContentClient : ISteamContentClient
     {
-        public List<DepotManifestId> Current { get; } = new();
+        /// <summary>What each app publishes on its public branch.</summary>
+        public Dictionary<uint, List<DepotManifestId>> Published { get; } = new();
+
+        /// <summary>What the game itself publishes, which is what most of these tests are about.</summary>
+        public List<DepotManifestId> Current => Publishes(SkyrimSE);
+
         public Dictionary<(uint Depot, ulong Manifest), string[]> Manifests { get; } = new();
 
         /// <summary>Depots the account has no licence for.</summary>
         public HashSet<uint> Refuses { get; } = new();
+
+        /// <summary>
+        ///     Apps Steam will not so much as describe without a licence, which is what an account that has
+        ///     never installed the Creation Kit meets: the PICS access token is refused, so there is no
+        ///     depot list to be had.
+        /// </summary>
+        public HashSet<uint> NeedsLicense { get; } = new();
+
+        /// <summary>Apps the account already holds a licence for.</summary>
+        public HashSet<uint> Licensed { get; } = new();
+
+        /// <summary>Apps Steam will hand out a free licence for when asked.</summary>
+        public HashSet<uint> GrantsFreeLicense { get; } = new();
+
+        public List<uint> FreeLicensesAsked { get; } = new();
+
+        public List<DepotManifestId> Publishes(uint app)
+        {
+            if (!Published.TryGetValue(app, out var depots)) Published[app] = depots = new List<DepotManifestId>();
+            return depots;
+        }
 
         public List<(uint App, uint Depot, ulong Manifest)> Searched { get; } = new();
         public List<(uint App, uint Depot, ulong Manifest, string Path)> Downloaded { get; } = new();
@@ -279,12 +434,26 @@ public class SteamGameFileRestorerTests
         public Task<IReadOnlyList<DepotManifestId>> GetCurrentDepotsAsync(uint appId,
             string branch = SteamContentClient.PublicBranch)
         {
-            return Task.FromResult<IReadOnlyList<DepotManifestId>>(Current.ToArray());
+            if (NeedsLicense.Contains(appId) && !Licensed.Contains(appId))
+                throw new SteamException($"Cannot get app token for {appId}", EResult.Invalid, EResult.Invalid);
+
+            return Task.FromResult<IReadOnlyList<DepotManifestId>>(Publishes(appId).ToArray());
         }
 
         public Task<DepotAccess> CheckAccessAsync(uint appId, uint depotId, CancellationToken token)
         {
             return Task.FromResult(Refuses.Contains(depotId) ? DepotAccess.NotEntitled : DepotAccess.Granted);
+        }
+
+        public Task<bool> EnsureFreeLicenseAsync(uint appId, CancellationToken token)
+        {
+            FreeLicensesAsked.Add(appId);
+
+            if (Licensed.Contains(appId)) return Task.FromResult(true);
+            if (!GrantsFreeLicense.Contains(appId)) return Task.FromResult(false);
+
+            Licensed.Add(appId);
+            return Task.FromResult(true);
         }
 
         public Task EnsureAccessAsync(uint appId, uint depotId, CancellationToken token)
