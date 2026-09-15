@@ -21,6 +21,18 @@ using Wabbajack.RateLimiter;
 namespace Wabbajack;
 
 /// <summary>
+///     How to read the card's status line. Declining the login is deliberately not a failure: the user was
+///     asked and said no, which is a perfectly good answer and neither a green tick nor a red cross.
+/// </summary>
+public enum GameFilesTone
+{
+    Note,
+    Working,
+    Done,
+    Problem
+}
+
+/// <summary>
 ///     The detail panel for the game-files check, when that check has found files it can offer to fetch.
 ///     <para>
 ///         The whole thing is an offer and never something that happens to the user. The card says what is
@@ -87,8 +99,8 @@ public partial class GameFilesVM : ViewModel
 
     [Reactive] public partial string StatusText { get; set; }
 
-    /// <summary>True once something has gone wrong, so the card's border says so.</summary>
-    [Reactive] public partial bool Failed { get; set; }
+    /// <summary>How to read <see cref="StatusText" />. Drives the icon beside it, and the card's border.</summary>
+    [Reactive] public partial GameFilesTone Tone { get; set; }
 
     [Reactive] public partial bool IsRepairing { get; set; }
     [Reactive] public partial Percent Progress { get; set; }
@@ -149,7 +161,7 @@ public partial class GameFilesVM : ViewModel
         }
 
         IsRepairing = true;
-        Failed = false;
+        Tone = GameFilesTone.Working;
         Progress = Percent.Zero;
         StatusText = $"Fetching from {restorer.SourceName}";
 
@@ -160,6 +172,7 @@ public partial class GameFilesVM : ViewModel
         }
         catch (OperationCanceledException)
         {
+            Tone = GameFilesTone.Note;
             StatusText = "Stopped.";
             IsRepairing = false;
             return;
@@ -185,11 +198,15 @@ public partial class GameFilesVM : ViewModel
         var pane = _services.GetRequiredService<SteamLoginVM>();
         try
         {
+            Tone = GameFilesTone.Working;
             StatusText = $"Waiting for you to log into {sourceName}";
             await using var registration = token.Register(() => pane.CloseCommand.Execute(null));
 
             if (await ShowSteamLogin.Send(pane)) return true;
 
+            // Closing the pane is an answer, not a failure: the account is theirs to hand over or not, and
+            // the offer is still there if they change their mind.
+            Tone = GameFilesTone.Note;
             StatusText = $"Not logged into {sourceName}, so nothing has been fetched.";
             return false;
         }
@@ -241,7 +258,7 @@ public partial class GameFilesVM : ViewModel
         _rows.Clear();
         _byName.Clear();
         StatusText = string.Empty;
-        Failed = false;
+        Tone = GameFilesTone.Note;
         Progress = Percent.Zero;
 
         foreach (var item in GameFileRepair.Group(repairable))
@@ -268,7 +285,7 @@ public partial class GameFilesVM : ViewModel
 
         if (fetched == results.Count)
         {
-            Failed = false;
+            Tone = GameFilesTone.Done;
             StatusText = $"{Files(fetched)} fetched into the downloads folder.";
             return;
         }
@@ -276,7 +293,7 @@ public partial class GameFilesVM : ViewModel
         // The first thing that did not work, in the repair's own words: it knows the difference between a
         // version nobody wrote down and a file the depot does not carry, and the user can act on that.
         var first = results.First(r => r.Status != GameFileRepairStatus.Repaired);
-        Failed = true;
+        Tone = GameFilesTone.Problem;
         StatusText = fetched == 0
             ? first.Message
             : $"{fetched} of {results.Count} fetched. {first.Archive.Name}: {first.Message}";
@@ -289,7 +306,7 @@ public partial class GameFilesVM : ViewModel
 
     private void Fail(string message)
     {
-        Failed = true;
+        Tone = GameFilesTone.Problem;
         StatusText = message;
     }
 

@@ -29,7 +29,14 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="700" Margin="8">
+    <!--
+        Centred when there is room and scrolling when there is not: the window's minimum height is shorter
+        than this pane, and a login with its buttons cut off the bottom is a login nobody can finish. The
+        width is fixed so switching between the code and the password does not resize the pane under the
+        user's cursor.
+    -->
+    <ScrollViewer VerticalAlignment="Center" HorizontalAlignment="Center" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <Grid Width="700" Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -68,7 +75,7 @@
                 <TextBlock Style="{StaticResource BodyText}" Text="Open the Steam mobile app, go to the Steam Guard screen and scan this code." />
                 <TextBlock Style="{StaticResource BodyText}" Text="Your phone will ask you to approve a sign-in from &quot;Wabbajack&quot;. Nothing is downloaded until you ask for it, and your password is never typed here." />
                 <TextBlock Style="{StaticResource DimText}" Text="The code refreshes every few seconds; the one on screen is always the one to scan. Wabbajack keeps the login Steam hands back so it does not have to ask again for months." />
-                <local:WJButton x:Name="UseCredentialsButton" ButtonStyle="Transparent" Text="No mobile app? Use a password" Icon="Password" IconSize="14" Width="270" Height="28" HorizontalAlignment="Left" Margin="-6, 4, 0, 0" />
+                <local:WJButton x:Name="UseCredentialsButton" ButtonStyle="Transparent" Text="No mobile app? Use a password" Icon="Password" IconSize="14" Width="236" Height="28" HorizontalAlignment="Left" Margin="-6, 4, 0, 0" />
             </StackPanel>
         </Grid>
 
@@ -87,7 +94,7 @@
             <StackPanel Grid.Column="1" Margin="20, 0, 0, 0">
                 <TextBlock Style="{StaticResource BodyText}" Text="The password is used once to sign in and is never written anywhere. Steam hands back a login token, and that is what Wabbajack keeps." />
                 <TextBlock Style="{StaticResource DimText}" Text="If the account has Steam Guard on, Steam will ask for a code next." />
-                <local:WJButton x:Name="UseQrButton" ButtonStyle="Transparent" Text="Scan a code instead" Icon="QrCode" IconSize="14" Width="210" Height="28" HorizontalAlignment="Left" Margin="-6, 4, 0, 0" />
+                <local:WJButton x:Name="UseQrButton" ButtonStyle="Transparent" Text="Scan a code instead" Icon="QrCode" IconSize="14" Width="176" Height="28" HorizontalAlignment="Left" Margin="-6, 4, 0, 0" />
             </StackPanel>
         </Grid>
 
@@ -132,4 +139,5 @@
             <local:WJButton x:Name="RetryButton" Grid.Column="2" ButtonStyle="Color" Text="Try again" Icon="ArrowCounterclockwise" IconSize="16" Width="150" Height="32" Visibility="Collapsed" />
         </Grid>
     </Grid>
+    </ScrollViewer>
 </rxui:ReactiveUserControl>

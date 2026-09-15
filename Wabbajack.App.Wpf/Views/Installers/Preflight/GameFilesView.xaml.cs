@@ -47,27 +47,35 @@ public partial class GameFilesView : ReactiveUserControl<GameFilesVM>
                 })
                 .DisposeWith(dispose);
 
-            this.WhenAnyValue(x => x.ViewModel.Failed)
+            this.WhenAnyValue(x => x.ViewModel.Tone)
+                .Select(tone => tone == GameFilesTone.Problem)
                 .BindToStrict(this, x => x.Card.Failure)
                 .DisposeWith(dispose);
 
             // The status row is the only part that appears and disappears: before the user has asked for
             // anything there is nothing to report, and an empty row would just push the buttons down.
-            this.WhenAnyValue(x => x.ViewModel.StatusText, x => x.ViewModel.IsRepairing, x => x.ViewModel.Failed)
+            this.WhenAnyValue(x => x.ViewModel.StatusText, x => x.ViewModel.Tone)
                 .ObserveOnGuiThread()
                 .Subscribe(t =>
                 {
-                    var (status, repairing, failed) = t;
-                    var shown = repairing || !string.IsNullOrWhiteSpace(status);
+                    var (status, tone) = t;
+                    var working = tone == GameFilesTone.Working;
 
-                    StatusRow.Visibility = shown ? Visibility.Visible : Visibility.Collapsed;
+                    StatusRow.Visibility = working || !string.IsNullOrWhiteSpace(status)
+                        ? Visibility.Visible
+                        : Visibility.Collapsed;
                     StatusText.Text = status;
-                    StatusRing.IsActive = repairing;
-                    StatusRing.Visibility = repairing ? Visibility.Visible : Visibility.Collapsed;
-                    StatusIcon.Visibility = repairing ? Visibility.Collapsed : Visibility.Visible;
-                    (StatusIcon.Symbol, StatusIcon.Foreground) = failed
-                        ? (Symbol.ErrorCircle, Brush("ErrorBrush"))
-                        : (Symbol.CheckmarkCircle, Brush("SuccessBrush"));
+                    StatusRing.IsActive = working;
+                    StatusRing.Visibility = working ? Visibility.Visible : Visibility.Collapsed;
+                    StatusIcon.Visibility = working ? Visibility.Collapsed : Visibility.Visible;
+
+                    // A user who was asked to log in and said no is neither a tick nor a cross.
+                    (StatusIcon.Symbol, StatusIcon.Foreground) = tone switch
+                    {
+                        GameFilesTone.Done => (Symbol.CheckmarkCircle, Brush("SuccessBrush")),
+                        GameFilesTone.Problem => (Symbol.ErrorCircle, Brush("ErrorBrush")),
+                        _ => (Symbol.Info, Brush("Transparent66ForegroundBrush"))
+                    };
                 })
                 .DisposeWith(dispose);
 
