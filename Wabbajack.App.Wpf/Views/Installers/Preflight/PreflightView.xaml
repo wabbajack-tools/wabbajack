@@ -120,6 +120,7 @@
                     </Border>
                     <local:BulkDownloadsView x:Name="BulkView" Visibility="Collapsed" />
                     <local:ManualDownloadView x:Name="ManualView" Visibility="Collapsed" />
+                    <local:GameFilesView x:Name="GameFilesView" Visibility="Collapsed" />
                 </Grid>
             </Grid>
 
