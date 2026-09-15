@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Net;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
@@ -39,6 +40,13 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     private const int MaxServerAttempts = 6;
 
     /// <summary>
+    ///     How many manifests' file lists are kept at once. A version resolves to a handful of depots and a
+    ///     repair searches all of them, so this holds a whole repair; anything beyond that is paid for in
+    ///     memory that is never handed back.
+    /// </summary>
+    private const int MaxCachedManifests = 4;
+
+    /// <summary>
     ///     Licences arrive on their own schedule after logon. Long enough that a slow connection is not cut
     ///     off, short enough that a Steam that is never going to answer does not hold up the run.
     /// </summary>
@@ -49,14 +57,17 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     private readonly ManifestRequestCodeCache _codes = new();
 
     /// <summary>
-    ///     Manifests already downloaded and decrypted this session, by depot, manifest and branch.
-    ///     A manifest is the same bytes every time it is asked for - a manifest id names one immutable
-    ///     build - and a caller repairing a game fetches several files out of the same one, after searching
-    ///     it once per file to find them. Without this, every one of those steps pays for the whole manifest
-    ///     again, which for a large game is the bulk of the transfer.
+    ///     The file lists of manifests already downloaded and decrypted, so a repair that reads the same
+    ///     build several times pays for it once. Bounded, because this object lives as long as its host and
+    ///     a single manifest of a large game is tens of megabytes of <see cref="DepotManifest.FileData" />.
+    ///     <para>
+    ///         Nothing in here leaves this class. The list is a read-only view over a private array, so
+    ///         several callers reading the same manifest cannot sort, filter or add to what the others are
+    ///         holding, and everything public returns <see cref="DepotFile" /> records built from it.
+    ///     </para>
     /// </summary>
-    private readonly ConcurrentDictionary<(uint DepotId, ulong ManifestId, string Branch), DepotManifest>
-        _manifests = new();
+    private readonly ManifestCache<IReadOnlyList<DepotManifest.FileData>> _manifestFiles =
+        new(MaxCachedManifests);
 
     private readonly DTOSerializer _dtos;
     private readonly ILogger<SteamContentClient> _logger;
@@ -270,14 +281,12 @@ public class SteamContentClient : ISteamContentClient, IDisposable
 
     /// <summary>
     ///     Downloads and decrypts a depot manifest: the list of every file in that depot at that version,
-    ///     with the chunks each is made of.
+    ///     with the chunks each is made of. Fetches every time it is called; <see cref="GetFilesAsync" /> is
+    ///     the one that remembers, and is what everything else here goes through.
     /// </summary>
-    public async Task<DepotManifest> GetManifestAsync(uint appId, uint depotId, ulong manifestId,
+    private async Task<DepotManifest> GetManifestAsync(uint appId, uint depotId, ulong manifestId,
         CancellationToken token, string branch = PublicBranch)
     {
-        if (_manifests.TryGetValue((depotId, manifestId, branch), out var remembered))
-            return remembered;
-
         EnsureLoggedIn();
 
         var depotKey = await GetDepotKey(depotId, appId).ConfigureAwait(false);
@@ -309,20 +318,42 @@ public class SteamContentClient : ISteamContentClient, IDisposable
             "Manifest {ManifestId} of depot {DepotId} lists {Count} entries, {Bytes} bytes uncompressed",
             manifestId, depotId, manifest.Files?.Count ?? 0, manifest.TotalUncompressedSize);
 
-        _manifests[(depotId, manifestId, branch)] = manifest;
         return manifest;
     }
 
     /// <summary>
-    ///     Looks <paramref name="depotPath" /> up in a manifest without fetching anything. A caller hunting
-    ///     one file through several depots asks this of each in turn and only downloads from the one that
-    ///     answers.
+    ///     A manifest's file list, downloading it only if it is not already held. The list is read-only and
+    ///     several callers share it, so it is never sorted, filtered or added to in place.
+    /// </summary>
+    private async Task<IReadOnlyList<DepotManifest.FileData>> GetFilesAsync(uint appId, uint depotId,
+        ulong manifestId, CancellationToken token, string branch)
+    {
+        if (_manifestFiles.Get(depotId, manifestId, branch) is { } cached) return cached;
+
+        var manifest = await GetManifestAsync(appId, depotId, manifestId, token, branch).ConfigureAwait(false);
+
+        // A copy, not the manifest's own List: the manifest itself is dropped here, and what is kept has to
+        // be something no other reference reaches.
+        var files = new ReadOnlyCollection<DepotManifest.FileData>(
+            (manifest.Files ?? new List<DepotManifest.FileData>()).ToArray());
+
+        // Two callers racing on the same manifest both downloaded it and both have the same immutable
+        // build, so the first one stored wins and the second is discarded. Holding a lock across the
+        // download to prevent the race would serialise every depot search a repair makes.
+        _manifestFiles.Set(depotId, manifestId, branch, files);
+        return _manifestFiles.Get(depotId, manifestId, branch) ?? files;
+    }
+
+    /// <summary>
+    ///     Looks <paramref name="depotPath" /> up in a manifest without fetching any content. A caller
+    ///     hunting one file through several depots asks this of each in turn and only downloads from the one
+    ///     that answers.
     /// </summary>
     public async Task<DepotFile?> FindFileAsync(uint appId, uint depotId, ulong manifestId, string depotPath,
         CancellationToken token, string branch = PublicBranch)
     {
-        var manifest = await GetManifestAsync(appId, depotId, manifestId, token, branch).ConfigureAwait(false);
-        var file = DepotPaths.Find(manifest.Files ?? new List<DepotManifest.FileData>(), depotPath);
+        var files = await GetFilesAsync(appId, depotId, manifestId, token, branch).ConfigureAwait(false);
+        var file = DepotPaths.Find(files, depotPath);
         return file == null ? null : Describe(file);
     }
 
@@ -340,9 +371,9 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     {
         await EnsureAccessAsync(appId, depotId, token).ConfigureAwait(false);
 
-        var manifest = await GetManifestAsync(appId, depotId, manifestId, token, branch).ConfigureAwait(false);
+        var files = await GetFilesAsync(appId, depotId, manifestId, token, branch).ConfigureAwait(false);
 
-        var file = DepotPaths.Find(manifest.Files ?? new List<DepotManifest.FileData>(), depotPath)
+        var file = DepotPaths.Find(files, depotPath)
                    ?? throw new SteamFileNotInDepotException(
                        $"Manifest {manifestId} of depot {depotId} has no file matching '{depotPath}'", depotPath);
 
@@ -357,9 +388,9 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     public async Task<IReadOnlyList<DepotFile>> ListFilesAsync(uint appId, uint depotId, ulong manifestId,
         CancellationToken token, string branch = PublicBranch)
     {
-        var manifest = await GetManifestAsync(appId, depotId, manifestId, token, branch).ConfigureAwait(false);
+        var files = await GetFilesAsync(appId, depotId, manifestId, token, branch).ConfigureAwait(false);
 
-        return (manifest.Files ?? new List<DepotManifest.FileData>())
+        return files
             .Where(f => !f.Flags.HasFlag(EDepotFileFlag.Directory))
             .Select(Describe)
             .ToArray();
