@@ -206,6 +206,12 @@ known until its depots are searched, which is after the licence would have been 
 promises "if one of them turns out to be needed" and not that it will be. The card, the check's detail and
 the CLI verb all say it, and only when a game in the repair has a tool app at all.
 
+All three ask it about **the games of the repairable files**, `repairable.Select(r => r.State.Game)`, and
+never about `Config.Game`. For nearly every list those are the same set, which is what makes the difference
+easy to get wrong: a list with `CanSourceFrom` files carries a second game, and the modlist's own game alone
+would miss a companion app for the sourced game while naming one for a game whose files are all fine.
+`GameFilesCheckTests.AsksAboutTheGamesOfTheFilesBeingRepaired` pins both directions.
+
 **The WPF side of it.** `App.xaml.cs` calls `AddSteam`, registering its own `SteamGuardPrompt` first
 because `AddSteam`'s `TryAdd`ed default raises an intervention this app answers by throwing. The prompt is
 a singleton publishing whatever Steam Guard is asking as a `Pending` request; the pane binds to it and

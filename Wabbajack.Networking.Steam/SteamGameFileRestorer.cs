@@ -72,17 +72,30 @@ public class SteamGameFileRestorer : IGameFileRestorer
     }
 
     /// <summary>
-    ///     Names the free tools a repair of these games would have to take a licence for, and says what
-    ///     taking it does. Nothing at all for the ordinary case, which is a game the account already owns:
-    ///     its depots are reached with the licence the user already has and their library is untouched.
+    ///     Names the free companion apps a repair of these games could reach, and says what reaching one
+    ///     does to the user's library. Nothing at all for the ordinary case - a game the account owns, whose
+    ///     depots are read with the licence the user already has.
+    ///     <para>
+    ///         <see cref="GameMetaData.SteamToolIDs" /> is the condition, and deliberately not
+    ///         <see cref="GameMetaData.SteamIDs" />: the latter is the game's own app, which the account
+    ///         already holds and <c>GameLocator</c> walks looking for an install. A Creation Kit is a
+    ///         separate app that installs into the game's folder, so <c>SteamToolIDs</c> is the only place
+    ///         the difference shows.
+    ///     </para>
+    ///     <para>
+    ///         Per game rather than per file, which is a limit rather than an oversight: whether a companion
+    ///         app is actually read is not known until the game's own depots have been searched and found
+    ///         wanting, and that is after the licence would have been taken. So the answer is "one is in
+    ///         reach of these files", and <see cref="FreeLicenseApps.Describe" /> words it as such.
+    ///     </para>
     /// </summary>
     public IReadOnlyList<string> Consequences(IEnumerable<Game> games)
     {
         return FreeLicenseApps.Describe(games
             .Distinct()
-            .SelectMany(game => game.MetaData().SteamIDs)
-            .Where(id => id > 0)
-            .Select(id => (uint) id));
+            .SelectMany(game => game.MetaData().SteamToolIDs
+                .Where(id => id > 0)
+                .Select(id => FreeLicenseApps.Name((uint) id, game.MetaData().HumanFriendlyGameName))));
     }
 
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
