@@ -904,6 +904,8 @@ public class ManualDownloadAcquirerTests : IAsyncDisposable
 
         // A folder squatting on the destination name makes the placement fail where a full disk would:
         // after verification, in the move. A full disk itself cannot be arranged on a developer machine.
+        // The move gives up on it at once rather than retrying — a destination that is a directory is not
+        // going to stop being one — so the wait below is not racing a retry loop.
         var squatter = _folder.Destination.Combine("Blocked.7z");
         squatter.CreateDirectory();
         var source = await PreflightTestFolder.WriteFile(_folder.Watch, "Blocked.7z", bytes);
