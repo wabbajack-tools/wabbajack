@@ -31,7 +31,7 @@ namespace Wabbajack.Networking.Steam;
 ///         <item>The wanted file's chunks, decrypted and written at their offsets, then hash-checked.</item>
 ///     </list>
 /// </summary>
-public class SteamContentClient : IDisposable
+public class SteamContentClient : ISteamContentClient, IDisposable
 {
     /// <summary>The branch a public build lives on. Everything here is public-branch content.</summary>
     public const string PublicBranch = "public";
@@ -47,6 +47,17 @@ public class SteamContentClient : IDisposable
     private readonly DepotFileAssembler _assembler;
     private readonly ConcurrentDictionary<(uint DepotId, string Host), string> _cdnAuthTokens = new();
     private readonly ManifestRequestCodeCache _codes = new();
+
+    /// <summary>
+    ///     Manifests already downloaded and decrypted this session, by depot, manifest and branch.
+    ///     A manifest is the same bytes every time it is asked for - a manifest id names one immutable
+    ///     build - and a caller repairing a game fetches several files out of the same one, after searching
+    ///     it once per file to find them. Without this, every one of those steps pays for the whole manifest
+    ///     again, which for a large game is the bulk of the transfer.
+    /// </summary>
+    private readonly ConcurrentDictionary<(uint DepotId, ulong ManifestId, string Branch), DepotManifest>
+        _manifests = new();
+
     private readonly DTOSerializer _dtos;
     private readonly ILogger<SteamContentClient> _logger;
     private readonly SteamSession _session;
@@ -156,6 +167,29 @@ public class SteamContentClient : IDisposable
     }
 
     /// <summary>
+    ///     Every depot of the app publishing on the branch today, with what it publishes.
+    ///     Two kinds of entry are left out because fetching from them would be a mistake rather than a
+    ///     miss: a depot whose content actually belongs to another app (<c>depotfromapp</c>), which has to
+    ///     be asked for under that app's id, and one whose <c>oslist</c> says it is for another operating
+    ///     system. A depot that names no oslist is kept - most do not, and the games this serves are
+    ///     Windows games.
+    /// </summary>
+    public async Task<IReadOnlyList<DepotManifestId>> GetCurrentDepotsAsync(uint appId,
+        string branch = PublicBranch)
+    {
+        var app = await GetAppInfo(appId);
+
+        return app.GetDepots(_dtos.Options)
+            .Where(d => d.Depot.DepotFromApp == 0)
+            .Where(d => d.Depot.Config?.OSList is not {Length: > 0} os ||
+                        os.Contains("windows", StringComparison.OrdinalIgnoreCase))
+            .Select(d => (d.DepotId, Manifest: d.Depot.ManifestFor(branch)))
+            .Where(d => d.Manifest.HasValue)
+            .Select(d => new DepotManifestId(d.DepotId, d.Manifest!.Value))
+            .ToArray();
+    }
+
+    /// <summary>
     ///     Whether the logged in account may open this depot: a licence naming it, or an app that is free to
     ///     download. Asked before anything is fetched, because Steam's own answer to an unentitled request is
     ///     a refused decryption key several calls further on.
@@ -241,6 +275,9 @@ public class SteamContentClient : IDisposable
     public async Task<DepotManifest> GetManifestAsync(uint appId, uint depotId, ulong manifestId,
         CancellationToken token, string branch = PublicBranch)
     {
+        if (_manifests.TryGetValue((depotId, manifestId, branch), out var remembered))
+            return remembered;
+
         EnsureLoggedIn();
 
         var depotKey = await GetDepotKey(depotId, appId).ConfigureAwait(false);
@@ -272,7 +309,21 @@ public class SteamContentClient : IDisposable
             "Manifest {ManifestId} of depot {DepotId} lists {Count} entries, {Bytes} bytes uncompressed",
             manifestId, depotId, manifest.Files?.Count ?? 0, manifest.TotalUncompressedSize);
 
+        _manifests[(depotId, manifestId, branch)] = manifest;
         return manifest;
+    }
+
+    /// <summary>
+    ///     Looks <paramref name="depotPath" /> up in a manifest without fetching anything. A caller hunting
+    ///     one file through several depots asks this of each in turn and only downloads from the one that
+    ///     answers.
+    /// </summary>
+    public async Task<DepotFile?> FindFileAsync(uint appId, uint depotId, ulong manifestId, string depotPath,
+        CancellationToken token, string branch = PublicBranch)
+    {
+        var manifest = await GetManifestAsync(appId, depotId, manifestId, token, branch).ConfigureAwait(false);
+        var file = DepotPaths.Find(manifest.Files ?? new List<DepotManifest.FileData>(), depotPath);
+        return file == null ? null : Describe(file);
     }
 
     /// <summary>

@@ -32,7 +32,7 @@ internal static class SteamVerbSupport
     ///     they gave none. Only the current one can be asked for: Steam exposes no history, which is why
     ///     an older game version needs an id from Wabbajack's own index.
     /// </summary>
-    public static async Task<ulong> ResolveManifestAsync(SteamContentClient content, ILogger logger, uint app,
+    public static async Task<ulong> ResolveManifestAsync(ISteamContentClient content, ILogger logger, uint app,
         uint depot, ulong manifest)
     {
         if (manifest != 0) return manifest;
