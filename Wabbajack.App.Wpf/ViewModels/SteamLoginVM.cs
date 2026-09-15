@@ -52,6 +52,13 @@ public partial class SteamLoginVM : ViewModel, IClosableVM
     private readonly ISteamSession _session;
 
     private CancellationTokenSource? _attempt;
+
+    /// <summary>
+    ///     Set before anything is torn down, and checked before <see cref="_restarting" /> is taken, so no
+    ///     caller can reach a disposed semaphore or a disposed <see cref="_closed" />.
+    /// </summary>
+    private volatile bool _disposed;
+
     private Task _running = Task.CompletedTask;
 
     public SteamLoginVM(ILogger<SteamLoginVM> logger, ISteamSession session, SteamGuardPrompt guard)
@@ -127,6 +134,8 @@ public partial class SteamLoginVM : ViewModel, IClosableVM
     /// </summary>
     private async Task Restart(SteamLoginMode mode, string? username, string? password)
     {
+        if (_disposed) return;
+
         await _restarting.WaitAsync();
         try
         {
@@ -146,6 +155,8 @@ public partial class SteamLoginVM : ViewModel, IClosableVM
     /// <summary>Cancels the attempt in flight and switches the pane to <paramref name="mode" />.</summary>
     private async Task Stop(SteamLoginMode mode)
     {
+        if (_disposed) return;
+
         await _restarting.WaitAsync();
         try
         {
@@ -159,6 +170,24 @@ public partial class SteamLoginVM : ViewModel, IClosableVM
 
     private async Task StopCore(SteamLoginMode mode)
     {
+        await Unwind();
+
+        Mode = mode;
+        ChallengeUrl = null;
+        ErrorText = null;
+        StatusText = string.Empty;
+        IsBusy = false;
+        Guard.Reset();
+    }
+
+    /// <summary>
+    ///     Cancels the attempt in flight, waits for it to let go of Steam's login lock, and disposes it.
+    ///     Each attempt links its own source to <see cref="_closed" />, which is a registration on that
+    ///     source; left undisposed, every switch between the code and the password would leave one behind.
+    ///     Callers hold <see cref="_restarting" />, so nothing else is touching <see cref="_attempt" />.
+    /// </summary>
+    private async Task Unwind()
+    {
         _attempt?.Cancel();
 
         try
@@ -170,12 +199,9 @@ public partial class SteamLoginVM : ViewModel, IClosableVM
             // Run swallows its own failures; anything here is the cancellation that was just asked for.
         }
 
-        Mode = mode;
-        ChallengeUrl = null;
-        ErrorText = null;
-        StatusText = string.Empty;
-        IsBusy = false;
-        Guard.Reset();
+        _attempt?.Dispose();
+        _attempt = null;
+        _running = Task.CompletedTask;
     }
 
     private async Task Run(SteamLoginMode mode, string? username, string? password, CancellationToken token)
@@ -251,9 +277,39 @@ public partial class SteamLoginVM : ViewModel, IClosableVM
         _result.TrySetResult(false);
     }
 
+    /// <summary>
+    ///     Closing the pane is what ends the login; the rest of the tidying waits for the attempt to unwind,
+    ///     which Dispose cannot do without blocking the UI thread. <see cref="_disposed" /> is set first, so
+    ///     anything arriving after this returns before it reaches what <see cref="Release" /> is about to
+    ///     dispose.
+    /// </summary>
     public override void Dispose()
     {
+        if (_disposed) return;
+
         Close();
+        _disposed = true;
         base.Dispose();
+        Release().FireAndForget();
+    }
+
+    private async Task Release()
+    {
+        await _restarting.WaitAsync();
+        try
+        {
+            await Unwind();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "While shutting down a Steam login");
+        }
+        finally
+        {
+            _restarting.Release();
+        }
+
+        _restarting.Dispose();
+        _closed.Dispose();
     }
 }

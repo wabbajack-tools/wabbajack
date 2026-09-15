@@ -16,7 +16,6 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Messages;
-using Wabbajack.RateLimiter;
 
 namespace Wabbajack;
 
@@ -50,6 +49,9 @@ public partial class GameFilesVM : ViewModel
     private readonly ObservableCollection<ArchiveRowVM> _rows = new();
     private readonly PreflightRunner _runner;
     private readonly IServiceProvider _services;
+
+    /// <summary>1 while <see cref="Repair" /> is running, login and all. See the note on that method.</summary>
+    private int _inProgress;
 
     public GameFilesVM(PreflightRunner runner, IServiceProvider services, ILogger logger,
         Func<string, string, CancellationToken, Task> execute, CancellationToken token)
@@ -103,7 +105,6 @@ public partial class GameFilesVM : ViewModel
     [Reactive] public partial GameFilesTone Tone { get; set; }
 
     [Reactive] public partial bool IsRepairing { get; set; }
-    [Reactive] public partial Percent Progress { get; set; }
     [Reactive] public partial string ActionLabel { get; set; }
 
     /// <summary>True when the user is not logged in yet, so the button can say so.</summary>
@@ -135,9 +136,38 @@ public partial class GameFilesVM : ViewModel
 
     /// <summary>
     ///     Logs in if it has to, fetches, then asks the check again. Called by
-    ///     <see cref="PreflightActionDispatcher" /> for the repair-game-files action, on the UI thread.
+    ///     <see cref="PreflightActionDispatcher" /> for the repair-game-files action.
+    ///     <para>
+    ///         The guard is on the operation and not on the button, because there is more than one button.
+    ///         The card's own command is gated on <see cref="IsRepairing" />, but the checklist row offers
+    ///         the same action and knows nothing about it - the game-files <em>check</em> is not running
+    ///         during a repair, so that row stays live - and pressing it twice would have two
+    ///         <c>GameFileRepair.Run</c> passes writing the same output paths at once.
+    ///     </para>
     /// </summary>
     public async Task Repair(CancellationToken token)
+    {
+        // Covers the whole thing, the login included: a second press while the login pane is up would
+        // otherwise be let through, since nothing is being fetched yet.
+        if (Interlocked.Exchange(ref _inProgress, 1) == 1)
+        {
+            _logger.LogInformation("A game file repair is already under way");
+            return;
+        }
+
+        try
+        {
+            IsRepairing = true;
+            await RepairCore(token);
+        }
+        finally
+        {
+            IsRepairing = false;
+            Interlocked.Exchange(ref _inProgress, 0);
+        }
+    }
+
+    private async Task RepairCore(CancellationToken token)
     {
         var ctx = _runner.Context;
         var items = ctx.State.RepairableGameFiles;
@@ -160,9 +190,7 @@ public partial class GameFilesVM : ViewModel
             return;
         }
 
-        IsRepairing = true;
         Tone = GameFilesTone.Working;
-        Progress = Percent.Zero;
         StatusText = $"Fetching from {restorer.SourceName}";
 
         IReadOnlyList<GameFileRepairResult> results;
@@ -174,12 +202,7 @@ public partial class GameFilesVM : ViewModel
         {
             Tone = GameFilesTone.Note;
             StatusText = "Stopped.";
-            IsRepairing = false;
             return;
-        }
-        finally
-        {
-            IsRepairing = false;
         }
 
         Summarise(results);
@@ -259,7 +282,6 @@ public partial class GameFilesVM : ViewModel
         _byName.Clear();
         StatusText = string.Empty;
         Tone = GameFilesTone.Note;
-        Progress = Percent.Zero;
 
         foreach (var item in GameFileRepair.Group(repairable))
         {
@@ -281,7 +303,6 @@ public partial class GameFilesVM : ViewModel
     private void Summarise(IReadOnlyList<GameFileRepairResult> results)
     {
         var fetched = results.Count(r => r.Status == GameFileRepairStatus.Repaired);
-        Progress = Percent.One;
 
         if (fetched == results.Count)
         {
@@ -328,7 +349,6 @@ public partial class GameFilesVM : ViewModel
         {
             RxApp.MainThreadScheduler.Schedule(() =>
             {
-                _owner.Progress = total <= 0 ? Percent.Zero : Percent.FactoryPutInRange(current, total);
                 if (!string.IsNullOrWhiteSpace(text)) _owner.StatusText = text;
             });
         }

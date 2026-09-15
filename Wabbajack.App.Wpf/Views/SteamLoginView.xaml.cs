@@ -129,11 +129,21 @@ public partial class SteamLoginView : ReactiveUserControl<SteamLoginVM>
     private void ApplyGuard(SteamGuardRequest? pending)
     {
         GuardCard.Visibility = pending == null ? Visibility.Collapsed : Visibility.Visible;
-        if (pending == null) return;
+
+        if (pending == null)
+        {
+            SignInButton.ButtonStyle = ButtonStyle.Color;
+            return;
+        }
 
         GuardTitle.Text = pending.Title;
         GuardMessage.Text = pending.Message;
         GuardRetryText.Visibility = pending.PreviousCodeWasIncorrect ? Visibility.Visible : Visibility.Collapsed;
+
+        // One primary action on screen at a time. While Steam Guard is asking, answering it is the only
+        // thing to do - Sign in is disabled behind it anyway, since a login is already in flight - so the
+        // colour follows the question and comes back when it is answered.
+        SignInButton.ButtonStyle = ButtonStyle.Mono;
 
         var typed = pending.NeedsCode ? Visibility.Visible : Visibility.Collapsed;
         GuardCodeBox.Visibility = typed;
