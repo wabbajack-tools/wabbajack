@@ -37,7 +37,7 @@ public class GameRegistryTests
         var games = GameRegistry.Games.Values.SelectMany(m => m.SteamIDs).ToHashSet();
 
         foreach (var meta in GameRegistry.Games.Values)
-            Assert.Empty(meta.SteamToolIDs.Where(games.Contains));
+            Assert.DoesNotContain(meta.SteamToolIDs, games.Contains);
     }
 
     /// <summary>
