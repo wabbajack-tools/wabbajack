@@ -44,6 +44,14 @@ public class SteamGameFileRepairLiveTests : IDisposable
     /// <summary>What Skyrim Special Edition 1.6.640.0 publishes as that file. Measured, not guessed.</summary>
     private const string ExpectedHash = "it6+eSu4OCw=";
 
+    /// <summary>
+    ///     What depot 1946183 of app 1946180 publishes as <c>CreationKit.ini</c> today. Measured. Unlike
+    ///     the versioned file above this one is whatever the Kit currently ships, so a Bethesda update
+    ///     would change it - the depot's own SHA-1 check still holds, and this assertion is the one to
+    ///     re-measure if it ever fails.
+    /// </summary>
+    private const string CreationKitIniHash = "RjpKxrFxfP8=";
+
     private readonly IServiceProvider _provider;
     private readonly AbsolutePath _temp;
 
@@ -142,6 +150,40 @@ public class SteamGameFileRepairLiveTests : IDisposable
         Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
         Assert.True(output.FileExists());
         Assert.True(output.Size() > 0);
+    }
+
+    /// <summary>
+    ///     A Creation Kit file, which is the case the whole companion-app search exists for. It lives in no
+    ///     depot of app 489830: the Kit is app 1946180 with depots 1946182 and 1946183, and only its
+    ///     <c>installdir</c> puts its files in the game's folder, where a modlist records them as the
+    ///     game's own.
+    ///     <para>
+    ///         This also proves the entitlement answer. The Kit is free but not
+    ///         <c>common/FreeToDownload</c>: without a licence naming it Steam refuses the PICS access
+    ///         token, so the app cannot even be described. Passing means the free licence was in hand or
+    ///         was granted on the way through.
+    ///     </para>
+    ///     <para>
+    ///         <c>CreationKit.ini</c> at 2881 bytes is the smallest file the Kit publishes, so the proof
+    ///         costs one manifest search and three kilobytes.
+    ///     </para>
+    /// </summary>
+    [Fact]
+    public async Task ACreationKitFileComesFromTheKitsOwnApp()
+    {
+        var restorer = _provider.GetRequiredService<IGameFileRestorer>();
+        Assert.True(restorer.Status().Ready, "This test needs a stored Steam login; run steam-login first");
+
+        var output = _temp.Combine("CreationKit.ini");
+        var result = await restorer.Restore(Game.SkyrimSpecialEdition, null, "CreationKit.ini".ToRelativePath(),
+            output, CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Contains("app 1946180", result.Detail);
+        Assert.True(output.FileExists());
+
+        await using var stream = output.Open(System.IO.FileMode.Open);
+        Assert.Equal(Hash.FromBase64(CreationKitIniHash), await stream.Hash(CancellationToken.None));
     }
 
     /// <summary>
