@@ -102,8 +102,8 @@ made to rehash a downloads folder.
 
 ## Preflight
 
-`Wabbajack.Installer/Preflight` runs a checklist before an install starts: game installed (100), game files
-(200), archive inventory (300), unsupported archives (400), Nexus login and premium status (500), manual
+`Wabbajack.Installer/Preflight` runs a checklist before an install starts: game installed (100), archive
+inventory (300), game files (350), unsupported archives (400), Nexus login and premium status (500), manual
 downloads (600), automated downloads (700), disk space (900).
 `PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
 DI as `IPreflightCheck` and run in `Order` (100–900, gaps left on purpose), each declaring `DependsOn`. A
@@ -132,6 +132,32 @@ disk, and its "N files" came from every Nexus archive in the modlist rather than
 user whose downloads folder was already complete was halted over files nobody was going to fetch. It now
 runs at 500, after archive-inventory and unsupported-archives, and asks about `Missing`: no missing Nexus
 archive means "not needed" and the run carries on. The download checks still depend on it.
+
+**game-files was moved for the same reason, and answers the same question the installer does.** At 200 it
+ran ahead of the pruning at 300, so it answered for every `GameFileSource` in the modlist rather than the
+ones this install will read, and it resolved by path — `state.GameFile.RelativeTo(root)` plus a hash — which
+is a question the installer never asks. `AInstaller.HashArchives` calls `ArchiveInventory.Scan` to flatten
+the downloads folder and the game folders into one content-addressed map and tests
+`ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash))`; `GameFileSource.GameFile` is never
+dereferenced. So a correct copy of a game file anywhere the installer looks satisfies the install, and the
+check could fail a run that would have succeeded. It now runs at 350, reads the map archive-inventory has
+already built, and hashes nothing itself. The *missing* versus *mismatched* distinction is still decided by
+the file's own path, because that is what tells the repair below whether today's build will do.
+
+**Fetching game files is optional, and never writes to the game folder.** `Rules/GameFileRepair` takes what
+game-files put on the blackboard and asks `IGameFileRestorer` — declared in `Wabbajack.Downloaders.GameFile`,
+beside `GameFileDownloader` and `IGameLocator` — for "this file of this game at this version". That seam
+names nothing of Steam, so `Wabbajack.Installer` never sees SteamKit; `SteamGameFileRestorer` in
+`Wabbajack.Networking.Steam` is the only place that turns the question into an app, a depot and a manifest,
+resolving a version through `indexed-game-files` and a missing file through whatever the app publishes
+today. Fetched files go to the **downloads folder**, which is all the install needs and means no elevation,
+nothing for Steam to re-patch, a game that still runs and an undo that is deleting a file. Repairing the
+game install itself is a non-goal. Two hashes are checked: the restorer's, which proves the depot handed
+over what it meant to, and `Archive.Hash`, which is the only thing that proves it is the file *this* install
+needs — a file that fails it is deleted. The whole thing is opt-in: game-files offers
+`PreflightAction.RepairGameFiles` only when the game came from Steam, a user with no login is told what one
+would buy rather than having it happen to them, and a host that registers no `IGameFileRestorer` behaves
+exactly as before. The CLI drives it with `repair-game-files`.
 
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every
