@@ -34,11 +34,6 @@ namespace Wabbajack.Installer.Preflight;
 /// </summary>
 public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposable
 {
-    private const int ErrorSharingViolation = unchecked((int) 0x80070020);
-    private const int ErrorLockViolation = unchecked((int) 0x80070021);
-    private const int ErrorDiskFull = unchecked((int) 0x80070070);
-    private const int ErrorHandleDiskFull = unchecked((int) 0x80070027);
-
     /// <summary>Floor for the polling delays; a zero interval would turn the wait loops into busy spins.</summary>
     private static readonly TimeSpan MinimumDelay = TimeSpan.FromMilliseconds(10);
 
@@ -813,13 +808,12 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
 
     private static bool IsSharingViolation(IOException ex)
     {
-        return ex.HResult == ErrorSharingViolation || ex.HResult == ErrorLockViolation ||
-               ex.Message.Contains("being used by another process");
+        return IOErrors.IsSharingViolation(ex);
     }
 
     private static bool IsDiskFull(IOException ex)
     {
-        return ex.HResult == ErrorDiskFull || ex.HResult == ErrorHandleDiskFull;
+        return IOErrors.IsDiskFull(ex);
     }
 
     #endregion
