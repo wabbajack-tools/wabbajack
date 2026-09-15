@@ -176,12 +176,26 @@ walks for an install the tool does not have.
 `common/FreeToDownload` is false: an account holding no package that names app 1946180 is refused the PICS
 access token, so the app cannot even be described, let alone read. Bethesda's own licence is a no-cost
 package granting exactly that app, and `ISteamContentClient.EnsureFreeLicenseAsync` asks for one the way
-pressing Install on a free store page does. It is called only for an app in `SteamToolIDs`, never for the
-game, only when the account does not already hold it, and it names the app in the log first. Skyrim is the
-exception that proves the shape: 202480 is granted by the same packages that grant 72850, so owning Skyrim
-is owning its Kit. A tool app that still cannot be opened does not end the restore — the game's own depots
-hold everything but the tool's files — but it is what gets reported if nothing else answered, because
-"no manifest has that file" would be a claim about a manifest nobody managed to read.
+pressing Install on a free store page does. Skyrim is the exception that proves the shape: 202480 is granted
+by the same packages that grant 72850, so owning Skyrim is owning its Kit.
+
+That request is the only thing in the tree that writes to a user's Steam account, so three rules hold it
+down. It is asked **lazily** — at the point the tool app's depots are about to be read, which the restorer
+reaches only after the game's own depots were searched and did not carry the file, so a list missing a DLC
+never adds a Creation Kit. It is **never asked on an unconfirmed read**: `DepotEntitlement.DecideFreeLicense`
+is the rule, and a licence list that never arrived is `Unconfirmed`, not "owns nothing" — the same refusal to
+guess `CheckAccessAsync` makes, pointed at the case where guessing wrong puts a package in somebody's
+library. And the answer is **memoised for the run, negative as well as positive**, because Steam refreshes
+the licence list asynchronously after a grant and fifty repaired files would otherwise ask fifty times.
+Telling the user this before they press the button is the restorer's job rather than the check's — preflight
+should not have to know what Steam does to an account, and the same sentence is wanted on more than one
+surface — and `SteamToolIDs` is the data that answers it, since a game with none has no companion app to add.
+
+A tool app that still cannot be opened does not end the restore — the game's own depots hold everything but
+the tool's files — but it is what gets reported if nothing else answered, because "no manifest has that
+file" would be a claim about a manifest nobody managed to read. The game's own refusal **outranks** a tool's:
+an account that does not hold Skyrim Special Edition is told about app 489830, not sent after a free tool it
+never needed, so the two are kept in separate variables rather than letting whichever arrived first win.
 
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every
