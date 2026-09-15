@@ -1,0 +1,135 @@
+<rxui:ReactiveUserControl
+    x:Class="Wabbajack.SteamLoginView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="http://reactiveui.net"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
+    d:DesignHeight="460"
+    d:DesignWidth="720"
+    x:TypeArguments="local:SteamLoginVM"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style x:Key="BodyText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0, 0, 0, 8" />
+        </Style>
+        <Style x:Key="DimText" TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
+            <Setter Property="Foreground" Value="{StaticResource Transparent66ForegroundBrush}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource Transparent66ForegroundBrush}" />
+            <Setter Property="Margin" Value="0, 0, 0, 4" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="700" Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0, 0, 0, 16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ic:SymbolIcon Symbol="Games" FontSize="24" IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" Margin="0, 0, 12, 0" />
+            <StackPanel Grid.Column="1">
+                <TextBlock Text="Log into Steam" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Text="So Wabbajack can fetch game files from the same depots Steam installs them from" FontSize="13" Foreground="{StaticResource Transparent66ForegroundBrush}" TextWrapping="Wrap" Margin="0, 2, 0, 0" />
+            </StackPanel>
+        </Grid>
+
+        <!-- QR: the default, and the only path where no password is typed anywhere. -->
+        <Grid x:Name="QrPane" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="8" Width="216" Height="216" VerticalAlignment="Top">
+                <Grid>
+                    <local:QrCodeView x:Name="Qr" />
+                    <mahapps:ProgressRing x:Name="QrRing" Width="28" Height="28" MinWidth="28" MinHeight="28" Foreground="{StaticResource PrimaryBrush}" IsActive="False" Visibility="Collapsed" />
+                </Grid>
+            </Border>
+
+            <StackPanel Grid.Column="1" Margin="20, 0, 0, 0">
+                <TextBlock Style="{StaticResource BodyText}" Text="Open the Steam mobile app, go to the Steam Guard screen and scan this code." />
+                <TextBlock Style="{StaticResource BodyText}" Text="Your phone will ask you to approve a sign-in from &quot;Wabbajack&quot;. Nothing is downloaded until you ask for it, and your password is never typed here." />
+                <TextBlock Style="{StaticResource DimText}" Text="The code refreshes every few seconds; the one on screen is always the one to scan. Wabbajack keeps the login Steam hands back so it does not have to ask again for months." />
+                <local:WJButton x:Name="UseCredentialsButton" ButtonStyle="Transparent" Text="No mobile app? Use a password" Icon="Password" IconSize="14" Width="270" Height="28" HorizontalAlignment="Left" Margin="-6, 4, 0, 0" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Account name and password, for an account with no mobile authenticator to scan with. -->
+        <Grid x:Name="CredentialsPane" Grid.Row="1" Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Account name" />
+                <TextBox x:Name="UsernameBox" Height="32" VerticalContentAlignment="Center" Margin="0, 0, 0, 12" />
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Password" />
+                <PasswordBox x:Name="PasswordBox" Height="32" VerticalContentAlignment="Center" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="20, 0, 0, 0">
+                <TextBlock Style="{StaticResource BodyText}" Text="The password is used once to sign in and is never written anywhere. Steam hands back a login token, and that is what Wabbajack keeps." />
+                <TextBlock Style="{StaticResource DimText}" Text="If the account has Steam Guard on, Steam will ask for a code next." />
+                <local:WJButton x:Name="UseQrButton" ButtonStyle="Transparent" Text="Scan a code instead" Icon="QrCode" IconSize="14" Width="210" Height="28" HorizontalAlignment="Left" Margin="-6, 4, 0, 0" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Whatever Steam Guard is asking mid-flow. -->
+        <local:AttentionBorder x:Name="GuardCard" Grid.Row="2" Margin="0, 16, 0, 0" Visibility="Collapsed">
+            <Grid Margin="16, 12, 16, 12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock x:Name="GuardTitle" FontSize="14" FontWeight="SemiBold" />
+                    <TextBlock x:Name="GuardMessage" FontSize="12" Foreground="{StaticResource Transparent66ForegroundBrush}" TextWrapping="Wrap" Margin="0, 2, 0, 0" />
+                    <TextBlock x:Name="GuardRetryText" FontSize="12" Foreground="{StaticResource WarningBrush}" Text="That code was not accepted. Try the next one." Margin="0, 4, 0, 0" Visibility="Collapsed" />
+                </StackPanel>
+                <TextBox x:Name="GuardCodeBox" Grid.Column="1" Width="120" Height="32" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="15" Margin="16, 0, 8, 0" VerticalAlignment="Center" />
+                <local:WJButton x:Name="GuardSubmitButton" Grid.Column="2" ButtonStyle="Color" Text="Submit" Icon="Checkmark" IconSize="16" Width="120" Height="32" VerticalAlignment="Center" />
+            </Grid>
+        </local:AttentionBorder>
+
+        <Grid Grid.Row="3" Margin="0, 16, 0, 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0" Width="18" Height="18" VerticalAlignment="Center">
+                <mahapps:ProgressRing x:Name="BusyRing" Width="18" Height="18" MinWidth="18" MinHeight="18" Foreground="{StaticResource PrimaryBrush}" IsActive="False" Visibility="Collapsed" />
+                <ic:SymbolIcon x:Name="ErrorIcon" FontSize="18" IconVariant="Filled" Symbol="ErrorCircle" Foreground="{StaticResource ErrorBrush}" Visibility="Collapsed" />
+            </Grid>
+            <TextBlock x:Name="StatusText" Grid.Column="1" FontSize="13" Margin="10, 0, 0, 0" VerticalAlignment="Center" TextWrapping="Wrap" />
+        </Grid>
+
+        <Grid Grid.Row="4" Margin="0, 20, 0, 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <local:WJButton x:Name="CancelButton" Grid.Column="1" ButtonStyle="Mono" Text="Cancel" Icon="Dismiss" IconSize="16" Width="130" Height="32" Margin="0, 0, 12, 0" />
+            <local:WJButton x:Name="SignInButton" Grid.Column="2" ButtonStyle="Color" Text="Sign in" Icon="PersonArrowRight" IconSize="16" Width="150" Height="32" Visibility="Collapsed" />
+            <local:WJButton x:Name="RetryButton" Grid.Column="2" ButtonStyle="Color" Text="Try again" Icon="ArrowCounterclockwise" IconSize="16" Width="150" Height="32" Visibility="Collapsed" />
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>
