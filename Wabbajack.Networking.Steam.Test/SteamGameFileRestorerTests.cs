@@ -53,6 +53,42 @@ public class SteamGameFileRestorerTests
         Assert.Contains("never written to", status.Reason);
     }
 
+    /// <summary>
+    ///     A game with no companion app says nothing extra, because nothing extra happens: its depots are
+    ///     read with the licence the user already has and their library is untouched.
+    /// </summary>
+    [Fact]
+    public void AGameWithNoCompanionAppAddsNothingToTheLibrary()
+    {
+        Assert.Empty(Game.Fallout3.MetaData().SteamToolIDs);
+        Assert.Empty(Restorer().Consequences(new[] {Game.Fallout3}));
+    }
+
+    /// <summary>
+    ///     A game with one says so, and names it. <c>SteamToolIDs</c> is the condition and not
+    ///     <c>SteamIDs</c>: reading the latter would answer for the game's own app, which the account
+    ///     already holds, and so would never fire at all.
+    /// </summary>
+    [Fact]
+    public void AGameWithACompanionAppNamesItBeforeAnythingIsFetched()
+    {
+        var said = Assert.Single(Restorer().Consequences(new[] {Game.SkyrimSpecialEdition}));
+
+        Assert.Contains("Creation Kit", said);
+        Assert.Contains("Steam library", said);
+        Assert.Contains("If one of them turns out to be needed", said);
+    }
+
+    /// <summary>One sentence for a repair spanning two games that share no companion app between them.</summary>
+    [Fact]
+    public void TwoGamesWithKitsAreOneSentence()
+    {
+        var said = Assert.Single(Restorer().Consequences(new[] {Game.SkyrimSpecialEdition, Game.Fallout4}));
+
+        Assert.Contains("the Skyrim Special Edition Creation Kit", said);
+        Assert.Contains("the Fallout 4 Creation Kit", said);
+    }
+
     [Fact]
     public void ASavedLoginIsReadyWithoutBeingRedeemedFirst()
     {

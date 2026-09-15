@@ -145,6 +145,11 @@ public partial class MainWindowVM : ViewModel
             .Subscribe(HandleShowBrowserWindow)
             .DisposeWith(CompositeDisposable);
 
+        MessageBus.Current.Listen<ShowSteamLogin>()
+            .ObserveOnGuiThread()
+            .Subscribe(HandleShowSteamLogin)
+            .DisposeWith(CompositeDisposable);
+
         MessageBus.Current.Listen<ShowNavigation>()
             .ObserveOnGuiThread()
             .Subscribe((_) => NavigationVisible = true)
@@ -392,6 +397,22 @@ public partial class MainWindowVM : ViewModel
         ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
         browserWindow.DataContext = ActiveFloatingPane;
         await browserWindow.ViewModel.RunBrowserOperation();
+    }
+
+    /// <summary>
+    ///     Shows the Steam login pane until it has an answer, then takes it back down. The pane belongs to
+    ///     whoever asked for it - preflight, or the Logins tile - and they are the ones awaiting its result,
+    ///     so nothing is disposed here; the pane is only cleared if it is still the one on screen, since the
+    ///     user may have moved on to something else in the meantime.
+    /// </summary>
+    private async void HandleShowSteamLogin(ShowSteamLogin msg)
+    {
+        ActiveFloatingPane = msg.ViewModel;
+        msg.ViewModel.Start();
+
+        await msg.ViewModel.Result;
+
+        if (ReferenceEquals(ActiveFloatingPane, msg.ViewModel)) ActiveFloatingPane = null;
     }
 
     private void HandleNavigateTo(ScreenType s)

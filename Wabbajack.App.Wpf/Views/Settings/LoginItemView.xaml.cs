@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using ReactiveMarbles.ObservableEvents;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Windows;
 
 namespace Wabbajack;
 
@@ -16,6 +17,15 @@ public partial class LoginItemView : IViewFor<LoginTargetVM>
         {
             ViewModel.WhenAny(x => x.Login.Icon)
                 .BindToStrict(this, view => view.Favicon.Source)
+                .DisposeWith(disposable);
+
+            ViewModel.WhenAnyValue(x => x.Login.Icon)
+                .ObserveOnGuiThread()
+                .Subscribe(icon =>
+                {
+                    Favicon.Visibility = icon == null ? Visibility.Collapsed : Visibility.Visible;
+                    FallbackIcon.Visibility = icon == null ? Visibility.Visible : Visibility.Collapsed;
+                })
                 .DisposeWith(disposable);
 
             ViewModel.WhenAnyValue(vm => vm.Login.SiteName)

@@ -197,6 +197,36 @@ file" would be a claim about a manifest nobody managed to read. The game's own r
 an account that does not hold Skyrim Special Edition is told about app 489830, not sent after a free tool it
 never needed, so the two are kept in separate variables rather than letting whichever arrived first win.
 
+`IGameFileRestorer.Consequences(games)` is that sentence, and it is the only copy: separate from `Status`,
+which asks whether a repair could run at all, because this depends on *which* files are in it. The Steam
+side reads `SteamToolIDs` for the apps in reach and names them from `FreeLicenseApps`, a table keyed by app
+id, so an app nobody has named still reads as the game's app rather than as nothing. It is per-game and
+never per-file, which is a limit rather than an oversight — whether a tool app is actually reached is not
+known until its depots are searched, which is after the licence would have been taken — so the wording
+promises "if one of them turns out to be needed" and not that it will be. The card, the check's detail and
+the CLI verb all say it, and only when a game in the repair has a tool app at all.
+
+All three ask it about **the games of the repairable files**, `repairable.Select(r => r.State.Game)`, and
+never about `Config.Game`. For nearly every list those are the same set, which is what makes the difference
+easy to get wrong: a list with `CanSourceFrom` files carries a second game, and the modlist's own game alone
+would miss a companion app for the sourced game while naming one for a game whose files are all fine.
+`GameFilesCheckTests.AsksAboutTheGamesOfTheFilesBeingRepaired` pins both directions.
+
+**The WPF side of it.** `App.xaml.cs` calls `AddSteam`, registering its own `SteamGuardPrompt` first
+because `AddSteam`'s `TryAdd`ed default raises an intervention this app answers by throwing. The prompt is
+a singleton publishing whatever Steam Guard is asking as a `Pending` request; the pane binds to it and
+answers, and null out of the two code questions is the only way out of SteamKit's infinite retry loop.
+`SteamLoginVM` runs one attempt at a time, since `SteamSession` holds its login lock across a whole flow
+and refuses a second caller — switching between the QR and the password paths cancels the attempt in
+flight and waits for it to unwind. The challenge URL is drawn as a real code by `QrCodeView` (rectangles,
+a whole device pixel per module, aliased edges, black on white whatever the theme), and Steam rotates it
+from its polling thread, so it is marshalled. The pane is a floating one — `ShowSteamLogin` — used both by
+preflight and by the Logins settings tile, which exists mainly so a saved login has a visible way out:
+`SteamLoginManager` is an `INeedsLogin` whose `LoginFor` deliberately matches no downloader, because Steam
+is not a download source and nothing needs it logged in ahead of time. `GameFilesVM` owns the game-files
+card and the whole sequence behind `repair-game-files`: log in if there is no login, fetch with per-file
+progress, then re-run the check, which is what decides whether the run carries on.
+
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every
 install has to go through preflight first. Automated sources are WabbajackCDN, Http and premium Nexus; every other state

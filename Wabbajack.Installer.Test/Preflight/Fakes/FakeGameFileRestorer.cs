@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,9 +39,22 @@ public sealed class FakeGameFileRestorer : IGameFileRestorer
 
     public string SourceName => "Steam";
 
+    /// <summary>What <see cref="Consequences" /> says, for the games in <see cref="ConsequentialGames" />.</summary>
+    public string Consequence { get; set; } = "This adds the Creation Kit to your Steam library.";
+
+    /// <summary>Games whose repair carries <see cref="Consequence" />. Empty, which is the ordinary case.</summary>
+    public HashSet<Game> ConsequentialGames { get; } = new();
+
     public GameFileRestorerStatus Status()
     {
         return new GameFileRestorerStatus(Ready, Ready ? "Logged in as tester" : NotReadyReason);
+    }
+
+    public IReadOnlyList<string> Consequences(IEnumerable<Game> games)
+    {
+        return games.Any(ConsequentialGames.Contains)
+            ? new[] {Consequence}
+            : Array.Empty<string>();
     }
 
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,

@@ -64,6 +64,7 @@ public partial class PreflightView : ReactiveUserControl<PreflightVM>
                 {
                     BulkView.ViewModel = vm?.BulkDownloads;
                     ManualView.ViewModel = vm?.ManualDownloads;
+                    GameFilesView.ViewModel = vm?.GameFiles;
                 })
                 .DisposeWith(dispose);
 
@@ -83,6 +84,7 @@ public partial class PreflightView : ReactiveUserControl<PreflightVM>
                     TextDetail.Visibility = kind == PreflightDetailKind.None ? Visibility.Visible : Visibility.Collapsed;
                     BulkView.Visibility = kind == PreflightDetailKind.BulkDownloads ? Visibility.Visible : Visibility.Collapsed;
                     ManualView.Visibility = kind == PreflightDetailKind.ManualDownloads ? Visibility.Visible : Visibility.Collapsed;
+                    GameFilesView.Visibility = kind == PreflightDetailKind.GameFiles ? Visibility.Visible : Visibility.Collapsed;
                     ShowAllButton.Visibility = kind == PreflightDetailKind.ManualDownloads ? Visibility.Visible : Visibility.Collapsed;
                 })
                 .DisposeWith(dispose);

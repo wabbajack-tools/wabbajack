@@ -752,7 +752,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             };
 
             var runner = PreflightRunner.Create(_serviceProvider, cfg);
-            var preflight = new PreflightVM(runner, _nexusLoginManager, this, _logger,
+            var preflight = new PreflightVM(runner, _nexusLoginManager, this, _logger, _serviceProvider,
                 this.WhenAnyValue(x => x.DownloadingSpeed), OpenReadmeCommand, OpenWebsiteCommand,
                 OpenCommunityCommand, OpenManifestCommand);
             preflight.InstallCommand
