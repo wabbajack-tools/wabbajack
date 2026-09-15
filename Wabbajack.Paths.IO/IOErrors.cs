@@ -11,6 +11,16 @@ namespace Wabbajack.Paths.IO;
 ///         the resumable downloader, and anything deciding whether a failed file operation was worth another
 ///         attempt — which is how two of those places ended up disagreeing about what "busy" looks like.
 ///     </para>
+///     <para>
+///         <b>These are Windows codes and nothing else.</b> .NET on Unix puts the raw errno in
+///         <see cref="Exception.HResult" />, so ENOSPC is 28 rather than <see cref="DiskFull" /> and every
+///         test here answers false for it. Where that matters the code says so: the disk-full messages in the
+///         acquirer and the resumable downloader are Windows-only, and a Unix run falls through to the
+///         ordinary error path instead. Wabbajack ships on Windows and only its tests run elsewhere, so this
+///         is a stated limit rather than a gap to be filled speculatively — errno mapping should be added
+///         with a Unix machine to verify it on, not from a Windows desk. The message test in
+///         <see cref="IsSharingViolation" /> is the one part that can fire on either, and only in English.
+///     </para>
 /// </summary>
 public static class IOErrors
 {
