@@ -159,6 +159,30 @@ needs — a file that fails it is deleted. The whole thing is opt-in: game-files
 would buy rather than having it happen to them, and a host that registers no `IGameFileRestorer` behaves
 exactly as before. The CLI drives it with `repair-game-files`.
 
+**The Creation Kit is not a game, and does not need to be one.** Steam gives it an app of its own —
+1946180 for Skyrim SE, 1946160 for Fallout 4, 202480 for Skyrim, 2722710 for Starfield — with its own
+depots, but its `installdir` is the game's and Skyrim SE's even declares `sharesdirwithapp 489830`. So
+`CreationKit.exe`, `Data\Scripts.zip` and `Papyrus Compiler\PapyrusCompiler.exe` land beside `SkyrimSE.exe`,
+`hash-game-files` records them relative to the game folder like anything else there, and a modlist carries
+them as `GameFileSource { Game = SkyrimSpecialEdition }`. Nothing distinguishes them but the depot they have
+to come from. That is `GameMetaData.SteamToolIDs`: no new `Game` member, no second game folder, just a
+second app for `SteamGameFileRestorer` to search after the game's own. Tool apps are searched on the
+current-build path only — `indexed-game-files` records depot and manifest ids with no app beside them, so an
+id out of it can only be asked for under the game's app — which costs nothing, because a missing file tries
+today's build first and a mismatched one falls back to it. They stay out of `SteamIDs`, which `GameLocator`
+walks for an install the tool does not have.
+
+**The Kit is free but not licence-free, so fetching from it adds a licence to the user's account.**
+`common/FreeToDownload` is false: an account holding no package that names app 1946180 is refused the PICS
+access token, so the app cannot even be described, let alone read. Bethesda's own licence is a no-cost
+package granting exactly that app, and `ISteamContentClient.EnsureFreeLicenseAsync` asks for one the way
+pressing Install on a free store page does. It is called only for an app in `SteamToolIDs`, never for the
+game, only when the account does not already hold it, and it names the app in the log first. Skyrim is the
+exception that proves the shape: 202480 is granted by the same packages that grant 72850, so owning Skyrim
+is owning its Kit. A tool app that still cannot be opened does not end the restore — the game's own depots
+hold everything but the tool's files — but it is what gets reported if nothing else answered, because
+"no manifest has that file" would be a claim about a manifest nobody managed to read.
+
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every
 install has to go through preflight first. Automated sources are WabbajackCDN, Http and premium Nexus; every other state
