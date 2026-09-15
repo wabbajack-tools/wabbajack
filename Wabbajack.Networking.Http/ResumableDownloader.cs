@@ -48,8 +48,7 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
 
             return await HashFile(downloadedFilePath, token);
         }
-        catch (IOException ex) when (ex.HResult == unchecked((int)0x80070070) /* ERROR_DISK_FULL */
-                                  || ex.HResult == unchecked((int)0x80070027) /* ERROR_HANDLE_DISK_FULL */)
+        catch (IOException ex) when (IOErrors.IsDiskFull(ex))
         {
             _logger.LogError(ex, "Not enough disk space to download '{name}'", filePath.FileName.ToString());
             throw;
