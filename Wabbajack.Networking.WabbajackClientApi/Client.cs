@@ -500,11 +500,13 @@ public class Client
             _dtos.Options, token))!;
     }
 
-    public async Task<SteamManifest[]> GetSteamManifests(Game game, string version)
+    public async Task<SteamManifest[]> GetSteamManifests(Game game, string version,
+        CancellationToken token = default)
     {
         var url =
             $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}_steam_manifests.json";
-        return await _client.GetFromJsonAsync<SteamManifest[]>(url, _dtos.Options) ?? Array.Empty<SteamManifest>();
+        return await _client.GetFromJsonAsync<SteamManifest[]>(url, _dtos.Options, token) ??
+               Array.Empty<SteamManifest>();
     }
 
     public async Task<bool> ProxyHas(Uri uri)
