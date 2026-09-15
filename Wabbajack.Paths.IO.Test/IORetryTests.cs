@@ -12,8 +12,21 @@ namespace Wabbajack.Paths.IO.Test;
 ///     rather than by the file system, so every case is deterministic. Nothing asserts how long anything took:
 ///     the tests count attempts.
 /// </summary>
-public class IORetryTests
+public class IORetryTests : IDisposable
 {
+    /// <summary>Real folders, for the cases that classify by looking at the disk rather than at a code.</summary>
+    private readonly AbsolutePath _root = KnownFolders.EntryPoint.Combine("ioretry-" + Guid.NewGuid());
+
+    public IORetryTests()
+    {
+        _root.CreateDirectory();
+    }
+
+    public void Dispose()
+    {
+        _root.DeleteDirectory();
+    }
+
     /// <summary>Small enough that the whole class runs in a few tens of milliseconds.</summary>
     private static readonly IORetryPolicy Fast = new()
     {
@@ -32,8 +45,11 @@ public class IORetryTests
         yield return new object[]
             {new IOException("The process cannot access the file because it is being used by another process."), IORetryKind.Full};
 
-        // Ambiguous: Windows says access denied for a held destination and for a permission problem alike.
-        yield return new object[] {new UnauthorizedAccessException("denied"), IORetryKind.Brief};
+        // Access denied is the other code Windows uses for a destination another process has open, whatever
+        // sharing that process allowed, so it is worth the same window as a sharing violation.
+        yield return new object[] {new UnauthorizedAccessException("denied"), IORetryKind.Full};
+
+        // An IO error nothing here recognises: unknown rather than permanent.
         yield return new object[] {new IOException("something else went wrong"), IORetryKind.Brief};
 
         // Nothing another attempt can change.
@@ -88,12 +104,12 @@ public class IORetryTests
     }
 
     [Fact]
-    public async Task AnAmbiguousFailureStopsAtTheShortLimit()
+    public async Task AnUnrecognisedFailureStopsAtTheShortLimit()
     {
         var attempts = 0;
-        var thrown = new UnauthorizedAccessException("denied");
+        var thrown = new IOException("something else went wrong");
 
-        var caught = await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+        var caught = await Assert.ThrowsAsync<IOException>(async () =>
             await IORetry.RunAsync(() =>
             {
                 attempts++;
@@ -102,6 +118,27 @@ public class IORetryTests
 
         Assert.Equal(Fast.BriefAttempts, attempts);
         Assert.Same(thrown, caught);
+    }
+
+    /// <summary>
+    ///     A destination another process holds open reports access denied rather than a sharing violation,
+    ///     and it is the commonest recoverable failure there is, so it must get the long window and not the
+    ///     short one.
+    /// </summary>
+    [Fact]
+    public async Task ADeniedDestinationIsGivenTheFullWindow()
+    {
+        var attempts = 0;
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+            await IORetry.RunAsync(() =>
+            {
+                attempts++;
+                throw new UnauthorizedAccessException("denied");
+            }, IORetry.Classify, Fast, CancellationToken.None));
+
+        Assert.Equal(Fast.FullAttempts, attempts);
+        Assert.True(Fast.FullAttempts > Fast.BriefAttempts);
     }
 
     [Fact]
@@ -137,18 +174,25 @@ public class IORetryTests
         Assert.Equal(1, attempts);
     }
 
+    /// <summary>
+    ///     The budget covers the attempts and not only the waiting between them, which is what stops a doomed
+    ///     cross-volume copy — a whole-file copy and delete rather than a rename — being run a dozen times
+    ///     over. The attempt here costs more than the entire budget while the waits cost a millisecond, so a
+    ///     loop that timed only its own sleeps would run to the attempt limit instead of stopping at one.
+    /// </summary>
     [Fact]
-    public async Task TheBudgetBoundsTheWholeLoop()
+    public async Task ASlowAttemptSpendsTheBudgetItself()
     {
         var attempts = 0;
-        var spent = Fast with {Budget = TimeSpan.Zero};
+        var tight = Fast with {Budget = TimeSpan.FromMilliseconds(50)};
 
         await Assert.ThrowsAsync<IOException>(async () =>
             await IORetry.RunAsync(() =>
             {
                 attempts++;
+                Thread.Sleep(200);
                 throw new IOException("held", IOErrors.SharingViolation);
-            }, IORetry.Classify, spent, CancellationToken.None));
+            }, IORetry.Classify, tight, CancellationToken.None));
 
         Assert.Equal(1, attempts);
     }
@@ -196,6 +240,78 @@ public class IORetryTests
             }, IORetry.Classify, Fast, CancellationToken.None));
 
         Assert.Equal(1, attempts);
+    }
+
+    /// <summary>
+    ///     Counts the attempts a move classifier allows for a failure the error code alone calls transient.
+    ///     Without the circumstances, every one of these would run to <see cref="IORetryPolicy.FullAttempts" />.
+    /// </summary>
+    private async Task<int> AttemptsForMove(string source, string destination)
+    {
+        var attempts = 0;
+        await Assert.ThrowsAnyAsync<Exception>(async () =>
+            await IORetry.RunAsync(() =>
+            {
+                attempts++;
+                throw new UnauthorizedAccessException("denied");
+            }, ex => IORetry.ClassifyMove(ex, source, destination), Fast, CancellationToken.None));
+        return attempts;
+    }
+
+    /// <summary>
+    ///     The line that makes the squatting-directory case fail at once on both platforms. Delete the
+    ///     destination check from ClassifyMove and this test counts a full window of attempts instead of one.
+    /// </summary>
+    [Fact]
+    public async Task ADestinationThatIsADirectoryIsNotRetriedAtAll()
+    {
+        var source = _root.Combine("src.bin");
+        source.WriteAllText("data");
+        var destination = _root.Combine("dest.bin");
+        destination.CreateDirectory();
+
+        Assert.Equal(IORetryKind.None,
+            IORetry.ClassifyMove(new UnauthorizedAccessException("denied"), source.ToString(), destination.ToString()));
+        Assert.Equal(1, await AttemptsForMove(source.ToString(), destination.ToString()));
+    }
+
+    [Fact]
+    public async Task ASourceMissingFromAFolderThatCanBeReadIsNotRetriedAtAll()
+    {
+        var source = _root.Combine("never-existed.bin");
+        var destination = _root.Combine("dest.bin");
+
+        Assert.True(IORetry.LooksGone(source.ToString()));
+        Assert.Equal(1, await AttemptsForMove(source.ToString(), destination.ToString()));
+    }
+
+    /// <summary>
+    ///     File.Exists answers false for a folder it cannot read as readily as for a file that is not there,
+    ///     and the acquirer's watch folder can be a network location. A source that cannot be seen is not the
+    ///     same as one that is gone, and must not be given the permanent verdict.
+    /// </summary>
+    [Fact]
+    public async Task ASourceWhoseFolderCannotBeReadIsNotCalledGone()
+    {
+        var unreachable = _root.Combine("vanished-share", "src.bin");
+        var destination = _root.Combine("dest.bin");
+
+        Assert.False(IORetry.LooksGone(unreachable.ToString()));
+        Assert.Equal(Fast.FullAttempts, await AttemptsForMove(unreachable.ToString(), destination.ToString()));
+    }
+
+    [Fact]
+    public void AMoveKeepsThePermanentVerdictsOfTheCodeItself()
+    {
+        var source = _root.Combine("src.bin");
+        source.WriteAllText("data");
+        var destination = _root.Combine("dest.bin");
+
+        Assert.Equal(IORetryKind.None,
+            IORetry.ClassifyMove(new IOException("full", IOErrors.DiskFull), source.ToString(), destination.ToString()));
+        Assert.Equal(IORetryKind.Full,
+            IORetry.ClassifyMove(new IOException("held", IOErrors.SharingViolation), source.ToString(),
+                destination.ToString()));
     }
 
     [Fact]

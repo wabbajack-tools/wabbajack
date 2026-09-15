@@ -139,6 +139,31 @@ public class MoveToAsyncTests : IDisposable
         Assert.Equal("hello", dest.ReadAllText());
     }
 
+    /// <summary>
+    ///     The commonest recoverable failure on Windows, and the one the retry exists for: something else has
+    ///     the destination open. It need not even be holding it exclusively — a reader with
+    ///     <c>FileShare.Read</c> is enough — and the move is refused with access denied rather than with a
+    ///     sharing violation, which is why that code has to be worth the same wait.
+    /// </summary>
+    [Fact]
+    public async Task ADestinationHeldOpenForReadingIsOverwrittenOnceTheReaderCloses()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        var src = NewFile("src.bin", "new");
+        var dest = NewFile("dest.bin", "old");
+
+        var reader = File.Open(dest.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
+        var move = Task.Run(async () => await src.MoveToAsync(dest, true, CancellationToken.None));
+
+        await Task.Delay(200);
+        reader.Dispose();
+
+        await move;
+        Assert.Equal("new", dest.ReadAllText());
+        Assert.False(src.FileExists());
+    }
+
     [Fact]
     public async Task CancellationComesOutOfAMoveThatIsWaiting()
     {

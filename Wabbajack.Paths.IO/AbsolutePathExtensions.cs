@@ -217,10 +217,11 @@ public static class AbsolutePathExtensions
     }
 
     /// <summary>
-    ///     Moves a file, waiting out the failures that are worth waiting out. See <see cref="IORetry" /> for
-    ///     which those are: a file another process holds open gets ten seconds, an ambiguous access denial
-    ///     about a second and a half, and a failure that cannot change — a destination that is a directory, a
-    ///     missing source, a full disk, a path the volume will not take — is thrown straight back.
+    ///     Moves a file, waiting out the failures that are worth waiting out. See
+    ///     <see cref="IORetry.ClassifyMove" /> for which those are: a file another process holds open — under
+    ///     either of the two codes Windows uses to say so — gets the full ten seconds, and a failure that
+    ///     cannot change, such as a destination that is a directory, a missing source, a full disk or a path
+    ///     the volume will not take, is thrown straight back.
     /// </summary>
     public static async ValueTask MoveToAsync(this AbsolutePath src, AbsolutePath dest, bool overwrite,
         CancellationToken token)
@@ -235,7 +236,7 @@ public static class AbsolutePathExtensions
         TryClearReadOnly(destStr);
 
         await IORetry.RunAsync(() => File.Move(srcStr, destStr, overwrite),
-            ex => ClassifyMove(ex, srcStr, destStr), IORetryPolicy.Default, token);
+            ex => IORetry.ClassifyMove(ex, srcStr, destStr), IORetryPolicy.Default, token);
     }
 
     private static void TryClearReadOnly(string path)
@@ -250,21 +251,6 @@ public static class AbsolutePathExtensions
         {
             // Deliberately ignored; see MoveToAsync.
         }
-    }
-
-    /// <summary>
-    ///     The error code of a failed move does not say everything about it. Windows reports a destination
-    ///     that is an existing directory as ERROR_ACCESS_DENIED, the same code it uses for a destination
-    ///     another process has open, and Unix reports it as a plain <see cref="IOException" />; neither is
-    ///     worth a retry, and both are recognised here by looking rather than by reading the code. A source
-    ///     that is not there is the same: it is not going to appear.
-    /// </summary>
-    private static IORetryKind ClassifyMove(Exception ex, string srcStr, string destStr)
-    {
-        var kind = IORetry.Classify(ex);
-        if (kind == IORetryKind.None) return kind;
-        if (Directory.Exists(destStr) || !File.Exists(srcStr)) return IORetryKind.None;
-        return kind;
     }
 
     public static async ValueTask CopyToAsync(this AbsolutePath src, AbsolutePath dest,
