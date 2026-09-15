@@ -124,6 +124,10 @@ public class Resource<T> : IResource<T>
 
         if (MaxThroughput <= 0 || MaxThroughput == long.MaxValue)
         {
+            // The capped path observes the token where it writes into the channel, so the fast path has to
+            // observe it too, or whether a cancelled caller is refused would depend on a throughput setting
+            // it knows nothing about.
+            token.ThrowIfCancellationRequested();
             Interlocked.Add(ref _totalUsed, size);
             return;
         }

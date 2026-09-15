@@ -17,6 +17,10 @@ jobs:
       NEXUS_LOGIN: ${{ secrets.NEXUS_LOGIN }}
     
     strategy:
+      # Without this, one platform failing cancels the other before it finishes, so a run tells you that
+      # something broke but not whether it broke everywhere. A Linux-only failure looks the same as a
+      # failure on both.
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
 
