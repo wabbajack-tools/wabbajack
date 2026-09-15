@@ -25,15 +25,19 @@ public class GameRegistryTests
     }
 
     /// <summary>
-    ///     <c>SteamIDs</c> is what <c>GameLocator</c> walks to find an install. A companion app shares the
-    ///     game's directory and has no executable of its own worth finding, so it must never be in there:
-    ///     it would only give the locator a second answer to the same question.
+    ///     <c>SteamIDs</c> is what <c>GameLocator</c> walks to find an install, and it walks <em>every</em>
+    ///     game's, so the invariant is against all of them rather than each game's own. A companion app
+    ///     shares its game's directory and has no executable worth finding, so an id in both lists would
+    ///     hand the locator a second answer to the same question - and hand the Steam restorer an app it
+    ///     would treat as a game somebody bought rather than a tool it may offer to add.
     /// </summary>
     [Fact]
-    public void NoToolAppIsAlsoListedAsTheGameItself()
+    public void NoToolAppIsAlsoListedAsAGame()
     {
+        var games = GameRegistry.Games.Values.SelectMany(m => m.SteamIDs).ToHashSet();
+
         foreach (var meta in GameRegistry.Games.Values)
-            Assert.Empty(meta.SteamToolIDs.Intersect(meta.SteamIDs));
+            Assert.Empty(meta.SteamToolIDs.Where(games.Contains));
     }
 
     /// <summary>

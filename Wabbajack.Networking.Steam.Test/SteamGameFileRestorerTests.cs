@@ -287,6 +287,52 @@ public class SteamGameFileRestorerTests
     }
 
     /// <summary>
+    ///     The assertion this whole thing rests on. A Skyrim Special Edition list missing only
+    ///     <c>Dawnguard.esm</c> gets it out of a base-game depot, and the Creation Kit is never reached -
+    ///     so nothing is added to the user's Steam library by a repair that had nothing to do with it.
+    /// </summary>
+    [Fact]
+    public async Task ARepairTheGamesOwnDepotsSatisfyNeverTouchesTheTool()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+        _content.NeedsLicense.Add(SkyrimSECreationKit);
+        _content.GrantsFreeLicense.Add(SkyrimSECreationKit);
+        _content.Publishes(SkyrimSECreationKit).Add(new DepotManifestId(1946182, 500));
+        _content.Manifests[(1946182u, 500ul)] = new[] {"CreationKit.exe"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Empty(_content.FreeLicensesAsked);
+        Assert.Empty(_content.GrantsRequested);
+        Assert.Equal((SkyrimSE, 2u, 200ul), Assert.Single(_content.Searched));
+    }
+
+    /// <summary>
+    ///     And the other half of it: a licence the account already holds is never asked for again. Skyrim's
+    ///     Kit is the real case - app 202480 is granted by the packages that grant the game - and the cost
+    ///     of getting this wrong is a package appearing in somebody's library for no reason.
+    /// </summary>
+    [Fact]
+    public async Task ALicenceTheAccountAlreadyHoldsIsNotRequested()
+    {
+        _session.IsLoggedIn = true;
+        _content.Licensed.Add(SkyrimSECreationKit);
+        _content.Publishes(SkyrimSECreationKit).Add(new DepotManifestId(1946182, 500));
+        _content.Manifests[(1946182u, 500ul)] = new[] {"CreationKit.exe"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("CreationKit.exe"),
+            "c:\\out\\CreationKit.exe".ToAbsolutePath(), CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Equal(new[] {SkyrimSECreationKit}, _content.FreeLicensesAsked);
+        Assert.Empty(_content.GrantsRequested);
+    }
+
+    /// <summary>
     ///     An app Steam will not open says nothing about the game's own depots, which hold everything
     ///     except the tool's own files, so the search carries on rather than failing there.
     /// </summary>
@@ -323,6 +369,27 @@ public class SteamGameFileRestorerTests
         Assert.Equal(GameFileRestoreOutcome.Failed, result.Outcome);
         Assert.Contains("1946180", result.Detail);
         Assert.Empty(_content.Downloaded);
+    }
+
+    /// <summary>
+    ///     When both refused, the game's answer is the one to report. An account that does not hold Skyrim
+    ///     Special Edition needs to hear about app 489830; "cannot get app token for 1946180" would send
+    ///     them after a free tool that was never the problem.
+    /// </summary>
+    [Fact]
+    public async Task TheGamesOwnRefusalOutranksATools()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(489831, 100));
+        _content.Refuses.Add(489831);
+        _content.NeedsLicense.Add(SkyrimSECreationKit);
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("CreationKit.exe"),
+            default, CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Failed, result.Outcome);
+        Assert.Contains("489831", result.Detail);
+        Assert.DoesNotContain("app token", result.Detail);
     }
 
     /// <summary>
@@ -409,7 +476,14 @@ public class SteamGameFileRestorerTests
         /// <summary>Apps Steam will hand out a free licence for when asked.</summary>
         public HashSet<uint> GrantsFreeLicense { get; } = new();
 
+        /// <summary>Apps the restorer asked this client about.</summary>
         public List<uint> FreeLicensesAsked { get; } = new();
+
+        /// <summary>
+        ///     Apps Steam was actually asked to grant - which is the one that matters, because it is the
+        ///     one that puts a package in somebody's library. An app already licensed never reaches it.
+        /// </summary>
+        public List<uint> GrantsRequested { get; } = new();
 
         public List<DepotManifestId> Publishes(uint app)
         {
@@ -445,11 +519,17 @@ public class SteamGameFileRestorerTests
             return Task.FromResult(Refuses.Contains(depotId) ? DepotAccess.NotEntitled : DepotAccess.Granted);
         }
 
+        /// <summary>
+        ///     The contract <see cref="ISteamContentClient.EnsureFreeLicenseAsync" /> documents: a licence
+        ///     already held is never asked for again, and the answer is remembered either way.
+        /// </summary>
         public Task<bool> EnsureFreeLicenseAsync(uint appId, CancellationToken token)
         {
             FreeLicensesAsked.Add(appId);
 
             if (Licensed.Contains(appId)) return Task.FromResult(true);
+
+            GrantsRequested.Add(appId);
             if (!GrantsFreeLicense.Contains(appId)) return Task.FromResult(false);
 
             Licensed.Add(appId);
