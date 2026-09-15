@@ -31,10 +31,12 @@ public class PreflightRegistrationTests : IDisposable
     {
         var ids = _provider.GetServices<IPreflightCheck>().OrderBy(c => c.Order).Select(c => c.Id).ToArray();
 
+        // nexus-login sits after the inventory on purpose: it asks about the files that are still missing,
+        // so a user with nothing left to fetch from Nexus is never stopped for a login they do not need.
         Assert.Equal(new[]
         {
-            PreflightCheckIds.NexusLogin, PreflightCheckIds.GameInstalled, PreflightCheckIds.GameFiles,
-            PreflightCheckIds.ArchiveInventory, PreflightCheckIds.UnsupportedArchives,
+            PreflightCheckIds.GameInstalled, PreflightCheckIds.GameFiles, PreflightCheckIds.ArchiveInventory,
+            PreflightCheckIds.UnsupportedArchives, PreflightCheckIds.NexusLogin,
             PreflightCheckIds.ManualDownloads, PreflightCheckIds.AutomatedDownloads, PreflightCheckIds.DiskSpace
         }, ids);
     }

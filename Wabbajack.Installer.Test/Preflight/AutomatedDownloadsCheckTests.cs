@@ -14,6 +14,7 @@ using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Preflight.Checks;
 using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Installer.Test.Preflight.Fakes;
+using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths.IO;
 using Xunit;
 
@@ -73,7 +74,7 @@ public class AutomatedDownloadsCheckTests : IDisposable
 
     private static void SetPremium(PreflightContext ctx, bool premium)
     {
-        ctx.State.Nexus = new NexusLoginStatus(true, true, premium, "someone", null);
+        ctx.State.Nexus = new NexusLoginStatus(true, premium, "someone", null, NexusCredentialSource.OAuth);
     }
 
     private static ManualQueueItem QueueItem(PreflightContext ctx, string name)
@@ -319,7 +320,7 @@ public class AutomatedDownloadsCheckTests : IDisposable
         // The list has no Nexus archives, so nexus-login recorded nothing; the reroute happens after it ran.
         var archive = await Http("rerouted.7z", "rerouted bytes", "dead.invalid");
         var mirror = MirrorOnNexus(archive, "rerouted bytes");
-        _host.Nexus.Status = new NexusLoginStatus(true, true, true, "someone", null);
+        _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.OAuth);
         var ctx = ContextWithMissing(archive);
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
@@ -333,13 +334,17 @@ public class AutomatedDownloadsCheckTests : IDisposable
     }
 
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, true)]
-    public async Task MirrorRerouteToNexusWithoutPremiumGoesManualWithTheNexusPage(bool hasToken, bool loggedIn)
+    [InlineData(NexusCredentialSource.None, false)]
+    [InlineData(NexusCredentialSource.OAuth, true)]
+    // NEXUS_API_KEY validates against the API but the downloader cannot use it, so it must route the same
+    // way as having nothing at all.
+    [InlineData(NexusCredentialSource.EnvironmentApiKey, false)]
+    public async Task MirrorRerouteToNexusWithoutPremiumGoesManualWithTheNexusPage(NexusCredentialSource credential,
+        bool loggedIn)
     {
         var archive = await Http("rerouted.7z", "rerouted bytes", "dead.invalid");
         var mirror = MirrorOnNexus(archive, "rerouted bytes");
-        _host.Nexus.Status = new NexusLoginStatus(hasToken, loggedIn, false, loggedIn ? "someone" : null, null);
+        _host.Nexus.Status = new NexusLoginStatus(loggedIn, false, loggedIn ? "someone" : null, null, credential);
         var ctx = ContextWithMissing(archive);
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
@@ -349,7 +354,12 @@ public class AutomatedDownloadsCheckTests : IDisposable
         Assert.Equal(1, _host.Nexus.Calls);
         Assert.Equal(0, _host.Server.Attempts(mirror));
         var item = QueueItem(ctx, "rerouted.7z");
-        Assert.Contains("nexusmods.com", item.Target.Url.ToString());
+        // A rerouted archive carries the mirror's Nexus state, which is built here rather than read from
+        // the list, so it is worth pinning that it still reaches the browser as a file link and not as the
+        // mod page.
+        Assert.Equal(
+            $"https://www.nexusmods.com/skyrimspecialedition/mods/{mirror.ModID}?tab=files&file_id={mirror.FileID}",
+            item.Target.Url.AbsoluteUri);
         Assert.Contains("premium", item.Reason);
         Assert.Equal(ArchiveState.ManualRequired, _progress.LastStates()["rerouted.7z"]);
     }
@@ -359,7 +369,7 @@ public class AutomatedDownloadsCheckTests : IDisposable
     {
         var archive = await Http("rerouted.7z", "rerouted bytes", "dead.invalid");
         var mirror = MirrorOnNexus(archive, "rerouted bytes");
-        _host.Nexus.Status = new NexusLoginStatus(true, true, true, "someone", null);
+        _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.OAuth);
         var ctx = ContextWithMissing(archive);
         SetPremium(ctx, true);
 

@@ -62,20 +62,76 @@ public static class UIUtils
     }
 
 
+    /// <summary>
+    ///     Opens a URL in the user's default browser.
+    ///     <para>
+    ///         Not through <c>cmd.exe /c start</c>, which is what this used to do. <c>cmd</c> reads an
+    ///         unquoted <c>&amp;</c> as a command separator, so a URL is cut at its first query parameter and
+    ///         the rest is run as a second command that fails out of sight behind <c>CreateNoWindow</c>. A
+    ///         Nexus file link - <c>.../mods/266?tab=files&amp;file_id=209150</c> - opened that way landed on
+    ///         the mod's Files tab with no file selected, which is the mod page as far as the user is
+    ///         concerned. Google Drive's <c>?id=...&amp;export=download</c> lost its download parameter the
+    ///         same way. Handing the URL to the shell keeps the whole of it, which also makes the manual
+    ///         escaping of spaces unnecessary: <see cref="Uri.AbsoluteUri" /> is already escaped.
+    ///     </para>
+    /// </summary>
     public static void OpenWebsite(Uri url)
     {
-        Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url.ToString().Replace(" ", "%20")}")
-        {
-            CreateNoWindow = true,
-        });
+        OpenWebsite(url.AbsoluteUri);
     }
 
+    /// <inheritdoc cref="OpenWebsite(Uri)" />
     public static void OpenWebsite(string url)
     {
-        Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
+        var target = WebsiteTarget(url);
+        if (target == null) return;
+
+        Process.Start(new ProcessStartInfo(target) {UseShellExecute = true});
+    }
+
+    /// <summary>
+    ///     Exactly what <see cref="OpenWebsite(string)" /> hands the shell, or null for something that is
+    ///     not a website. Separate from the launch so that the one thing worth pinning - that the whole URL
+    ///     survives, query string included - can be tested without opening a browser.
+    ///     <para>
+    ///         ShellExecute runs whatever it is given, and some of what reaches here comes out of a
+    ///         modlist, so only the schemes a website can have are passed on.
+    ///     </para>
+    ///     <para>
+    ///         A bare domain - "www.nexusmods.com/skyrim/mods/1" - is not an absolute URI, but it is what a
+    ///         modlist author writes in a readme or website field often enough that <c>cmd /c start</c>
+    ///         opening it was load-bearing. A scheme is assumed for those, the way an address bar does,
+    ///         rather than leaving the button dead.
+    ///     </para>
+    /// </summary>
+    public static string? WebsiteTarget(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return Rejected(url, "it is empty");
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var parsed))
         {
-            CreateNoWindow = true,
-        });
+            // Only for something with no scheme at all. Uri is lenient enough to accept "https://not a url"
+            // with "not" as the host, so the result has to look like a domain before it is used.
+            if (!Uri.TryCreate($"{Uri.UriSchemeHttps}://{url}", UriKind.Absolute, out parsed) ||
+                !parsed.Host.Contains('.'))
+                return Rejected(url, "it is not a URL");
+        }
+
+        if (parsed.Scheme != Uri.UriSchemeHttp && parsed.Scheme != Uri.UriSchemeHttps &&
+            parsed.Scheme != Uri.UriSchemeMailto)
+            return Rejected(url, $"\"{parsed.Scheme}\" is not a web address");
+
+        return parsed.AbsoluteUri;
+    }
+
+    /// <summary>
+    ///     A button that does nothing and says nothing is the failure this whole area is being fixed for, so
+    ///     anything dropped here leaves a trace in the log.
+    /// </summary>
+    private static string? Rejected(string url, string why)
+    {
+        NLog.LogManager.GetCurrentClassLogger().Warn("Not opening \"{0}\": {1}", url, why);
+        return null;
     }
 
     public static void OpenFolder(AbsolutePath path)

@@ -91,9 +91,46 @@ public class Resource<T> : IResource<T>
         _tasks.TryRemove(job.ID, out _);
     }
 
+    /// <summary>
+    ///     Records bytes against the resource, pausing the caller for as long as the throughput cap says it
+    ///     should have taken.
+    ///     <para>
+    ///         With no cap set - which is the default for every resource, and what file hashing always runs
+    ///         under - the pump does nothing with a report but add its size and complete it, so the
+    ///         round-trip it costs buys nothing: a write into a channel bounded at ten, one consumer task
+    ///         for the whole resource, and a <see cref="TaskCompletionSource" /> awaited per report.
+    ///         <c>HashingCopy</c> reports once per megabyte read, on every hashing thread at once, so that
+    ///         one consumer was the ceiling on hashing: about 3 GB/s however many threads were hashing, and
+    ///         they were queueing behind it rather than reading. Hashing a 20 GiB game folder already in the
+    ///         page cache went from 6.5s to 2.9s without it. Uncapped, the work the pump would have done is
+    ///         done here instead.
+    ///     </para>
+    ///     <para>
+    ///         The cap is read once. It can be changed from the settings window while this is running, and
+    ///         which side of that change a single report falls on is not worth synchronising over.
+    ///     </para>
+    ///     <para>
+    ///         A cap of zero or less is "uncapped" here rather than a cap of nothing. A negative one used to
+    ///         reach the pump, which turned it into a negative <see cref="TimeSpan" />, threw out of
+    ///         <see cref="Task.Delay(TimeSpan, CancellationToken)" /> and ended the pump for good, leaving
+    ///         every later report on the resource waiting on a completion source nothing would ever
+    ///         complete. Nothing in the product sets one - <c>ResourceLimitConfiguration</c>'s -1 default
+    ///         has no readers - but this is where it stops.
+    ///     </para>
+    /// </summary>
     public async ValueTask Report(Job<T> job, int size, CancellationToken token)
     {
         await _initialized;
+
+        if (MaxThroughput <= 0 || MaxThroughput == long.MaxValue)
+        {
+            // The capped path observes the token where it writes into the channel, so the fast path has to
+            // observe it too, or whether a cancelled caller is refused would depend on a throughput setting
+            // it knows nothing about.
+            token.ThrowIfCancellationRequested();
+            Interlocked.Add(ref _totalUsed, size);
+            return;
+        }
 
         var tcs = new TaskCompletionSource();
         await _channel.Writer.WriteAsync(new PendingReport

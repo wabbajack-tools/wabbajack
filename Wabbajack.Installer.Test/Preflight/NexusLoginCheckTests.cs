@@ -1,5 +1,7 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.DTOs;
@@ -7,6 +9,7 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Preflight.Checks;
 using Wabbajack.Installer.Test.Preflight.Fakes;
+using Wabbajack.Networking.NexusApi;
 using Xunit;
 
 namespace Wabbajack.Installer.Test.Preflight;
@@ -39,41 +42,169 @@ public class NexusLoginCheckTests : IDisposable
         };
     }
 
+    /// <summary>
+    ///     The context as the checks before this one leave it. This check runs after archive-inventory and
+    ///     unsupported-archives and asks about what they left in <c>Missing</c>, so that is what a test sets;
+    ///     by default nothing is on disk yet.
+    /// </summary>
+    private PreflightContext Context(IEnumerable<Archive>? missing = null)
+    {
+        var ctx = _host.Context();
+        ctx.State.Missing = (missing ?? _host.Config.ModList.Archives).ToList();
+        return ctx;
+    }
+
     [Fact]
     public async Task PassesWithoutProbingWhenTheListHasNoNexusFiles()
     {
         _host.Config.ModList.Archives = new[] {await PreflightTestHost.ArchiveFor("http.7z", "plain http")};
-        var ctx = _host.Context();
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Contains("this list has no Nexus Mods files", result.Message);
         Assert.Equal(0, _host.Nexus.Calls);
         Assert.Null(ctx.State.Nexus);
+    }
+
+    /// <summary>
+    ///     The user this check used to stop for no reason: a list full of Nexus files, every one of them
+    ///     already in the downloads folder. There is nothing to log in for, so nothing is asked and the run
+    ///     carries on to what they can still act on.
+    /// </summary>
+    [Fact]
+    public async Task PassesWithoutProbingWhenEveryNexusFileIsAlreadyOnDisk()
+    {
+        await WithNexusArchives();
+        var ctx = Context(Array.Empty<Archive>());
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Contains("nothing left to download from Nexus Mods", result.Message);
+        Assert.Equal(0, _host.Nexus.Calls);
+        Assert.Null(ctx.State.Nexus);
+    }
+
+    /// <summary>
+    ///     What the count means: the files this install still has to fetch, not every Nexus file in the list.
+    ///     Counting the list is what made the message unrecognisable to someone half-way through a download.
+    /// </summary>
+    [Fact]
+    public async Task CountsOnlyTheFilesStillToDownload()
+    {
+        await WithNexusArchives();
+        _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.None);
+        var ctx = Context(new[] {_host.Config.ModList.Archives[1]});
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.Contains("1 file this install still needs", result.Message);
+    }
+
+    /// <summary>
+    ///     The state of things after a plan has been computed: the mirror reroute has rewritten the archive's
+    ///     state to a Nexus one and recorded the name. This check asks what the modlist needs a login for, and
+    ///     the answer has not changed - a rerouted Nexus download goes to the manual queue with its file page,
+    ///     so halting the run over it on a second pass would contradict the pass that queued it.
+    /// </summary>
+    [Fact]
+    public async Task ANexusStateAMirrorRerouteIntroducedIsNotALoginTheListNeeds()
+    {
+        var mirrored = await PreflightTestHost.ArchiveFor("mirrored.7z", "mirrored bytes");
+        _host.Config.ModList.Archives = new[] {mirrored};
+        var ctx = Context();
+        mirrored.State = new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 7, FileID = 7};
+        ctx.State.Rerouted.Add(mirrored.Name);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Contains("this list has no Nexus Mods files", result.Message);
+        Assert.Equal(0, _host.Nexus.Calls);
+        Assert.Null(ctx.State.Nexus);
+    }
+
+    /// <summary>And it hides nothing: the list's own Nexus files still ask, and the count is only theirs.</summary>
+    [Fact]
+    public async Task ARerouteDoesNotHideTheListsOwnNexusFiles()
+    {
+        await WithNexusArchives();
+        var mirrored = await PreflightTestHost.ArchiveFor("mirrored.7z", "mirrored bytes");
+        _host.Config.ModList.Archives = _host.Config.ModList.Archives.Append(mirrored).ToArray();
+        var ctx = Context();
+        mirrored.State = new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 7, FileID = 7};
+        ctx.State.Rerouted.Add(mirrored.Name);
+        _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.None);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.Contains("Log in to Nexus Mods to download 2 files", result.Message);
     }
 
     [Fact]
     public async Task NoTokenNeedsTheUserToLogIn()
     {
         await WithNexusArchives();
-        _host.Nexus.Status = new NexusLoginStatus(false, false, false, null, null);
-        var ctx = _host.Context();
+        _host.Nexus.Status = new NexusLoginStatus(false, false, null, null, NexusCredentialSource.None);
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.NeedsUser, result.State);
         Assert.Contains("Log in to Nexus Mods to download 2 files", result.Message);
+        Assert.Null(result.Detail);
         Assert.Contains(PreflightAction.Login, result.Actions!);
         Assert.Equal(1, _host.Nexus.Calls);
         Assert.False(ctx.State.Nexus!.HasToken);
+    }
+
+    /// <summary>
+    ///     The reported bug: NEXUS_API_KEY in the environment drives the Nexus API, so the probe used to
+    ///     validate with it and report a premium login, while NexusDownloader.Prepare - which cannot use it -
+    ///     sent every Nexus archive to the browser. The row has to read as logged out, and has to say why,
+    ///     because the variable working for everything else is exactly what makes it confusing.
+    /// </summary>
+    [Fact]
+    public async Task AnEnvironmentApiKeyIsNotALoginAndTheRowSaysSo()
+    {
+        await WithNexusArchives();
+        _host.Nexus.Status =
+            new NexusLoginStatus(false, false, null, null, NexusCredentialSource.EnvironmentApiKey);
+        var ctx = Context();
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        Assert.Contains("Log in to Nexus Mods to download 2 files", result.Message);
+        Assert.Contains("NEXUS_API_KEY", result.Detail!);
+        Assert.Contains(PreflightAction.Login, result.Actions!);
+        Assert.False(ctx.State.Nexus!.HasToken);
+    }
+
+    [Fact]
+    public async Task AStoredApiKeyIsALoginAndTheRowSaysHow()
+    {
+        await WithNexusArchives();
+        _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.StoredApiKey);
+        var ctx = Context();
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Equal("Logged in as someone (Premium, API key)", result.Message);
     }
 
     [Fact]
     public async Task AnExpiredTokenNeedsTheUserToLogInAgain()
     {
         await WithNexusArchives();
-        _host.Nexus.Status = new NexusLoginStatus(true, false, false, null, "Http Error 401 - Unauthorized");
-        var ctx = _host.Context();
+        _host.Nexus.Status =
+            new NexusLoginStatus(false, false, null, "Http Error 401 - Unauthorized", NexusCredentialSource.OAuth);
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
@@ -87,8 +218,8 @@ public class NexusLoginCheckTests : IDisposable
     public async Task APremiumAccountPasses()
     {
         await WithNexusArchives();
-        _host.Nexus.Status = new NexusLoginStatus(true, true, true, "someone", null);
-        var ctx = _host.Context();
+        _host.Nexus.Status = new NexusLoginStatus(true, true, "someone", null, NexusCredentialSource.OAuth);
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 
@@ -101,8 +232,8 @@ public class NexusLoginCheckTests : IDisposable
     public async Task AFreeAccountPassesAndSaysTheFilesWillBeManual()
     {
         await WithNexusArchives();
-        _host.Nexus.Status = new NexusLoginStatus(true, true, false, "someone", null);
-        var ctx = _host.Context();
+        _host.Nexus.Status = new NexusLoginStatus(true, false, "someone", null, NexusCredentialSource.OAuth);
+        var ctx = Context();
 
         var result = await _check.Run(ctx, _progress, CancellationToken.None);
 

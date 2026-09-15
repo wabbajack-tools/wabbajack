@@ -18,7 +18,7 @@ public class UnsupportedArchivesCheck : IPreflightCheck
 {
     public string Id => PreflightCheckIds.UnsupportedArchives;
     public string Title => "Unsupported archives";
-    public int Order => 500;
+    public int Order => 400;
     public IReadOnlyList<string> DependsOn => new[] {PreflightCheckIds.ArchiveInventory};
 
     public Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token)

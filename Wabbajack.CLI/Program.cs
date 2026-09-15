@@ -13,6 +13,7 @@ using Octokit;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Networking.Steam;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.Lib;
 using Wabbajack.Services.OSIntegrated;
@@ -44,7 +45,12 @@ internal class Program
                 services.AddSingleton<TemporaryFileManager>();
                 services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
 
+                // Registered before AddSteam so it wins over the intervention-based default, which the CLI
+                // has no way to answer.
+                services.AddSingleton<ISteamGuardPrompt, ConsoleSteamGuardPrompt>();
+
                 services.AddOSIntegrated();
+                services.AddSteam();
                 services.AddServerLib();
 
 

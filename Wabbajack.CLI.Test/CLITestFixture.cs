@@ -11,6 +11,7 @@ using Octokit;
 using Wabbajack.CLI.Builder;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Networking.Http;
+using Wabbajack.Networking.Steam;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.Lib;
 using Wabbajack.Services.OSIntegrated;
@@ -45,11 +46,13 @@ public class CLITestFixture : IDisposable
                 services.AddSingleton<Networking.WabbajackClientApi.Client>();
                 services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
                 services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
+                services.AddSingleton<ISteamGuardPrompt, ConsoleSteamGuardPrompt>();
                 services.AddOSIntegrated(o =>
                 {
                     o.UseLocalCache = true;
                     o.UseStubbedGameFolders = true;
                 });
+                services.AddSteam();
                 services.AddServerLib();
                 services.AddTransient<Context>();
                 services.AddSingleton<CommandLineBuilder>();

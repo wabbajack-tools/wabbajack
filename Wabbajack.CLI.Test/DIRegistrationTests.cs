@@ -91,11 +91,9 @@ public class DIRegistrationTests
     [Fact]
     public void AllVerbDefinitionOptionTypesAreSupported()
     {
-        var supportedTypes = new[]
-        {
-            typeof(string), typeof(int), typeof(Wabbajack.Paths.AbsolutePath),
-            typeof(Uri), typeof(bool)
-        };
+        // Asked of the builder rather than listed here. A second copy of the list only ever fails this test
+        // for having fallen behind the first, which says nothing about any verb.
+        var supportedTypes = CommandLineBuilder.SupportedOptionTypes.ToArray();
 
         foreach (var verbType in CommandLineBuilder.Verbs)
         {

@@ -26,7 +26,13 @@ public class Nexus : ADownloadState, IMetaState
     public bool IsNSFW { get; set; }
 
     public string? Description { get; set; }
-    public Uri? LinkUrl => new($"https://www.nexusmods.com/{Game.MetaData().NexusName}/mods/{ModID}");
+    /// <summary>
+    ///     The mod's page, which is what both readers of this want: the archive grid opens it to show the
+    ///     user a mod, and the CLI's changelog writes it into a manifest. The file's own page is a different
+    ///     thing and lives in <c>ManualDownloadUrls</c>. Shares <see cref="GameMetaData.NexusDomain" /> with
+    ///     it so the two cannot disagree about a game with no recorded Nexus address.
+    /// </summary>
+    public Uri? LinkUrl => new($"https://www.nexusmods.com/{Game.MetaData().NexusDomain}/mods/{ModID}");
 
     public Task<bool> LoadMetaData()
     {

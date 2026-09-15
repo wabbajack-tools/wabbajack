@@ -133,6 +133,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.CLI.Test", "Wabba
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Wpf.Test", "Wabbajack.App.Wpf.Test\Wabbajack.App.Wpf.Test.csproj", "{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Steam", "Wabbajack.Networking.Steam\Wabbajack.Networking.Steam.csproj", "{B82A5893-1545-4AD6-8D0C-C16D41077ECD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Steam.Test", "Wabbajack.Networking.Steam.Test\Wabbajack.Networking.Steam.Test.csproj", "{012B258A-6018-423C-93BF-131F20FB5807}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -363,6 +367,14 @@ Global
 		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B82A5893-1545-4AD6-8D0C-C16D41077ECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B82A5893-1545-4AD6-8D0C-C16D41077ECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B82A5893-1545-4AD6-8D0C-C16D41077ECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B82A5893-1545-4AD6-8D0C-C16D41077ECD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{012B258A-6018-423C-93BF-131F20FB5807}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{012B258A-6018-423C-93BF-131F20FB5807}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{012B258A-6018-423C-93BF-131F20FB5807}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{012B258A-6018-423C-93BF-131F20FB5807}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

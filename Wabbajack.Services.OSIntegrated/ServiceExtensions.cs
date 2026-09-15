@@ -162,6 +162,8 @@ public static class ServiceExtensions
 
         service.AddAllSingleton<ITokenProvider<WabbajackApiState>, WabbajackApiTokenProvider>();
 
+        service.AddAllSingleton<ITokenProvider<SteamLoginState>, EncryptedJsonTokenProvider<SteamLoginState>, SteamTokenProvider>();
+
         service
             .AddAllSingleton<ITokenProvider<Dictionary<Channel, DiscordWebHookSetting>>,
                 EncryptedJsonTokenProvider<Dictionary<Channel, DiscordWebHookSetting>>, DiscordTokenProvider>();
