@@ -14,6 +14,13 @@ public static class ServiceExtensions
     ///         than something a client library should make for it, and leaving it out means this half of
     ///         the project stays resolvable and testable without Steam anywhere in reach.
     ///     </para>
+    ///     <para>
+    ///         <see cref="CreationRestorer" /> is left out for the same reason: it cannot fetch anything
+    ///         without a ticket, so it is registered by
+    ///         <c>Steam.SteamAppTicketServiceExtensions.AddSteamAppTicket</c>, which is the call that says a
+    ///         host will talk to the local Steam client. A host that calls only this one gets the table and
+    ///         the API client and no game file source at all, which is exactly what it asked for.
+    ///     </para>
     /// </summary>
     public static IServiceCollection AddBethesdaCreations(this IServiceCollection services)
     {

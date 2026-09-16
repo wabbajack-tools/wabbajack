@@ -212,6 +212,67 @@ easy to get wrong: a list with `CanSourceFrom` files carries a second game, and 
 would miss a companion app for the sourced game while naming one for a game whose files are all fine.
 `GameFilesCheckTests.AsksAboutTheGamesOfTheFilesBeingRepaired` pins both directions.
 
+**Most Creations are not in any Steam depot, so there is a second source.** Skyrim Special Edition
+publishes 74 Anniversary Edition Creations, and depot 489831 carries **four** of them; the other 70 are a
+runtime download from `api.bethesda.net` and are in no depot at all. `SteamGameFileRestorer` can never
+fetch those, however well the depot path works — it is being asked a question Steam has no answer to. So
+`Wabbajack.Networking.Bethesda` holds a second `IGameFileRestorer`, `CreationRestorer`, and
+`CreationIndex` is the committed table that turns a wanted game file into a content id **by plugin stem**:
+a Creation unpacks to a plugin and an archive that share one, `ccBGSSSE002-ExoticArrows.esl` beside
+`...bsa`, and only the plugin is in the table.
+
+**What that path needs is the Steam *client*, not a Wabbajack Steam login**, and that is the whole point
+of it for the user. The running client mints an encrypted app ticket stating who the account is and what
+it owns, `ISteamAppTicketSource` is the seam it comes through, Bethesda decrypts it with a key only they
+hold, and entitlement is decided there. So `Status()` asks for two things the user can see for themselves
+— Skyrim SE installed, Steam running — and says so in those words. Scope is **`GameFileSource` archives
+and Skyrim Special Edition only**: the `Bethesda` *download state* keeps failing `UnsupportedArchivesCheck`
+exactly as it does today, and every other game gets `NoSource` rather than a guess. Creations are not
+published per game build, so `version` is read and not honoured; the result reports none, which reads as
+"whatever is published now", and `Archive.Hash` still decides whether that is the copy this list wanted.
+A resolve that returns no record for a content id is **absence and nothing more** — it is equally what a
+Creation the account does not own and one Bethesda has stopped publishing look like, and the message says
+so without inferring ownership. Nobody has tested what the resolve returns for an account without the
+Anniversary Upgrade; the one live run owned it and got all 74 back.
+
+**`CreationCache` is required, not an optimisation.** One `.ckm` unpacks to *two* files and `Restore` is
+asked for one at a time, so with nowhere to keep the other every Creation in a repair is fetched twice.
+It is keyed by content id, unpacks into a `TemporaryFileManager` folder, and is bounded at
+`CreationIndex.ExpectedCount` — the whole table, because the largest possible repair is every Creation and
+a bound below the working set evicts the entry that is about to be asked for again. That is the manifest
+cache's failure exactly: bounded at four while a repair swept thirteen, so thirteen distinct manifests
+cost 973 downloads. Signing in and resolving live here too: one ticket and one resolve answer for all 74,
+so both happen once per run. The slot's MD5 is checked over the `.ckm` before it is unpacked, which proves
+Bethesda served what it meant to and nothing more — `Archive.Hash` on what gets written is still the only
+thing that proves it is the file *this* list wanted.
+
+**Two sources, one `IGameFileRestorer`.** `PreflightRunner` resolves a single one, so
+`CompositeGameFileRestorer` in `Wabbajack.Downloaders.GameFile` holds both in order — Steam at
+`GameFileRestorerOrder.Steam`, Bethesda at `GameFileRestorerOrder.Bethesda` — and no check, no
+`PreflightContext` and no `GameFileRepair` knows there is more than one. Registration goes through
+`AddGameFileRestorer<T>(order)`, which collects types in a `GameFileRestorerRegistry` kept on the service
+collection; one registered source is handed back **as itself**, so a host that adds only `AddSteam`
+behaves exactly as it always has, down to the `SourceName` in every message. `Status()` is ready if any
+source is, `Consequences()` is the union so both the Creation Kit licence sentence and the Steam-must-be-
+running sentence reach the user, and `Restore()` tries in order.
+
+**Falling through on `NotReady` is the line the whole thing turns on.** `GameFileRepair.One` returns the
+moment a restorer reports `NotAttempted`, and `SteamGameFileRestorer` reports `NotReady` for every request
+when nobody has logged into Steam through Wabbajack. Passed straight up, that leaves a user with Steam
+running and no Wabbajack login unable to fetch a single Creation — and that user is exactly who the
+Bethesda path exists for. So `NotReady` and `NoSource` are "did not try", `FileNotFound` and
+`VersionUnknown` are "tried and did not have it", and both fall through; `Failed` stops, because a source
+that got as far as breaking has said something specific. What is reported when nothing worked is the other
+half: an answer from a source that actually tried always beats a decline, so `NotReady` comes back only
+when *every* source declined. Among sources that tried, the ranking is
+`GameFileRepair.Informativeness`'s. `CompositeGameFileRestorerTests` is the table.
+
+Both hosts wire the pair the same way: `App.xaml.cs` and `Wabbajack.CLI/Program.cs` call
+`AddBethesdaCreations()` and then `AddSteamAppTicket()` after `AddSteam()`. The second is what registers
+`CreationRestorer`, because it is the call that says this host will talk to the local Steam client, and a
+restorer with no ticket source in reach could only throw; it calls `AddBethesdaCreations()` itself so the
+two halves cannot be half-wired. A host that registers neither behaves exactly as it does today.
+
 **The WPF side of it.** `App.xaml.cs` calls `AddSteam`, registering its own `SteamGuardPrompt` first
 because `AddSteam`'s `TryAdd`ed default raises an intervention this app answers by throwing. The prompt is
 a singleton publishing whatever Steam Guard is asking as a `Pending` request; the pane binds to it and
