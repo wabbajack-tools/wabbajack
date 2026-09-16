@@ -19,12 +19,15 @@ public sealed class PreflightActionDispatcher
 {
     private readonly PreflightRunner _runner;
     private readonly NexusLoginManager _nexusLogin;
+    private readonly GameFilesVM _gameFiles;
     private readonly ILogger _logger;
 
-    public PreflightActionDispatcher(PreflightRunner runner, NexusLoginManager nexusLogin, ILogger logger)
+    public PreflightActionDispatcher(PreflightRunner runner, NexusLoginManager nexusLogin, GameFilesVM gameFiles,
+        ILogger logger)
     {
         _runner = runner;
         _nexusLogin = nexusLogin;
+        _gameFiles = gameFiles;
         _logger = logger;
     }
 
@@ -69,6 +72,13 @@ public sealed class PreflightActionDispatcher
                 var manual = await _runner.RunCheck(PreflightCheckIds.ManualDownloads, token);
                 if (manual.State is PreflightState.Passed or PreflightState.Warning)
                     await _runner.RunAll(token);
+                break;
+
+            case "repair-game-files":
+                // The card does the whole sequence, because all of it is one thing the user asked for: the
+                // login if there is not one, the fetch, and then the check again - which is what decides
+                // whether the run can carry on, and re-runs the rest of the checklist if it can.
+                await _gameFiles.Repair(token);
                 break;
 
             case "continue-anyway":

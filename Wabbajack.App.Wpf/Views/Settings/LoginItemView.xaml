@@ -6,6 +6,7 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
+    xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     d:DesignHeight="450"
     d:DesignWidth="800"
     x:TypeArguments="local:LoginTargetVM"
@@ -18,7 +19,14 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <Image Grid.Column="0" x:Name="Favicon" Height="24" Margin="0, 0, 8, 0" VerticalAlignment="Center" />
+        <!--
+            A site with no logo among this app's resources draws a glyph instead. Approximating somebody
+            else's mark by hand is worse than not drawing it.
+        -->
+        <Grid Grid.Column="0" Width="24" Height="24" Margin="0, 0, 8, 0" VerticalAlignment="Center">
+            <Image x:Name="Favicon" Height="24" />
+            <ic:SymbolIcon x:Name="FallbackIcon" Symbol="Games" FontSize="22" IconVariant="Filled" Foreground="{StaticResource Transparent66ForegroundBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" />
+        </Grid>
         <TextBlock Grid.Column="1" x:Name="SiteNameText" VerticalAlignment="Center" Margin="0, 0, 16, 0" />
         <local:WJButton Grid.Column="3" x:Name="LoginButton" Text="Login" Icon="PersonArrowRight" />
 

@@ -28,6 +28,7 @@ using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
 using Wabbajack.LoginManagers;
 using Wabbajack.Models;
+using Wabbajack.Networking.Steam;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
@@ -427,6 +428,13 @@ public partial class App
     {
         services.AddOSIntegrated();
 
+        // Registered before AddSteam so it wins over the intervention-based default, which raises a
+        // GetAuthCode intervention that IUserInterventionHandler here - the throwing one - would take a
+        // login down over. Everything else AddSteam brings is a TryAdd and is left alone.
+        services.AddSingleton<SteamGuardPrompt>();
+        services.AddSingleton<ISteamGuardPrompt>(s => s.GetRequiredService<SteamGuardPrompt>());
+        services.AddSteam();
+
         // Orc.FileAssociation
         services.AddSingleton<IApplicationRegistrationService>(new ApplicationRegistrationService());
         services.AddSingleton<FileAssociationSelfHealService>();
@@ -466,8 +474,13 @@ public partial class App
         // Login Handlers
         services.AddTransient<NexusLoginHandler>();
 
+        // The Steam login pane, which both preflight and the Logins tile put in front of the user. Transient:
+        // each one drives a single login attempt and is thrown away with it.
+        services.AddTransient<SteamLoginVM>();
+
         // Login Managers
         services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
+        services.AddAllSingleton<INeedsLogin, SteamLoginManager>();
         services.AddSingleton<NexusCollectionDownloader>();
         // Verbs
         services.AddSingleton<CommandLineBuilder>();
