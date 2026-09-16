@@ -40,11 +40,23 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     private const int MaxServerAttempts = 6;
 
     /// <summary>
-    ///     How many manifests' file lists are kept at once. A version resolves to a handful of depots and a
-    ///     repair searches all of them, so this holds a whole repair; anything beyond that is paid for in
-    ///     memory that is never handed back.
+    ///     How many manifests' file lists are kept at once.
+    ///     The bound has to clear a whole repair's working set, because a repair does not read one manifest
+    ///     and move on: a game file names no depot, so every candidate manifest is searched for every file,
+    ///     and a bound below that number evicts the one that is about to be asked for again. Skyrim Special
+    ///     Edition publishes eleven Windows depots on its public branch and its Creation Kit two more, and a
+    ///     repair of 55 files searched all thirteen for each of them -- 973 manifest downloads for thirteen
+    ///     distinct manifests, because the bound was four. That is the failure mode to stay clear of, and
+    ///     the margin is what makes it stay clear: a list carrying <c>CanSourceFrom</c> files repairs two
+    ///     games in one run, each with a companion app.
+    ///     What the bound is really protecting is memory, and an entry costs less than the old comment here
+    ///     claimed. A manifest's file list is its <see cref="DepotManifest.FileData" /> and their chunks, and
+    ///     a chunk covers about a megabyte of content for something like a hundred bytes of id, offset and
+    ///     lengths -- so the thirteen manifests above, covering some thirty gigabytes, are a few megabytes
+    ///     between them. Sixty-four of the largest depots anyone ships is tens of megabytes, which is worth
+    ///     it to never pay for a manifest twice, and still a ceiling rather than a leak.
     /// </summary>
-    private const int MaxCachedManifests = 4;
+    public const int MaxCachedManifests = 64;
 
     /// <summary>
     ///     Licences arrive on their own schedule after logon. Long enough that a slow connection is not cut
@@ -67,8 +79,8 @@ public class SteamContentClient : ISteamContentClient, IDisposable
 
     /// <summary>
     ///     The file lists of manifests already downloaded and decrypted, so a repair that reads the same
-    ///     build several times pays for it once. Bounded, because this object lives as long as its host and
-    ///     a single manifest of a large game is tens of megabytes of <see cref="DepotManifest.FileData" />.
+    ///     build several times pays for it once. Bounded, because this object lives as long as its host;
+    ///     see <see cref="MaxCachedManifests" /> for what the bound has to clear and what an entry costs.
     ///     <para>
     ///         Nothing in here leaves this class. The list is a read-only view over a private array, so
     ///         several callers reading the same manifest cannot sort, filter or add to what the others are

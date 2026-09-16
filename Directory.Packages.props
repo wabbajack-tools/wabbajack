@@ -71,7 +71,15 @@
     <PackageVersion Include="Shipwreck.Phash" Version="0.5.0" />
     <PackageVersion Include="Silk.NET.DXGI" Version="2.23.0" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageVersion Include="SteamKit2" Version="3.0.1" />
+    <!--
+      3.2.0 is the floor, not a preference: Valve's build tools now emit Zstd compressed depot chunks
+      (a "VSZa" magic where the older ones carry "PK" or "VZa"), and every SteamKit before that picks a
+      decompressor by elimination rather than by magic, so it hands Zstd bytes to a zip reader and reports
+      "End of Central Directory record could not be found" for a file that was never a zip. That is not
+      hypothetical: it cost 42 of the 55 chunk fetches in a Skyrim Special Edition Creation Kit repair.
+      DepotChunkCompressionTests holds the line.
+    -->
+    <PackageVersion Include="SteamKit2" Version="3.4.0" />
     <PackageVersion Include="Stub.System.Data.SQLite.Core.NetStandard" Version="1.0.119" />
     <PackageVersion Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
@@ -87,5 +95,12 @@
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
+    <!--
+      SteamKit2's own Zstd implementation, referenced directly only by Wabbajack.Networking.Steam.Test, which
+      has to build a Zstd depot chunk to prove one can be read. Naming it here rather than leaning on it
+      arriving through SteamKit keeps that test compiling against a SteamKit that does not know the format,
+      so it fails there with the user's own exception rather than with a build error.
+    -->
+    <PackageVersion Include="ZstdSharp.Port" Version="0.8.7" />
   </ItemGroup>
 </Project>
