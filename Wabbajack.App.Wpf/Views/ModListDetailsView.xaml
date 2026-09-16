@@ -9,7 +9,6 @@
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:rxui="http://reactiveui.net"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
-    xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
     x:TypeArguments="local:ModListDetailsVM"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance local:ModListDetailsVM}"
@@ -177,6 +176,8 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="16" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -188,6 +189,8 @@
                                     Text="Website" Icon="Globe" Width="Auto" />
                     <local:WJButton x:Name="DiscordButton" Grid.Column="2"
                                     Text="Discord" Icon="PeopleChat" Width="Auto" />
+                    <local:WJButton x:Name="ReadmeButton" Grid.Column="4"
+                                    Text="Readme" Icon="Document" Width="Auto" />
 
                     <!-- Either Install or Unavailable description depending on whether modlist is unavailable -->
                     <!-- Above logic is defined programatically -->
@@ -205,21 +208,9 @@
                 </Grid.RowDefinitions>
                 <Grid>
 
-                    <Border
-                    Style="{StaticResource ToggleButtonContainer}"
-                    Margin="0, 0, 0, 16"
-                    >
-                        <StackPanel Orientation="Horizontal" Margin="4">
-                            <ToggleButton
-                            x:Name="ArchivesButton"
-                            IsChecked="True"
-                            Width="{Binding ActualWidth, ElementName=ArchivesGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/8}">Archives</ToggleButton>
-
-                            <ToggleButton
-                            x:Name="ReadmeButton"
-                            Width="{Binding ActualWidth, ElementName=ArchivesGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/8}" >Readme</ToggleButton>
-                        </StackPanel>
-                    </Border>
+                    <TextBlock Text="Archives" FontSize="20" FontWeight="SemiBold"
+                               HorizontalAlignment="Left" VerticalAlignment="Center"
+                               Margin="0, 0, 0, 16" />
 
                     <TextBox
                     x:Name="SearchBox"
@@ -237,16 +228,6 @@
                             <ic:SymbolIcon Symbol="Search" IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Right" FontSize="18" />
                         </Border>
                     </Border>
-
-                    <local:WJButton x:Name="OpenReadmeButton"
-                                    ButtonStyle="Mono"
-                                    Text="Open in browser"
-                                    Icon="WindowNew"
-                                    IconSize="20"
-                                    Margin="0, 0, 48, 16"
-                                    Width="{Binding ActualWidth, ElementName=SearchBox, Converter={StaticResource MathConverter}, ConverterParameter=x/1.8}"
-                                    Height="{Binding ActualHeight, ElementName=SearchBox}"
-                                    HorizontalAlignment="Right" />
 
                 </Grid>
 
@@ -376,9 +357,6 @@
                         </Grid>
                     </Border>
                 </Grid>
-                    
-
-                <!-- WebView Browser, added by code behind -->
             </Grid>
         </Grid>
     </Grid>
