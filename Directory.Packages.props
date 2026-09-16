@@ -55,7 +55,7 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="NLog.Extensions.Logging" Version="6.1.4" />
     <PackageVersion Include="NLog" Version="6.1.4" />
-    <PackageVersion Include="NSubstitute" Version="6.0.0" />
+    <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="Octokit" Version="14.0.0" />
     <PackageVersion Include="Octopus.Octodiff" Version="2.0.549" />
     <PackageVersion Include="OMODFramework" Version="3.0.1" />
