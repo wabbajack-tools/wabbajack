@@ -31,16 +31,17 @@ public sealed class PreflightActionDispatcher
         _logger = logger;
     }
 
-    /// <summary>Must be called on the UI thread: the folder prompt and the login window are modal UI.</summary>
+    /// <summary>Must be called on the UI thread: the folder prompt and the Steam login pane are modal UI.</summary>
     public async Task Execute(string checkId, string actionId, CancellationToken token)
     {
         switch (actionId)
         {
             case "login":
                 // The nexus-login check is re-run when NexusLoginManager refreshes its token, so nothing waits
-                // on the browser window here. TriggerLogin takes no canExecute for this call's sake: the check
-                // offers this action for an expired or revoked login as well as a missing one, and the tile
-                // reads both of those as logged in.
+                // on the browser here - it is the user's own, and they may take as long as they like in it.
+                // TriggerLogin takes no canExecute for this call's sake: the check offers this action for an
+                // expired or revoked login as well as a missing one, and the tile reads both of those as
+                // logged in.
                 _nexusLogin.TriggerLogin.Execute(null);
                 break;
 
