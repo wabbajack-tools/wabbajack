@@ -135,6 +135,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Wpf.Test", "W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Steam", "Wabbajack.Networking.Steam\Wabbajack.Networking.Steam.csproj", "{B82A5893-1545-4AD6-8D0C-C16D41077ECD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Bethesda", "Wabbajack.Networking.Bethesda\Wabbajack.Networking.Bethesda.csproj", "{7F2C9A41-5B3D-4E88-9C16-A4D0E7B21F53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Bethesda.Test", "Wabbajack.Networking.Bethesda.Test\Wabbajack.Networking.Bethesda.Test.csproj", "{1D64B8E2-9A07-4C35-B8F1-6E2A5C930D74}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Steam.Test", "Wabbajack.Networking.Steam.Test\Wabbajack.Networking.Steam.Test.csproj", "{012B258A-6018-423C-93BF-131F20FB5807}"
 EndProject
 Global
@@ -375,6 +379,14 @@ Global
 		{012B258A-6018-423C-93BF-131F20FB5807}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{012B258A-6018-423C-93BF-131F20FB5807}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{012B258A-6018-423C-93BF-131F20FB5807}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F2C9A41-5B3D-4E88-9C16-A4D0E7B21F53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F2C9A41-5B3D-4E88-9C16-A4D0E7B21F53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F2C9A41-5B3D-4E88-9C16-A4D0E7B21F53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F2C9A41-5B3D-4E88-9C16-A4D0E7B21F53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D64B8E2-9A07-4C35-B8F1-6E2A5C930D74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D64B8E2-9A07-4C35-B8F1-6E2A5C930D74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D64B8E2-9A07-4C35-B8F1-6E2A5C930D74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D64B8E2-9A07-4C35-B8F1-6E2A5C930D74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
