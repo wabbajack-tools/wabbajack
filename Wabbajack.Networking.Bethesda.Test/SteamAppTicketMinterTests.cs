@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
@@ -23,8 +22,8 @@ public class SteamAppTicketMinterTests
             SteamAppTicketMinter.Mint(KnownFolders.EntryPoint.Combine("no-game-here"), 489830,
                 "Skyrim Special Edition", TimeSpan.FromSeconds(1), NullLogger.Instance, CancellationToken.None));
 
-        thrown.Error.Should().Be(SteamAppTicketError.SteamApiMissing);
-        thrown.Message.Should().Contain(SteamAppTicketMinter.LibraryName);
+        Assert.Equal(SteamAppTicketError.SteamApiMissing, thrown.Error);
+        Assert.Contains(SteamAppTicketMinter.LibraryName, thrown.Message);
     }
 
     /// <summary>
@@ -36,18 +35,18 @@ public class SteamAppTicketMinterTests
     public void ARunningSteamClientMintsATicket()
     {
         var locator = new GameLocator(NullLogger<GameLocator>.Instance);
-        locator.TryFindLocation(TheGame, out var folder).Should()
-            .BeTrue("this test is traited for a machine that has Steam, the game, and a signed-in account");
+        Assert.True(locator.TryFindLocation(TheGame, out var folder),
+            "this test is traited for a machine that has Steam, the game, and a signed-in account");
 
         var ticket = SteamAppTicketMinter.Mint(folder, (uint) TheGame.MetaData().SteamIDs[0],
             TheGame.MetaData().HumanFriendlyGameName, TimeSpan.FromSeconds(30), NullLogger.Instance,
             CancellationToken.None);
 
         // Around 159 bytes in practice; the bound is deliberately loose, since the contents are Valve's.
-        ticket.Length.Should().BeInRange(64, SteamApiNativeTicketBound);
+        Assert.InRange(ticket.Length, 64, SteamApiNativeTicketBound);
 
-        SteamAppTicketOutput.TryParse(SteamAppTicketOutput.Format(ticket), out var round).Should().BeTrue();
-        round.Should().Equal(ticket);
+        Assert.True(SteamAppTicketOutput.TryParse(SteamAppTicketOutput.Format(ticket), out var round));
+        Assert.Equal(ticket, round);
     }
 
     private const int SteamApiNativeTicketBound = 2048;

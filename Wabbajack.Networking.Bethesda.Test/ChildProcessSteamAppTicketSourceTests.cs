@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
@@ -62,7 +61,7 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
 
         var ticket = await Source(helper).GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None);
 
-        ticket.Should().Equal(1, 2, 3, 4);
+        Assert.Equal(new byte[] {1, 2, 3, 4}, ticket);
     }
 
     [Fact]
@@ -72,8 +71,8 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
 
         await Source(helper).GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None);
 
-        helper.Arguments.Should().ContainInOrder(ChildProcessSteamAppTicketSource.Verb, "--app", "489830");
-        helper.Arguments.Should().ContainInOrder("--folder", _gameFolder.ToString());
+        AssertContainsInOrder(helper.Arguments, ChildProcessSteamAppTicketSource.Verb, "--app", "489830");
+        AssertContainsInOrder(helper.Arguments, "--folder", _gameFolder.ToString());
     }
 
     [Theory]
@@ -92,8 +91,8 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
         var thrown = await Assert.ThrowsAsync<SteamAppTicketException>(async () =>
             await Source(helper).GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None));
 
-        thrown.Error.Should().Be(error);
-        thrown.Message.Should().Be(error.DefaultMessage(TheGameName));
+        Assert.Equal(error, thrown.Error);
+        Assert.Equal(error.DefaultMessage(TheGameName), thrown.Message);
     }
 
     [Fact]
@@ -107,8 +106,8 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
         var thrown = await Assert.ThrowsAsync<SteamAppTicketException>(async () =>
             await Source(helper).GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None));
 
-        thrown.Error.Should().Be(SteamAppTicketError.TicketRefused);
-        thrown.Message.Should().Contain("no connection to its servers");
+        Assert.Equal(SteamAppTicketError.TicketRefused, thrown.Error);
+        Assert.Contains("no connection to its servers", thrown.Message);
     }
 
     [Fact]
@@ -119,7 +118,7 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
         var thrown = await Assert.ThrowsAsync<SteamAppTicketException>(async () =>
             await Source(helper).GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None));
 
-        thrown.Error.Should().Be(SteamAppTicketError.HelperFailed);
+        Assert.Equal(SteamAppTicketError.HelperFailed, thrown.Error);
     }
 
     [Fact]
@@ -130,7 +129,7 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
         var thrown = await Assert.ThrowsAsync<SteamAppTicketException>(async () =>
             await Source(helper).GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None));
 
-        thrown.Error.Should().Be(SteamAppTicketError.HelperFailed);
+        Assert.Equal(SteamAppTicketError.HelperFailed, thrown.Error);
     }
 
     [Fact]
@@ -141,9 +140,9 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
         var thrown = await Assert.ThrowsAsync<SteamAppTicketException>(async () =>
             await Source(helper).GetEncryptedAppTicket(1, CancellationToken.None));
 
-        thrown.Error.Should().Be(SteamAppTicketError.GameNotFound);
-        thrown.Message.Should().Contain("1");
-        helper.Runs.Should().Be(0);
+        Assert.Equal(SteamAppTicketError.GameNotFound, thrown.Error);
+        Assert.Contains("1", thrown.Message);
+        Assert.Equal(0, helper.Runs);
     }
 
     [Fact]
@@ -155,8 +154,8 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
             await Source(helper, default(AbsolutePath))
                 .GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None));
 
-        thrown.Error.Should().Be(SteamAppTicketError.GameNotFound);
-        helper.Runs.Should().Be(0);
+        Assert.Equal(SteamAppTicketError.GameNotFound, thrown.Error);
+        Assert.Equal(0, helper.Runs);
     }
 
     [Fact]
@@ -171,9 +170,9 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
                 await Source(helper, empty.FullName.ToAbsolutePath())
                     .GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None));
 
-            thrown.Error.Should().Be(SteamAppTicketError.SteamApiMissing);
-            thrown.Message.Should().Contain(SteamAppTicketMinter.LibraryName);
-            helper.Runs.Should().Be(0);
+            Assert.Equal(SteamAppTicketError.SteamApiMissing, thrown.Error);
+            Assert.Contains(SteamAppTicketMinter.LibraryName, thrown.Message);
+            Assert.Equal(0, helper.Runs);
         }
         finally
         {
@@ -193,8 +192,8 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
             await Source(new HangingHelper(), options: options)
                 .GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None));
 
-        thrown.Error.Should().Be(SteamAppTicketError.HelperFailed);
-        thrown.Message.Should().Contain("did not finish");
+        Assert.Equal(SteamAppTicketError.HelperFailed, thrown.Error);
+        Assert.Contains("did not finish", thrown.Message);
     }
 
     [Fact]
@@ -205,6 +204,31 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             await Source(new HangingHelper()).GetEncryptedAppTicket(SkyrimSpecialEdition, cancelled.Token));
+    }
+
+    /// <summary>
+    ///     The items appear in <paramref name="actual" /> in the given order, not necessarily contiguously
+    ///     or exclusively.
+    /// </summary>
+    private static void AssertContainsInOrder(IReadOnlyList<string> actual, params string[] expected)
+    {
+        var searchFrom = 0;
+        foreach (var item in expected)
+        {
+            var index = -1;
+            for (var i = searchFrom; i < actual.Count; i++)
+            {
+                if (actual[i] == item)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            Assert.True(index >= 0,
+                $"Expected to find \"{item}\" at or after index {searchFrom} in [{string.Join(", ", actual)}]");
+            searchFrom = index + 1;
+        }
     }
 
     private sealed class FakeGameLocator : IGameLocator

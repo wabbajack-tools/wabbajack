@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using FluentAssertions;
 using Wabbajack.Networking.Bethesda.Steam;
 using Xunit;
 
@@ -17,18 +16,18 @@ public class SteamApiInterfaceProbeTests
     {
         var candidates = SteamApiInterfaceProbe.Candidates(SteamApiInterfaceProbe.UserInterface).ToList();
 
-        candidates.First().Should().Be("SteamAPI_SteamUser_v030");
-        candidates.Last().Should().Be("SteamAPI_SteamUser_v005");
-        candidates.Should()
-            .HaveCount(SteamApiInterfaceProbe.HighestVersion - SteamApiInterfaceProbe.LowestVersion + 1);
-        candidates.Should().OnlyHaveUniqueItems();
+        Assert.Equal("SteamAPI_SteamUser_v030", candidates.First());
+        Assert.Equal("SteamAPI_SteamUser_v005", candidates.Last());
+        Assert.Equal(SteamApiInterfaceProbe.HighestVersion - SteamApiInterfaceProbe.LowestVersion + 1,
+            candidates.Count);
+        Assert.Equal(candidates.Count, candidates.Distinct().Count());
     }
 
     [Fact]
     public void VersionsAreThreeDigitsWithLeadingZeroes()
     {
-        SteamApiInterfaceProbe.ExportName(SteamApiInterfaceProbe.AppsInterface, 8)
-            .Should().Be("SteamAPI_SteamApps_v008");
+        Assert.Equal("SteamAPI_SteamApps_v008",
+            SteamApiInterfaceProbe.ExportName(SteamApiInterfaceProbe.AppsInterface, 8));
     }
 
     [Theory]
@@ -39,9 +38,9 @@ public class SteamApiInterfaceProbeTests
     {
         var exports = FakeSteamApiExports.SkyrimSpecialEdition();
 
-        SteamApiInterfaceProbe.Resolve(exports, @interface, out var resolved).Should().NotBe(IntPtr.Zero);
+        Assert.NotEqual(IntPtr.Zero, SteamApiInterfaceProbe.Resolve(exports, @interface, out var resolved));
 
-        resolved.Should().Be(expected);
+        Assert.Equal(expected, resolved);
     }
 
     [Theory]
@@ -52,9 +51,9 @@ public class SteamApiInterfaceProbeTests
     {
         var exports = FakeSteamApiExports.CurrentSdk();
 
-        SteamApiInterfaceProbe.Resolve(exports, @interface, out var resolved).Should().NotBe(IntPtr.Zero);
+        Assert.NotEqual(IntPtr.Zero, SteamApiInterfaceProbe.Resolve(exports, @interface, out var resolved));
 
-        resolved.Should().Be(expected);
+        Assert.Equal(expected, resolved);
     }
 
     [Fact]
@@ -64,7 +63,7 @@ public class SteamApiInterfaceProbeTests
 
         SteamApiInterfaceProbe.Resolve(exports, SteamApiInterfaceProbe.UserInterface, out var resolved);
 
-        resolved.Should().Be("SteamAPI_SteamUser_v021");
+        Assert.Equal("SteamAPI_SteamUser_v021", resolved);
     }
 
     [Fact]
@@ -74,11 +73,11 @@ public class SteamApiInterfaceProbeTests
             .ExportingDeclined("SteamAPI_SteamUser_v023")
             .Exporting("SteamAPI_SteamUser_v021");
 
-        SteamApiInterfaceProbe.Resolve(exports, SteamApiInterfaceProbe.UserInterface, out var resolved)
-            .Should().NotBe(IntPtr.Zero);
+        Assert.NotEqual(IntPtr.Zero,
+            SteamApiInterfaceProbe.Resolve(exports, SteamApiInterfaceProbe.UserInterface, out var resolved));
 
-        resolved.Should().Be("SteamAPI_SteamUser_v021");
-        exports.Called.Should().Equal("SteamAPI_SteamUser_v023", "SteamAPI_SteamUser_v021");
+        Assert.Equal("SteamAPI_SteamUser_v021", resolved);
+        Assert.Equal(new[] {"SteamAPI_SteamUser_v023", "SteamAPI_SteamUser_v021"}, exports.Called);
     }
 
     [Fact]
@@ -86,30 +85,29 @@ public class SteamApiInterfaceProbeTests
     {
         var exports = new FakeSteamApiExports().Exporting("SteamAPI_SteamUser_v004");
 
-        SteamApiInterfaceProbe.Resolve(exports, SteamApiInterfaceProbe.UserInterface, out var resolved)
-            .Should().Be(IntPtr.Zero);
+        Assert.Equal(IntPtr.Zero,
+            SteamApiInterfaceProbe.Resolve(exports, SteamApiInterfaceProbe.UserInterface, out var resolved));
 
-        resolved.Should().BeNull();
+        Assert.Null(resolved);
     }
 
     [Fact]
     public void SkyrimSpecialEditionInitialisesThroughTheLegacyEntryPoint()
     {
-        SteamApiInterfaceProbe.SelectInit(FakeSteamApiExports.SkyrimSpecialEdition())
-            .Should().Be(SteamApiInitKind.Legacy);
+        Assert.Equal(SteamApiInitKind.Legacy,
+            SteamApiInterfaceProbe.SelectInit(FakeSteamApiExports.SkyrimSpecialEdition()));
     }
 
     [Fact]
     public void TheFlatEntryPointWinsWhenBothAreExported()
     {
-        SteamApiInterfaceProbe.SelectInit(FakeSteamApiExports.CurrentSdk())
-            .Should().Be(SteamApiInitKind.Flat);
+        Assert.Equal(SteamApiInitKind.Flat, SteamApiInterfaceProbe.SelectInit(FakeSteamApiExports.CurrentSdk()));
     }
 
     [Fact]
     public void NoInitEntryPointIsItsOwnAnswer()
     {
-        SteamApiInterfaceProbe.SelectInit(new FakeSteamApiExports().Exporting("SteamAPI_Shutdown"))
-            .Should().Be(SteamApiInitKind.None);
+        Assert.Equal(SteamApiInitKind.None,
+            SteamApiInterfaceProbe.SelectInit(new FakeSteamApiExports().Exporting("SteamAPI_Shutdown")));
     }
 }

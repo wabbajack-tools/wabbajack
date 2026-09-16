@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using FluentAssertions;
 using Wabbajack.Networking.Bethesda;
 using Xunit;
 
@@ -18,21 +17,22 @@ public class SteamAppTicketErrorTests
     public void EveryErrorRoundTripsThroughItsExitCode()
     {
         foreach (var error in All)
-            SteamAppTicketErrors.FromExitCode(error.ToExitCode()).Should().Be(error);
+            Assert.Equal(error, SteamAppTicketErrors.FromExitCode(error.ToExitCode()));
     }
 
     [Fact]
     public void OnlySuccessExitsZero()
     {
         foreach (var error in All.Where(e => e != SteamAppTicketError.None))
-            error.ToExitCode().Should().BeGreaterThan(1,
+            Assert.True(error.ToExitCode() > 1,
                 "an exit code of 1 is what an ordinary CLI failure uses, and 0 is success");
     }
 
     [Fact]
     public void ExitCodesAreUnique()
     {
-        All.Select(e => e.ToExitCode()).Should().OnlyHaveUniqueItems();
+        var codes = All.Select(e => e.ToExitCode()).ToList();
+        Assert.Equal(codes.Count, codes.Distinct().Count());
     }
 
     [Theory]
@@ -43,8 +43,8 @@ public class SteamAppTicketErrorTests
     [InlineData(3221225477)]
     public void AnExitCodeNobodyChoseIsAStatementAboutTheHelper(long exitCode)
     {
-        SteamAppTicketErrors.FromExitCode(unchecked((int) exitCode))
-            .Should().Be(SteamAppTicketError.HelperFailed);
+        Assert.Equal(SteamAppTicketError.HelperFailed,
+            SteamAppTicketErrors.FromExitCode(unchecked((int) exitCode)));
     }
 
     [Fact]
@@ -53,8 +53,8 @@ public class SteamAppTicketErrorTests
         foreach (var error in All)
         {
             var message = error.DefaultMessage("Skyrim Special Edition");
-            message.Should().NotBeNullOrWhiteSpace();
-            message.Should().EndWith(".");
+            Assert.False(string.IsNullOrWhiteSpace(message));
+            Assert.EndsWith(".", message);
         }
     }
 
@@ -63,6 +63,7 @@ public class SteamAppTicketErrorTests
     {
         // The point of having several errors is that each is a different thing to go and do; two that read
         // the same would be one error wearing two names.
-        All.Select(e => e.DefaultMessage("Skyrim Special Edition")).Should().OnlyHaveUniqueItems();
+        var messages = All.Select(e => e.DefaultMessage("Skyrim Special Edition")).ToList();
+        Assert.Equal(messages.Count, messages.Distinct().Count());
     }
 }

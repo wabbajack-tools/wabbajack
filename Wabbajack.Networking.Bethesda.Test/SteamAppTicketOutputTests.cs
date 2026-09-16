@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using FluentAssertions;
 using Wabbajack.Networking.Bethesda.Steam;
 using Xunit;
 
@@ -13,9 +12,9 @@ public class SteamAppTicketOutputTests
     {
         var ticket = Enumerable.Range(0, 159).Select(i => (byte) (i * 7)).ToArray();
 
-        SteamAppTicketOutput.TryParse(SteamAppTicketOutput.Format(ticket), out var read).Should().BeTrue();
+        Assert.True(SteamAppTicketOutput.TryParse(SteamAppTicketOutput.Format(ticket), out var read));
 
-        read.Should().Equal(ticket);
+        Assert.Equal(ticket, read);
     }
 
     [Fact]
@@ -28,17 +27,17 @@ public class SteamAppTicketOutputTests
             SteamAppTicketOutput.Format(new byte[] {0xDE, 0xAD, 0xBE, 0xEF}),
             "0.456 [INFO] Steam issued a 4 byte app ticket");
 
-        SteamAppTicketOutput.TryParse(output, out var ticket).Should().BeTrue();
+        Assert.True(SteamAppTicketOutput.TryParse(output, out var ticket));
 
-        ticket.Should().Equal(0xDE, 0xAD, 0xBE, 0xEF);
+        Assert.Equal(new byte[] {0xDE, 0xAD, 0xBE, 0xEF}, ticket);
     }
 
     [Fact]
     public void CarriageReturnsDoNotEndUpInTheHex()
     {
-        SteamAppTicketOutput.TryParse("ticket 0A0B\r\n", out var ticket).Should().BeTrue();
+        Assert.True(SteamAppTicketOutput.TryParse("ticket 0A0B\r\n", out var ticket));
 
-        ticket.Should().Equal(0x0A, 0x0B);
+        Assert.Equal(new byte[] {0x0A, 0x0B}, ticket);
     }
 
     [Fact]
@@ -47,9 +46,9 @@ public class SteamAppTicketOutputTests
         var output = SteamAppTicketOutput.Format(new byte[] {1}) + "\n" +
                      SteamAppTicketOutput.Format(new byte[] {2});
 
-        SteamAppTicketOutput.TryParse(output, out var ticket).Should().BeTrue();
+        Assert.True(SteamAppTicketOutput.TryParse(output, out var ticket));
 
-        ticket.Should().Equal((byte) 2);
+        Assert.Equal(new byte[] {2}, ticket);
     }
 
     [Theory]
@@ -63,16 +62,16 @@ public class SteamAppTicketOutputTests
     [InlineData("the ticket is 0A0B")]
     public void AnythingThatIsNotATicketLineIsNotATicket(string? output)
     {
-        SteamAppTicketOutput.TryParse(output, out var ticket).Should().BeFalse();
+        Assert.False(SteamAppTicketOutput.TryParse(output, out var ticket));
 
-        ticket.Should().BeEmpty();
+        Assert.Empty(ticket);
     }
 
     [Fact]
     public void AnUnreadableLineDoesNotHideAReadableOne()
     {
-        SteamAppTicketOutput.TryParse("ticket zzzz\nticket 0A0B", out var ticket).Should().BeTrue();
+        Assert.True(SteamAppTicketOutput.TryParse("ticket zzzz\nticket 0A0B", out var ticket));
 
-        ticket.Should().Equal(0x0A, 0x0B);
+        Assert.Equal(new byte[] {0x0A, 0x0B}, ticket);
     }
 }

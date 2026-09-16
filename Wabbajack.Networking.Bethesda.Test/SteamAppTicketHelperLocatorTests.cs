@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using FluentAssertions;
 using Wabbajack.Networking.Bethesda.Steam;
 using Xunit;
 
@@ -32,8 +31,8 @@ public class SteamAppTicketHelperLocatorTests
 
         var command = SteamAppTicketHelperLocator.Locate(Base, self, Only());
 
-        command!.FileName.Should().Be(self);
-        command.LeadingArguments.Should().BeEmpty();
+        Assert.Equal(self, command!.FileName);
+        Assert.Empty(command.LeadingArguments);
     }
 
     [Fact]
@@ -41,7 +40,7 @@ public class SteamAppTicketHelperLocatorTests
     {
         var command = SteamAppTicketHelperLocator.Locate(Base, "/app/Wabbajack.exe", Only(InTheCliFolder));
 
-        command!.FileName.Should().Be(InTheCliFolder);
+        Assert.Equal(InTheCliFolder, command!.FileName);
     }
 
     [Fact]
@@ -50,7 +49,7 @@ public class SteamAppTicketHelperLocatorTests
         var command = SteamAppTicketHelperLocator.Locate(Base, "/app/Wabbajack.exe",
             Only(BesideTheApp, InTheCliFolder));
 
-        command!.FileName.Should().Be(BesideTheApp, "the copy in the output folder is the one just built");
+        Assert.True(command!.FileName == BesideTheApp, "the copy in the output folder is the one just built");
     }
 
     [Fact]
@@ -58,8 +57,8 @@ public class SteamAppTicketHelperLocatorTests
     {
         var command = SteamAppTicketHelperLocator.Locate(Base, "/app/Wabbajack.exe", Only(AsALibrary));
 
-        command!.FileName.Should().Be("dotnet");
-        command.LeadingArguments.Should().Equal(AsALibrary);
+        Assert.Equal("dotnet", command!.FileName);
+        Assert.Equal(new[] {AsALibrary}, command.LeadingArguments);
     }
 
     [Fact]
@@ -70,7 +69,7 @@ public class SteamAppTicketHelperLocatorTests
         var command = SteamAppTicketHelperLocator.Locate(Base, "/app/Wabbajack.exe",
             Only(BesideTheApp, elsewhere), elsewhere);
 
-        command!.FileName.Should().Be(elsewhere);
+        Assert.Equal(elsewhere, command!.FileName);
     }
 
     [Fact]
@@ -79,13 +78,13 @@ public class SteamAppTicketHelperLocatorTests
         var command = SteamAppTicketHelperLocator.Locate(Base, "/app/Wabbajack.exe", Only(BesideTheApp),
             "/elsewhere/gone.exe");
 
-        command!.FileName.Should().Be(BesideTheApp);
+        Assert.Equal(BesideTheApp, command!.FileName);
     }
 
     [Fact]
     public void NoCliAnywhereIsNull()
     {
-        SteamAppTicketHelperLocator.Locate(Base, "/app/Wabbajack.exe", Only()).Should().BeNull();
+        Assert.Null(SteamAppTicketHelperLocator.Locate(Base, "/app/Wabbajack.exe", Only()));
     }
 
     [Fact]
@@ -93,7 +92,7 @@ public class SteamAppTicketHelperLocatorTests
     {
         var command = new SteamAppTicketHelperCommand("dotnet", new List<string> {"wabbajack-cli.dll"});
 
-        command.WithArguments(new[] {"steam-app-ticket", "--game", "SkyrimSpecialEdition"})
-            .Should().Equal("wabbajack-cli.dll", "steam-app-ticket", "--game", "SkyrimSpecialEdition");
+        Assert.Equal(new[] {"wabbajack-cli.dll", "steam-app-ticket", "--game", "SkyrimSpecialEdition"},
+            command.WithArguments(new[] {"steam-app-ticket", "--game", "SkyrimSpecialEdition"}));
     }
 }
