@@ -91,7 +91,8 @@ public class CompositeGameFileRestorerTests
     [InlineData(GameFileRestoreOutcome.NoSource)]
     [InlineData(GameFileRestoreOutcome.FileNotFound)]
     [InlineData(GameFileRestoreOutcome.VersionUnknown)]
-    public async Task EveryOutcomeThatIsNotAnAnswerFallsThrough(GameFileRestoreOutcome outcome)
+    [InlineData(GameFileRestoreOutcome.Failed)]
+    public async Task EveryOutcomeShortOfFetchedFallsThrough(GameFileRestoreOutcome outcome)
     {
         var first = new ScriptedRestorer("Steam", outcome);
         var second = new ScriptedRestorer("Bethesda", GameFileRestoreOutcome.Fetched);
@@ -103,19 +104,39 @@ public class CompositeGameFileRestorerTests
     }
 
     /// <summary>
-    ///     A source that got far enough to break has said something specific about this file, and the next
-    ///     source asking the same question is not going to add to it.
+    ///     A source that breaks has not established that the file is unobtainable, only that it could not
+    ///     hand it over, so the next source is still asked. A depot bug is the ordinary way this happens:
+    ///     one shipped here where a decompression fault failed every chunk of twenty-odd files that were in
+    ///     the depot the whole time. Ending the search there would keep a second source in the tree and
+    ///     refuse to use it exactly when it is needed.
     /// </summary>
     [Fact]
-    public async Task AFailureStopsTheChain()
+    public async Task AFailureDoesNotStopTheChain()
     {
         var first = new ScriptedRestorer("Steam", GameFileRestoreOutcome.Failed);
         var second = new ScriptedRestorer("Bethesda", GameFileRestoreOutcome.Fetched);
 
         var result = await Restore(Composite(first, second));
 
+        Assert.True(result.Fetched);
+        Assert.Equal("Bethesda", result.Detail);
+        Assert.Equal(1, second.Calls);
+    }
+
+    /// <summary>
+    ///     Falling through must not cost the user the real error. A source that broke still outranks one
+    ///     that simply had nothing, so "Steam could not decompress it" is what gets reported rather than
+    ///     "Bethesda does not publish it".
+    /// </summary>
+    [Fact]
+    public async Task ABreakageOutranksASourceThatSimplyDidNotHaveTheFile()
+    {
+        var result = await Restore(Composite(
+            new ScriptedRestorer("Steam", GameFileRestoreOutcome.Failed),
+            new ScriptedRestorer("Bethesda", GameFileRestoreOutcome.FileNotFound)));
+
         Assert.Equal(GameFileRestoreOutcome.Failed, result.Outcome);
-        Assert.Equal(0, second.Calls);
+        Assert.Equal("Steam", result.Detail);
     }
 
     [Fact]

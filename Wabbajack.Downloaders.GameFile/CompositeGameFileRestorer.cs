@@ -84,9 +84,13 @@ public sealed class CompositeGameFileRestorer : IGameFileRestorer
     ///         or does not serve this game at all (<see cref="GameFileRestoreOutcome.NoSource" />) - and a
     ///         source that tried and did not have the file
     ///         (<see cref="GameFileRestoreOutcome.FileNotFound" />,
-    ///         <see cref="GameFileRestoreOutcome.VersionUnknown" />) both fall through to the next one.
-    ///         <see cref="GameFileRestoreOutcome.Failed" /> does not: a source that got far enough to break
-    ///         has said something specific about this file, and that is the answer worth carrying back.
+    ///         <see cref="GameFileRestoreOutcome.VersionUnknown" />) both fall through to the next one, and
+    ///         so does <see cref="GameFileRestoreOutcome.Failed" />. A source that broke has said something
+    ///         specific and keeps its place in the ranking below, but it has not said that the file is
+    ///         unobtainable - only that this source could not hand it over. A depot bug is the ordinary way
+    ///         that happens: one shipped here where a decompression fault failed every chunk of twenty-odd
+    ///         files that were sitting in the depot the whole time. Letting that end the search would put a
+    ///         second source in the tree and then decline to use it exactly when it is needed.
     ///     </para>
     ///     <para>
     ///         What is reported when nothing worked is the important part. An answer from a source that
@@ -110,8 +114,6 @@ public sealed class CompositeGameFileRestorer : IGameFileRestorer
 
             var result = await restorer.Restore(game, version, gameFile, output, token);
             if (result.Fetched) return result;
-
-            if (result.Outcome == GameFileRestoreOutcome.Failed) return result;
 
             _logger.LogDebug("{Source} did not supply {File}: {Outcome} ({Detail})", restorer.SourceName,
                 gameFile, result.Outcome, result.Detail);
