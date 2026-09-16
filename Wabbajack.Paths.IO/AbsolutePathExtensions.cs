@@ -216,37 +216,40 @@ public static class AbsolutePathExtensions
         await s.WriteAsync(data, token);
     }
 
+    /// <summary>
+    ///     Moves a file, waiting out the failures that are worth waiting out. See
+    ///     <see cref="IORetry.ClassifyMove" /> for which those are: a file another process holds open — under
+    ///     either of the two codes Windows uses to say so — gets the full ten seconds, and a failure that
+    ///     cannot change, such as a destination that is a directory, a missing source, a full disk or a path
+    ///     the volume will not take, is thrown straight back.
+    /// </summary>
     public static async ValueTask MoveToAsync(this AbsolutePath src, AbsolutePath dest, bool overwrite,
         CancellationToken token)
     {
         // TODO: Make this async
         var srcStr = src.ToString();
         var destStr = dest.ToString();
-        var fi = new FileInfo(srcStr);
-        if (fi.IsReadOnly)
-            fi.IsReadOnly = false;
 
-        var fid = new FileInfo(destStr);
-        if (dest.FileExists() && fid.IsReadOnly)
+        // Best effort: if the flag cannot be read or cleared, the move below throws the error that actually
+        // describes the problem, which is more use to the caller than one thrown by this preparation.
+        TryClearReadOnly(srcStr);
+        TryClearReadOnly(destStr);
+
+        await IORetry.RunAsync(() => File.Move(srcStr, destStr, overwrite),
+            ex => IORetry.ClassifyMove(ex, srcStr, destStr), IORetryPolicy.Default, token);
+    }
+
+    private static void TryClearReadOnly(string path)
+    {
+        try
         {
-            fid.IsReadOnly = false;
+            var info = new FileInfo(path);
+            if (info.Exists && info.IsReadOnly)
+                info.IsReadOnly = false;
         }
-
-        var retries = 0;
-        while (true)
+        catch (Exception)
         {
-            try
-            {
-                File.Move(srcStr, destStr, overwrite);
-                return;
-            }
-            catch (Exception)
-            {
-                if (retries > 10)
-                    throw;
-                retries++;
-                await Task.Delay(TimeSpan.FromSeconds(1), token);
-            }
+            // Deliberately ignored; see MoveToAsync.
         }
     }
 

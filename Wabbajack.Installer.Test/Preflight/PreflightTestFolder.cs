@@ -71,10 +71,15 @@ public sealed class PreflightTestFolder : IDisposable
         return path;
     }
 
-    /// <summary>Polls until the condition holds; fails the test with <paramref name="what" /> if it never does.</summary>
+    /// <summary>
+    ///     Polls until the condition holds; fails the test with <paramref name="what" /> if it never does. The
+    ///     default is far longer than any of this work takes, deliberately: a timeout that is only a few times
+    ///     the expected duration turns a busy CI runner into a failing build, and a generous one costs wall
+    ///     clock only when the test was going to fail anyway.
+    /// </summary>
     public static async Task WaitUntil(Func<bool> condition, string what, TimeSpan? timeout = null)
     {
-        var limit = timeout ?? TimeSpan.FromSeconds(15);
+        var limit = timeout ?? TimeSpan.FromSeconds(30);
         var clock = Stopwatch.StartNew();
         while (!condition())
         {

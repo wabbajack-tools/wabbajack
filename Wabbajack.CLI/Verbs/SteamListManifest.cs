@@ -17,11 +17,11 @@ namespace Wabbajack.CLI.Verbs;
 /// </summary>
 public class SteamListManifest
 {
-    private readonly SteamContentClient _content;
+    private readonly ISteamContentClient _content;
     private readonly ILogger<SteamListManifest> _logger;
     private readonly ISteamSession _session;
 
-    public SteamListManifest(ILogger<SteamListManifest> logger, ISteamSession session, SteamContentClient content)
+    public SteamListManifest(ILogger<SteamListManifest> logger, ISteamSession session, ISteamContentClient content)
     {
         _logger = logger;
         _session = session;

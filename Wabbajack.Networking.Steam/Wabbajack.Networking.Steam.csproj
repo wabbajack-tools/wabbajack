@@ -19,8 +19,10 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+      <ProjectReference Include="..\Wabbajack.Downloaders.GameFile\Wabbajack.Downloaders.GameFile.csproj" />
       <ProjectReference Include="..\Wabbajack.DTOs\Wabbajack.DTOs.csproj" />
       <ProjectReference Include="..\Wabbajack.Networking.Http.Interfaces\Wabbajack.Networking.Http.Interfaces.csproj" />
+      <ProjectReference Include="..\Wabbajack.Networking.WabbajackClientApi\Wabbajack.Networking.WabbajackClientApi.csproj" />
       <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
     </ItemGroup>
 
