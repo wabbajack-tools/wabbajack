@@ -23,7 +23,9 @@ namespace Wabbajack.CLI.Verbs;
 ///     installer does - which of the list's <c>GameFileSource</c> archives are missing outright and which
 ///     are from another version of the game. Then, unless asked only to report, fetches each one and puts it
 ///     in the downloads folder. Nothing is written to the game install.
-///     This needs a Steam login, which <c>steam-login</c> stores. Without one the verb says what logging in
+///     Where the files come from depends on the file. Steam's depots want a stored login, which
+///     <c>steam-login</c> writes; Anniversary Edition Creations come from Bethesda and want the Steam client
+///     running instead, with no Wabbajack login at all. Whichever is missing, the verb says what having it
 ///     would get and stops; it will not start a login in the middle of a script.
 /// </summary>
 public class RepairGameFiles
@@ -116,8 +118,10 @@ public class RepairGameFiles
         var status = restorer?.Status();
         if (restorer == null || status is not {Ready: true})
         {
+            // The reason above is every unready source's own sentence, so it already says what to do -
+            // run steam-login, start Steam, install the game - and naming one of them here would be a
+            // guess about which source this list actually needed.
             _logger.LogError("{Reason}", status?.Reason ?? "There is no way to fetch game files on this machine.");
-            _logger.LogInformation("Run steam-login first, then this again");
             return 1;
         }
 

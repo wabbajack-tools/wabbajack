@@ -28,6 +28,8 @@ using Wabbajack.DTOs.Interventions;
 using Wabbajack.Interventions;
 using Wabbajack.LoginManagers;
 using Wabbajack.Models;
+using Wabbajack.Networking.Bethesda;
+using Wabbajack.Networking.Bethesda.Steam;
 using Wabbajack.Networking.Steam;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -434,6 +436,13 @@ public partial class App
         services.AddSingleton<SteamGuardPrompt>();
         services.AddSingleton<ISteamGuardPrompt>(s => s.GetRequiredService<SteamGuardPrompt>());
         services.AddSteam();
+
+        // The second game file source, behind the same IGameFileRestorer as Steam's and asked after it.
+        // Steam's depots carry the game, the Creation Kit and four Anniversary Edition Creations; the other
+        // seventy are a runtime download from Bethesda, fetched with a ticket from the Steam client the user
+        // is already running rather than with a Wabbajack Steam login.
+        services.AddBethesdaCreations();
+        services.AddSteamAppTicket();
 
         // Orc.FileAssociation
         services.AddSingleton<IApplicationRegistrationService>(new ApplicationRegistrationService());
