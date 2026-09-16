@@ -10,6 +10,8 @@ using Microsoft.Extensions.Hosting;
 using Octokit;
 using Wabbajack.CLI.Builder;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.Networking.Bethesda;
+using Wabbajack.Networking.Bethesda.Steam;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Steam;
 using Wabbajack.Paths.IO;
@@ -53,6 +55,8 @@ public class CLITestFixture : IDisposable
                     o.UseStubbedGameFolders = true;
                 });
                 services.AddSteam();
+                services.AddBethesdaCreations();
+                services.AddSteamAppTicket();
                 services.AddServerLib();
                 services.AddTransient<Context>();
                 services.AddSingleton<CommandLineBuilder>();

@@ -33,6 +33,9 @@ public class BethesdaApiClient
 
     private const int MaxAttempts = 4;
 
+    /// <summary>The <c>platform.code</c> the origin puts on an answer it is happy with.</summary>
+    private const int SuccessCode = 2000;
+
     private readonly HttpClient _client;
     private readonly ILogger<BethesdaApiClient> _logger;
     private readonly ISteamAppTicketSource _tickets;
@@ -93,7 +96,7 @@ public class BethesdaApiClient
 
         using var fulfillment = await Post("/vccs/fulfillment/update_first_party_entitlements",
             new Dictionary<string, object> {["token"] = hex}, token);
-        Unwrap(fulfillment, "/vccs/fulfillment/update_first_party_entitlements");
+        EnsureSucceeded(fulfillment, "/vccs/fulfillment/update_first_party_entitlements");
     }
 
     /// <summary>
@@ -277,5 +280,33 @@ public class BethesdaApiClient
             throw new BethesdaApiException($"{where} answered {code}: {message}", HttpStatusCode.OK, code, message);
 
         return response;
+    }
+
+    /// <summary>
+    ///     A call that succeeds without carrying a payload, checked by its platform code alone.
+    ///     <para>
+    ///         The entitlement update is one. It answers <c>{"platform":{"code":2000,"message":"success"}}</c>
+    ///         and no <c>response</c> object at all, because there is nothing to hand back - fulfilling
+    ///         entitlements is something the origin does rather than something it reports. Reading it with
+    ///         <see cref="Unwrap" /> turned that into "answered 2000: success" and took the whole sign-in
+    ///         down at the last step, after the ticket had been minted and the session established.
+    ///     </para>
+    /// </summary>
+    private static void EnsureSucceeded(JsonDocument document, string where)
+    {
+        if (!document.RootElement.TryGetProperty("platform", out var platform) ||
+            platform.ValueKind != JsonValueKind.Object)
+            throw new BethesdaApiException($"{where} answered without a platform envelope.", HttpStatusCode.OK);
+
+        var code = platform.TryGetProperty("code", out var codeValue) && codeValue.TryGetInt32(out var parsed)
+            ? parsed
+            : (int?) null;
+        var message = platform.TryGetProperty("message", out var messageValue) &&
+                      messageValue.ValueKind == JsonValueKind.String
+            ? messageValue.GetString()
+            : null;
+
+        if (code != SuccessCode)
+            throw new BethesdaApiException($"{where} answered {code}: {message}", HttpStatusCode.OK, code, message);
     }
 }
