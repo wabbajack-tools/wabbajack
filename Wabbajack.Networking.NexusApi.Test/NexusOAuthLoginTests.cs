@@ -44,9 +44,42 @@ public class NexusOAuthLoginTests
         var exchanged = OAuthQuery.Parse(Assert.Single(endpoint.Bodies));
 
         Assert.Equal(sent["redirect_uri"], exchanged["redirect_uri"]);
-        Assert.StartsWith("http://localhost:", sent["redirect_uri"]);
+        Assert.StartsWith($"http://{OAuthLoopbackListener.CallbackHost}:", sent["redirect_uri"]);
         Assert.EndsWith("/oauth/callback", sent["redirect_uri"]);
         Assert.Equal("a-code", exchanged["code"]);
+    }
+
+    /// <summary>
+    ///     Opening the browser must not be able to hold the login up, however long it takes or even if it
+    ///     never returns. It is <c>ShellExecute</c> underneath, which wants an STA thread and once did not
+    ///     come back at all from a thread-pool one; the redirect then reached a bound, listening socket,
+    ///     sat in the accept queue, and waited for a response that could only be written by the call that
+    ///     was stuck. This hands the flow a browser that never returns and expects a login anyway.
+    /// </summary>
+    [Fact]
+    public async Task ABrowserThatNeverReturnsDoesNotHoldUpTheLogin()
+    {
+        var endpoint = new StubTokenEndpoint();
+        var login = Login(endpoint);
+        var authorize = new List<Uri>();
+        var browser = Browser(authorize, q => $"code=a-code&state={q["state"]}");
+        var released = new ManualResetEventSlim(false);
+
+        try
+        {
+            var result = await login.LogIn(uri =>
+            {
+                browser(uri);
+                released.Wait();
+            }, CancellationToken.None);
+
+            Assert.Equal(NexusOAuthOutcome.Succeeded, result.Outcome);
+        }
+        finally
+        {
+            // Let the stand-in browser thread go, so it does not outlive the test still blocked.
+            released.Set();
+        }
     }
 
     /// <summary>

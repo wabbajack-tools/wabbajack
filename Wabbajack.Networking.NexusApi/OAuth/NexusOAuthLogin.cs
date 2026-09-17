@@ -75,6 +75,14 @@ public class NexusOAuthLogin
     /// </summary>
     public static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(10);
 
+    /// <summary>
+    ///     How long the token exchange gets. Generous for one HTTP round trip and short enough that a user
+    ///     watching a button is told something: the whole wait before this belongs to a person deciding
+    ///     whether to sign in, while this one is two machines talking, and nothing on screen says it is
+    ///     happening.
+    /// </summary>
+    public static readonly TimeSpan ExchangeTimeout = TimeSpan.FromSeconds(60);
+
     private readonly HttpClient _client;
     private readonly ILogger<NexusOAuthLogin> _logger;
 
@@ -159,12 +167,39 @@ public class NexusOAuthLogin
 
         _logger.LogInformation("Opening the Nexus Mods login in your browser; it comes back to {RedirectUri}",
             listener.RedirectUri);
-        openBrowser(authorize);
+
+        // The whole authorize URL, because the only thing that can reject it is the authorization server and
+        // the only person who can see why is whoever holds the client registration. "Malformed or doesn't
+        // match client redirect URI" says nothing about which of the two it was, and Nexus Mods validates
+        // the redirect only after the user has signed in, so this line is the one record of what was
+        // actually asked for. Neither the verifier nor the token is in it - a challenge and a state are
+        // safe to write down, and both die with this attempt.
+        // AbsoluteUri, never ToString(): ToString() unescapes what it can, so the redirect URI in it reads
+        // "http://localhost:57957/oauth/callback" where the browser is actually handed
+        // "http%3A%2F%2Flocalhost%3A57957%2Foauth%2Fcallback". Logging the unescaped one would show a
+        // malformed request that was never sent, while hiding a genuinely malformed one.
+        _logger.LogDebug("Authorize URL: {Authorize}", authorize.AbsoluteUri);
 
         using var waiting = CancellationTokenSource.CreateLinkedTokenSource(token);
         waiting.CancelAfter(_timeout);
 
-        using var callback = await listener.WaitForCallback(waiting.Token);
+        // Accepting starts before the browser is opened, and the order matters more than it looks.
+        // Binding the socket is not the same as being ready to answer on it: a bound, listening socket has
+        // the kernel completing the browser's TCP handshake into the accept queue whether or not anything
+        // has called Accept, so a redirect that arrives first does not fail - it sits there, connected,
+        // waiting for a response that only arrives once someone accepts. Opening the browser first made
+        // that a real wait rather than a theoretical one, because opening it is ShellExecute on this very
+        // thread, and a cold browser start holds the thread that was going to do the accepting. What the
+        // user saw was a tab spinning against a port that was demonstrably listening.
+        //
+        // Calling this without awaiting it runs it up to its first await, which is the accept, so by the
+        // time openBrowser is reached the accept is registered and its completion belongs to the thread
+        // pool. Whatever the browser does next, something is waiting for it.
+        var arriving = listener.WaitForCallback(waiting.Token);
+
+        OpenInBackground(openBrowser, authorize);
+
+        using var callback = await arriving;
 
         var rejection = Rejection(callback.Query, state);
 
@@ -179,9 +214,29 @@ public class NexusOAuthLogin
             return rejection;
         }
 
+        _logger.LogInformation("Nexus Mods returned an authorization code; exchanging it for a token");
+
         // Byte for byte what went out in the authorize request. Nexus Mods compares the two and refuses the
         // exchange if they differ, so this reads the listener again rather than rebuilding the string.
-        var received = await AuthorizeToken(listener.RedirectUri, codeVerifier, callback.Query["code"], token);
+        //
+        // Bounded on its own, because this is the one step with nobody watching it. The user has been told
+        // "authorization successful" by the page and has gone back to the app, so an exchange that hangs is
+        // a login that never finishes, never logs and never re-arms its own button - which is what it looked
+        // like. The HttpClient here is shared, so its timeout is not this call's to set.
+        using var exchanging = CancellationTokenSource.CreateLinkedTokenSource(token);
+        exchanging.CancelAfter(ExchangeTimeout);
+
+        JwtTokenReply? received;
+        try
+        {
+            received = await AuthorizeToken(listener.RedirectUri, codeVerifier, callback.Query["code"],
+                exchanging.Token);
+        }
+        catch (OperationCanceledException) when (!token.IsCancellationRequested)
+        {
+            return NexusOAuthResult.Problem(NexusOAuthOutcome.Failed,
+                $"Nexus Mods did not answer the token request within {ExchangeTimeout.TotalSeconds:N0} seconds");
+        }
 
         return received == null
             ? NexusOAuthResult.Problem(NexusOAuthOutcome.Failed, "Nexus Mods did not return a token")
@@ -222,6 +277,48 @@ public class NexusOAuthLogin
                 "The Nexus Mods redirect carried no authorization code");
 
         return null;
+    }
+
+    /// <summary>
+    ///     Hands the authorize URL to the browser on a thread of its own, and does not wait for it.
+    ///     <para>
+    ///         Opening a URL means <c>ShellExecute</c>, which is documented as wanting an STA thread and is
+    ///         free to take as long as the shell takes - a cold browser start, a default-handler lookup, a
+    ///         browser mid-update. Called inline from this flow it did worse than take its time: on a
+    ///         thread-pool thread, which is MTA, it did not come back at all. The redirect then arrived at a
+    ///         socket that was bound and listening, so the kernel completed the handshake into the accept
+    ///         queue, and the browser sat connected to a port nothing was reading, waiting for a response
+    ///         that could only be written after the call that was stuck. A tab spinning against a listening
+    ///         port, and a login button that would not arm again because its flow had never finished.
+    ///     </para>
+    ///     <para>
+    ///         So it gets an STA thread, and the flow does not depend on it returning. If it never does, the
+    ///         redirect is still accepted and answered, and the login still completes. If the browser truly
+    ///         never opened, the user sees nothing happen and the wait times out, which is the honest
+    ///         outcome for that. The thread is a background one so a stuck <c>ShellExecute</c> cannot keep
+    ///         the process alive.
+    ///     </para>
+    /// </summary>
+    private void OpenInBackground(Action<Uri> openBrowser, Uri authorize)
+    {
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                openBrowser(authorize);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not open the Nexus Mods login in a browser");
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "Nexus login browser"
+        };
+
+        if (OperatingSystem.IsWindows()) thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
     }
 
     /// <summary>

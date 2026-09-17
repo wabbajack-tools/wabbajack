@@ -73,6 +73,11 @@ public class NexusLoginHandler
         }
 
         await _tokenProvider.SetToken(next);
+
+        // Every way this method can end badly says so in the log, and until this line the one way it could
+        // end well said nothing at all - so a login that worked and a login that stopped somewhere in the
+        // middle left exactly the same trace, which is no trace.
+        _logger.LogInformation("Logged into Nexus Mods; the login is stored");
         return true;
     }
 
