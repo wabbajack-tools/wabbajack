@@ -47,6 +47,30 @@ public sealed class OAuthLoopbackListener : IDisposable
     /// </summary>
     private const int MaxRequestLineBytes = 8 * 1024;
 
+    /// <summary>
+    ///     How long one connection gets to send its request line. A browser that has opened a socket and
+    ///     means to use it sends immediately over loopback; one that has not said anything by now is a
+    ///     speculative connection, and waiting on it indefinitely is what let a single idle socket stall the
+    ///     login. Long enough that a slow machine is never cut off, short enough that the socket is not held
+    ///     for the rest of the login.
+    /// </summary>
+    private static readonly TimeSpan ReadTimeout = TimeSpan.FromSeconds(15);
+
+    /// <summary>
+    ///     How the loopback address is spelled in the redirect URI. It is one character of difference that
+    ///     the socket does not care about at all and the authorization server may care about entirely: Nexus
+    ///     Mods keeps a server-side list of redirect URIs per client and matches against it as a string, so
+    ///     <c>localhost</c> and <c>127.0.0.1</c> are the same machine and two different entries, and only
+    ///     whichever one is actually on the list is accepted. The literal IP is tried first because the
+    ///     client's previous registration was <c>https://127.0.0.1:1234</c>, so that spelling is the one
+    ///     already known to exist.
+    ///     <para>
+    ///         Both loopback stacks are still bound, so this is only about what the browser is told to
+    ///         visit. Spelled as the IPv4 literal, the browser goes straight to the IPv4 socket.
+    ///     </para>
+    /// </summary>
+    public const string CallbackHost = "127.0.0.1";
+
     private readonly string _path;
     private readonly TcpListener _v4;
     private readonly TcpListener? _v6;
@@ -69,10 +93,7 @@ public sealed class OAuthLoopbackListener : IDisposable
 
         _v6 = TryBindIPv6(Port);
 
-        // Spelled "localhost", deliberately. The callback registered with Nexus Mods is
-        // http://localhost:*/oauth/callback, and a redirect URI is matched as a string: 127.0.0.1 is the
-        // same address and a different string, and is refused.
-        RedirectUri = new Uri($"http://localhost:{Port}{path}");
+        RedirectUri = new Uri($"http://{CallbackHost}:{Port}{path}");
     }
 
     /// <summary>The loopback port this is listening on.</summary>
@@ -120,37 +141,94 @@ public sealed class OAuthLoopbackListener : IDisposable
     /// </summary>
     public async Task<OAuthCallback> WaitForCallback(CancellationToken token)
     {
-        while (true)
+        var found = new TaskCompletionSource<OAuthCallback>(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var giveUp = token.Register(() => found.TrySetCanceled(token));
+
+        using var accepting = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+        // Accepting runs on its own, so the next connection is taken while the last one is still being read.
+        // Each connection is then served independently, which is the whole point: a socket that connects and
+        // says nothing must not be able to hold up the one that matters.
+        var loop = Task.Run(async () =>
         {
-            var client = await AcceptAny(token);
-            var keep = false;
             try
             {
-                var target = await ReadTarget(client, token);
-                if (target == null)
+                while (!accepting.IsCancellationRequested)
                 {
-                    await WriteResponse(client, "400 Bad Request", null, token);
-                    continue;
+                    var client = await AcceptAny(accepting.Token);
+                    _ = Serve(client, found, accepting.Token);
                 }
-
-                if (!string.Equals(target.Path, _path, StringComparison.Ordinal))
-                {
-                    await WriteResponse(client, "404 Not Found", null, token);
-                    continue;
-                }
-
-                keep = true;
-                return new OAuthCallback(client, target.Query);
             }
-            catch (Exception ex) when (ex is IOException or SocketException)
+            catch (Exception ex) when (ex is OperationCanceledException or ObjectDisposedException
+                                           or SocketException)
             {
-                // A connection that broke before it said anything the server understood is not the redirect;
-                // the browser is still out there and the one that matters has not arrived yet.
+                // The listener closed, or the login ended. Either way there is nothing left to accept for.
             }
-            finally
+            catch (Exception ex)
             {
-                if (!keep) client.Dispose();
+                found.TrySetException(ex);
             }
+        }, CancellationToken.None);
+
+        try
+        {
+            return await found.Task;
+        }
+        finally
+        {
+            accepting.Cancel();
+            await loop.ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    ///     Reads one connection and either hands it back as the callback or answers and closes it.
+    ///     <para>
+    ///         The read is bounded by <see cref="ReadTimeout" /> because nothing obliges a connection to say
+    ///         anything. Browsers open speculative connections and hold them idle, and this server used to
+    ///         read them one at a time with no clock on it: a silent socket sat in <c>ReadAsync</c> for ever
+    ///         while the redirect that mattered queued behind it, connected but never accepted. What that
+    ///         looked like was a login that reached "authorization successful" in the browser and then never
+    ///         came back to the app.
+    ///     </para>
+    /// </summary>
+    private async Task Serve(TcpClient client, TaskCompletionSource<OAuthCallback> found, CancellationToken token)
+    {
+        var keep = false;
+        try
+        {
+            using var reading = CancellationTokenSource.CreateLinkedTokenSource(token);
+            reading.CancelAfter(ReadTimeout);
+
+            var target = await ReadTarget(client, reading.Token);
+            if (target == null)
+            {
+                await WriteResponse(client, "400 Bad Request", null, token);
+                return;
+            }
+
+            if (!string.Equals(target.Path, _path, StringComparison.Ordinal))
+            {
+                await WriteResponse(client, "404 Not Found", null, token);
+                return;
+            }
+
+            var callback = new OAuthCallback(client, target.Query);
+
+            // Whoever gets there first is the login. A second redirect - a refreshed tab, a browser
+            // replaying it - has nobody waiting for it, so it is closed rather than leaked.
+            if (found.TrySetResult(callback)) keep = true;
+            else callback.Dispose();
+        }
+        catch (Exception ex) when (ex is IOException or SocketException or OperationCanceledException
+                                       or ObjectDisposedException)
+        {
+            // A connection that broke, said nothing, or ran out of time is not the redirect. The browser is
+            // still out there and the one that matters has not arrived yet.
+        }
+        finally
+        {
+            if (!keep) client.Dispose();
         }
     }
 
