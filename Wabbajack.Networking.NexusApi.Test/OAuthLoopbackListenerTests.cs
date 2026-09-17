@@ -163,6 +163,13 @@ public class OAuthLoopbackListenerTests
     [InlineData("GET /oauth/callback?code=a-code HTTP/1.1", "/oauth/callback", "a-code")]
     [InlineData("GET /oauth/callback HTTP/1.1", "/oauth/callback", null)]
     [InlineData("GET http://localhost:1234/oauth/callback?code=a-code HTTP/1.1", "/oauth/callback", "a-code")]
+    // The ordinary relative form is the case that broke: on Unix a target starting with "/" parses as an
+    // absolute file path, so reading it as an absolute URI swallowed the query into an escaped path and no
+    // redirect ever matched the callback. Only http and https are honoured as the absolute form now, which
+    // also means a request line naming some other scheme is left as an opaque path that matches nothing
+    // rather than being interpreted.
+    [InlineData("GET /oauth/callback?code=a-code&state=s HTTP/1.1", "/oauth/callback", "a-code")]
+    [InlineData("GET file:///etc/passwd HTTP/1.1", "file:///etc/passwd", null)]
     public void ARequestLineIsSplitIntoItsPathAndQuery(string line, string path, string? code)
     {
         var target = OAuthLoopbackListener.ParseRequestLine(line);

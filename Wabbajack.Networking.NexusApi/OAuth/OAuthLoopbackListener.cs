@@ -294,7 +294,14 @@ public sealed class OAuthLoopbackListener : IDisposable
         var target = parts[1];
         if (target.Length == 0) return null;
 
-        if (Uri.TryCreate(target, UriKind.Absolute, out var absolute))
+        // Absolute *and* actually a web address. "Absolute" alone is not the same question on every
+        // platform: on Unix a target beginning with "/" - which is what every ordinary request line carries
+        // - parses as an absolute file path, so this matched, and "/oauth/callback?code=..." came back as a
+        // path of "/oauth/callback%3Fcode=..." with the query swallowed and escaped into it. The callback
+        // path then never matched and every redirect was refused. The absolute form of a request line is
+        // only ever http or https, so asking for that is both the narrower question and the right one.
+        if (Uri.TryCreate(target, UriKind.Absolute, out var absolute) &&
+            (absolute.Scheme == Uri.UriSchemeHttp || absolute.Scheme == Uri.UriSchemeHttps))
             return new OAuthRequestTarget(absolute.AbsolutePath, OAuthQuery.Parse(absolute.Query));
 
         var split = target.IndexOf('?');
