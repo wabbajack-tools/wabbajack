@@ -1,11 +1,8 @@
 using System.Reactive.Disposables;
 using ReactiveUI;
-using ReactiveMarbles.ObservableEvents;
 using System.Windows;
 using System.Windows.Controls.Primitives;
-using System;
 using System.Windows.Input;
-using System.Diagnostics;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.DownloadStates;
 using System.Reactive.Linq;
@@ -32,60 +29,6 @@ public partial class ModListDetailsView
             this.BindCommand(ViewModel, x => x.CloseCommand, x => x.CloseButton)
                 .DisposeWith(disposables);
 
-            this.WhenAnyValue(x => x.ArchivesButton.IsChecked)
-                .Select(x => !x)
-                .BindToStrict(this, x => x.ReadmeButton.IsChecked)
-                .DisposeWith(disposables);
-
-            this.WhenAnyValue(x => x.ReadmeButton.IsChecked)
-                .Select(x => !x)
-                .BindToStrict(this, x => x.ArchivesButton.IsChecked)
-                .DisposeWith(disposables);
-
-            this.WhenAnyValue(x => x.ArchivesButton.IsChecked)
-                .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
-                .BindToStrict(this, x => x.ArchivesDataGrid.Visibility)
-                .DisposeWith(disposables);
-
-            this.WhenAnyValue(x => x.ReadmeButton.IsChecked)
-                .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
-                .BindToStrict(this, x => x.ViewModel.Browser.Visibility)
-                .DisposeWith(disposables);
-
-            this.WhenAnyValue(x => x.ArchivesButton.IsChecked)
-                .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
-                .BindToStrict(this, x => x.SearchBox.Visibility)
-                .DisposeWith(disposables);
-
-            this.WhenAnyValue(x => x.ArchivesButton.IsChecked)
-                .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
-                .BindToStrict(this, x => x.SearchBoxBackground.Visibility)
-                .DisposeWith(disposables);
-
-            this.WhenAnyValue(x => x.ReadmeButton.IsChecked)
-                .Select(x => x ?? false ? Visibility.Visible : Visibility.Hidden)
-                .BindToStrict(this, x => x.OpenReadmeButton.Visibility)
-                .DisposeWith(disposables);
-
-            this.WhenAnyValue(x => x.ViewModel.MetadataVM.Metadata.Links.Readme)
-                .Select(readme =>
-                {
-                    try
-                    {
-                        var humanReadableReadme = UIUtils.GetHumanReadableReadmeLink(readme);
-                        if(Uri.TryCreate(humanReadableReadme, UriKind.Absolute, out var uri)) {
-                            return uri;
-                        }
-                        return default;
-                    }
-                    catch(Exception)
-                    {
-                        return new Uri(readme);
-                    }
-                })
-                .BindToStrict(this, x => x.ViewModel.Browser.Source)
-                .DisposeWith(disposables);
-
             this.WhenAnyValue(x => x.ViewModel.MetadataVM.ProgressPercent)
                 .BindToStrict(this, x => x.InstallButton.ProgressPercentage)
                 .DisposeWith(disposables);
@@ -109,7 +52,7 @@ public partial class ModListDetailsView
                 .BindToStrict(this, v => v.TagsControl.ItemsSource)
                 .DisposeWith(disposables);
 
-            this.BindCommand(ViewModel, x => x.OpenReadmeCommand, x => x.OpenReadmeButton)
+            this.BindCommand(ViewModel, x => x.OpenReadmeCommand, x => x.ReadmeButton)
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, x => x.OpenWebsiteCommand, x => x.WebsiteButton)
@@ -120,16 +63,6 @@ public partial class ModListDetailsView
 
             this.BindCommand(ViewModel, x => x.MetadataVM.InstallCommand, x => x.InstallButton)
                 .DisposeWith(disposables);
-
-            RxApp.MainThreadScheduler.Schedule(() =>
-            {
-                if (ViewModel.Browser.Parent != null)
-                {
-                    ((Panel)ViewModel.Browser.Parent).Children.Remove(ViewModel.Browser);
-                }
-                MainContentGrid.Children.Add(ViewModel.Browser);
-            });
-
         });
     }
 
@@ -137,9 +70,9 @@ public partial class ModListDetailsView
     {
         var presenter = ((DataGridCellsPresenter)e.Source);
         var archive = (Archive)presenter.Item;
-        if(archive.State is Nexus nexusState)
+        if (archive.State is Nexus nexusState && nexusState.LinkUrl is { } link)
         {
-            Process.Start(new ProcessStartInfo(nexusState.LinkUrl.ToString()) { UseShellExecute = true });
+            UIUtils.OpenWebsite(link);
         }
 
         RxApp.MainThreadScheduler.Schedule(0, (_, _) =>

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
-using Wabbajack.Messages;
 using Wabbajack.UserIntervention;
 
 namespace Wabbajack.Verbs;
@@ -23,13 +22,16 @@ public class NexusLogin
     public static VerbDefinition Definition = new("nexus-login", "Log into the Nexus via the normal browser method",
         Array.Empty<OptionDefinition>());
 
+    /// <summary>
+    ///     Opens the login in the user's own browser and waits for the redirect to come back to this
+    ///     process. Nothing to close and nothing to wait on but the login itself, so this is just the await.
+    /// </summary>
     public async Task<int> Run(CancellationToken token)
     {
-        var tcs = new TaskCompletionSource<int>();
         var handler = _services.GetRequiredService<NexusLoginHandler>();
-        handler.Closed += (sender, args) => { tcs.TrySetResult(0); };
-        ShowBrowserWindow.Send(handler);
+        if (await handler.LogIn(token)) return 0;
 
-        return await tcs.Task;
+        _logger.LogWarning("No Nexus Mods login was stored");
+        return 1;
     }
 }
