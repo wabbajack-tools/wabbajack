@@ -159,6 +159,135 @@ needs — a file that fails it is deleted. The whole thing is opt-in: game-files
 would buy rather than having it happen to them, and a host that registers no `IGameFileRestorer` behaves
 exactly as before. The CLI drives it with `repair-game-files`.
 
+**The Creation Kit is not a game, and does not need to be one.** Steam gives it an app of its own —
+1946180 for Skyrim SE, 1946160 for Fallout 4, 202480 for Skyrim, 2722710 for Starfield — with its own
+depots, but its `installdir` is the game's and Skyrim SE's even declares `sharesdirwithapp 489830`. So
+`CreationKit.exe`, `Data\Scripts.zip` and `Papyrus Compiler\PapyrusCompiler.exe` land beside `SkyrimSE.exe`,
+`hash-game-files` records them relative to the game folder like anything else there, and a modlist carries
+them as `GameFileSource { Game = SkyrimSpecialEdition }`. Nothing distinguishes them but the depot they have
+to come from. That is `GameMetaData.SteamToolIDs`: no new `Game` member, no second game folder, just a
+second app for `SteamGameFileRestorer` to search after the game's own. Tool apps are searched on the
+current-build path only — `indexed-game-files` records depot and manifest ids with no app beside them, so an
+id out of it can only be asked for under the game's app — which costs nothing, because a missing file tries
+today's build first and a mismatched one falls back to it. They stay out of `SteamIDs`, which `GameLocator`
+walks for an install the tool does not have.
+
+**The Kit is free but not licence-free, so fetching from it adds a licence to the user's account.**
+`common/FreeToDownload` is false: an account holding no package that names app 1946180 is refused the PICS
+access token, so the app cannot even be described, let alone read. Bethesda's own licence is a no-cost
+package granting exactly that app, and `ISteamContentClient.EnsureFreeLicenseAsync` asks for one the way
+pressing Install on a free store page does. Skyrim is the exception that proves the shape: 202480 is granted
+by the same packages that grant 72850, so owning Skyrim is owning its Kit.
+
+That request is the only thing in the tree that writes to a user's Steam account, so three rules hold it
+down. It is asked **lazily** — at the point the tool app's depots are about to be read, which the restorer
+reaches only after the game's own depots were searched and did not carry the file, so a list missing a DLC
+never adds a Creation Kit. It is **never asked on an unconfirmed read**: `DepotEntitlement.DecideFreeLicense`
+is the rule, and a licence list that never arrived is `Unconfirmed`, not "owns nothing" — the same refusal to
+guess `CheckAccessAsync` makes, pointed at the case where guessing wrong puts a package in somebody's
+library. And the answer is **memoised for the run, negative as well as positive**, because Steam refreshes
+the licence list asynchronously after a grant and fifty repaired files would otherwise ask fifty times.
+Telling the user this before they press the button is the restorer's job rather than the check's — preflight
+should not have to know what Steam does to an account, and the same sentence is wanted on more than one
+surface — and `SteamToolIDs` is the data that answers it, since a game with none has no companion app to add.
+
+A tool app that still cannot be opened does not end the restore — the game's own depots hold everything but
+the tool's files — but it is what gets reported if nothing else answered, because "no manifest has that
+file" would be a claim about a manifest nobody managed to read. The game's own refusal **outranks** a tool's:
+an account that does not hold Skyrim Special Edition is told about app 489830, not sent after a free tool it
+never needed, so the two are kept in separate variables rather than letting whichever arrived first win.
+
+`IGameFileRestorer.Consequences(games)` is that sentence, and it is the only copy: separate from `Status`,
+which asks whether a repair could run at all, because this depends on *which* files are in it. The Steam
+side reads `SteamToolIDs` for the apps in reach and names them from `FreeLicenseApps`, a table keyed by app
+id, so an app nobody has named still reads as the game's app rather than as nothing. It is per-game and
+never per-file, which is a limit rather than an oversight — whether a tool app is actually reached is not
+known until its depots are searched, which is after the licence would have been taken — so the wording
+promises "if one of them turns out to be needed" and not that it will be. The card, the check's detail and
+the CLI verb all say it, and only when a game in the repair has a tool app at all.
+
+All three ask it about **the games of the repairable files**, `repairable.Select(r => r.State.Game)`, and
+never about `Config.Game`. For nearly every list those are the same set, which is what makes the difference
+easy to get wrong: a list with `CanSourceFrom` files carries a second game, and the modlist's own game alone
+would miss a companion app for the sourced game while naming one for a game whose files are all fine.
+`GameFilesCheckTests.AsksAboutTheGamesOfTheFilesBeingRepaired` pins both directions.
+
+**Most Creations are not in any Steam depot, so there is a second source.** Skyrim Special Edition
+publishes 74 Anniversary Edition Creations, and depot 489831 carries **four** of them; the other 70 are a
+runtime download from `api.bethesda.net` and are in no depot at all. `SteamGameFileRestorer` can never
+fetch those, however well the depot path works — it is being asked a question Steam has no answer to. So
+`Wabbajack.Networking.Bethesda` holds a second `IGameFileRestorer`, `CreationRestorer`, and
+`CreationIndex` is the committed table that turns a wanted game file into a content id **by plugin stem**:
+a Creation unpacks to a plugin and an archive that share one, `ccBGSSSE002-ExoticArrows.esl` beside
+`...bsa`, and only the plugin is in the table.
+
+**What that path needs is the Steam *client*, not a Wabbajack Steam login**, and that is the whole point
+of it for the user. The running client mints an encrypted app ticket stating who the account is and what
+it owns, `ISteamAppTicketSource` is the seam it comes through, Bethesda decrypts it with a key only they
+hold, and entitlement is decided there. So `Status()` asks for two things the user can see for themselves
+— Skyrim SE installed, Steam running — and says so in those words. Scope is **`GameFileSource` archives
+and Skyrim Special Edition only**: the `Bethesda` *download state* keeps failing `UnsupportedArchivesCheck`
+exactly as it does today, and every other game gets `NoSource` rather than a guess. Creations are not
+published per game build, so `version` is read and not honoured; the result reports none, which reads as
+"whatever is published now", and `Archive.Hash` still decides whether that is the copy this list wanted.
+A resolve that returns no record for a content id is **absence and nothing more** — it is equally what a
+Creation the account does not own and one Bethesda has stopped publishing look like, and the message says
+so without inferring ownership. Nobody has tested what the resolve returns for an account without the
+Anniversary Upgrade; the one live run owned it and got all 74 back.
+
+**`CreationCache` is required, not an optimisation.** One `.ckm` unpacks to *two* files and `Restore` is
+asked for one at a time, so with nowhere to keep the other every Creation in a repair is fetched twice.
+It is keyed by content id, unpacks into a `TemporaryFileManager` folder, and is bounded at
+`CreationIndex.ExpectedCount` — the whole table, because the largest possible repair is every Creation and
+a bound below the working set evicts the entry that is about to be asked for again. That is the manifest
+cache's failure exactly: bounded at four while a repair swept thirteen, so thirteen distinct manifests
+cost 973 downloads. Signing in and resolving live here too: one ticket and one resolve answer for all 74,
+so both happen once per run. The slot's MD5 is checked over the `.ckm` before it is unpacked, which proves
+Bethesda served what it meant to and nothing more — `Archive.Hash` on what gets written is still the only
+thing that proves it is the file *this* list wanted.
+
+**Two sources, one `IGameFileRestorer`.** `PreflightRunner` resolves a single one, so
+`CompositeGameFileRestorer` in `Wabbajack.Downloaders.GameFile` holds both in order — Steam at
+`GameFileRestorerOrder.Steam`, Bethesda at `GameFileRestorerOrder.Bethesda` — and no check, no
+`PreflightContext` and no `GameFileRepair` knows there is more than one. Registration goes through
+`AddGameFileRestorer<T>(order)`, which collects types in a `GameFileRestorerRegistry` kept on the service
+collection; one registered source is handed back **as itself**, so a host that adds only `AddSteam`
+behaves exactly as it always has, down to the `SourceName` in every message. `Status()` is ready if any
+source is, `Consequences()` is the union so both the Creation Kit licence sentence and the Steam-must-be-
+running sentence reach the user, and `Restore()` tries in order.
+
+**Falling through on `NotReady` is the line the whole thing turns on.** `GameFileRepair.One` returns the
+moment a restorer reports `NotAttempted`, and `SteamGameFileRestorer` reports `NotReady` for every request
+when nobody has logged into Steam through Wabbajack. Passed straight up, that leaves a user with Steam
+running and no Wabbajack login unable to fetch a single Creation — and that user is exactly who the
+Bethesda path exists for. So `NotReady` and `NoSource` are "did not try", `FileNotFound` and
+`VersionUnknown` are "tried and did not have it", and both fall through; `Failed` stops, because a source
+that got as far as breaking has said something specific. What is reported when nothing worked is the other
+half: an answer from a source that actually tried always beats a decline, so `NotReady` comes back only
+when *every* source declined. Among sources that tried, the ranking is
+`GameFileRepair.Informativeness`'s. `CompositeGameFileRestorerTests` is the table.
+
+Both hosts wire the pair the same way: `App.xaml.cs` and `Wabbajack.CLI/Program.cs` call
+`AddBethesdaCreations()` and then `AddSteamAppTicket()` after `AddSteam()`. The second is what registers
+`CreationRestorer`, because it is the call that says this host will talk to the local Steam client, and a
+restorer with no ticket source in reach could only throw; it calls `AddBethesdaCreations()` itself so the
+two halves cannot be half-wired. A host that registers neither behaves exactly as it does today.
+
+**The WPF side of it.** `App.xaml.cs` calls `AddSteam`, registering its own `SteamGuardPrompt` first
+because `AddSteam`'s `TryAdd`ed default raises an intervention this app answers by throwing. The prompt is
+a singleton publishing whatever Steam Guard is asking as a `Pending` request; the pane binds to it and
+answers, and null out of the two code questions is the only way out of SteamKit's infinite retry loop.
+`SteamLoginVM` runs one attempt at a time, since `SteamSession` holds its login lock across a whole flow
+and refuses a second caller — switching between the QR and the password paths cancels the attempt in
+flight and waits for it to unwind. The challenge URL is drawn as a real code by `QrCodeView` (rectangles,
+a whole device pixel per module, aliased edges, black on white whatever the theme), and Steam rotates it
+from its polling thread, so it is marshalled. The pane is a floating one — `ShowSteamLogin` — used both by
+preflight and by the Logins settings tile, which exists mainly so a saved login has a visible way out:
+`SteamLoginManager` is an `INeedsLogin` whose `LoginFor` deliberately matches no downloader, because Steam
+is not a download source and nothing needs it logged in ahead of time. `GameFilesVM` owns the game-files
+card and the whole sequence behind `repair-game-files`: log in if there is no login, fetch with per-file
+progress, then re-run the check, which is what decides whether the run carries on.
+
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every
 install has to go through preflight first. Automated sources are WabbajackCDN, Http and premium Nexus; every other state

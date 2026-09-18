@@ -48,6 +48,9 @@
                         <DataTemplate DataType="{x:Type local:ConfirmationDialogVM}">
                             <local:ConfirmationDialogView ViewModel="{Binding}" />
                         </DataTemplate>
+                        <DataTemplate DataType="{x:Type local:SteamLoginVM}">
+                            <local:SteamLoginView ViewModel="{Binding}" />
+                        </DataTemplate>
                     </ContentPresenter.Resources>
                 </ContentPresenter>
             </Border>

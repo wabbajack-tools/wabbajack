@@ -41,13 +41,17 @@ public partial class PreflightVM : ViewModel
     private bool _disposed;
 
     public PreflightVM(PreflightRunner runner, NexusLoginManager nexusLogin, ProgressViewModel progressHost,
-        ILogger logger, IObservable<string> downloadSpeed, ICommand openReadme, ICommand openWebsite,
-        ICommand openCommunity, ICommand openManifest)
+        ILogger logger, IServiceProvider serviceProvider, IObservable<string> downloadSpeed, ICommand openReadme,
+        ICommand openWebsite, ICommand openCommunity, ICommand openManifest)
     {
         _runner = runner;
         _progressHost = progressHost;
         _logger = logger;
-        _actions = new PreflightActionDispatcher(runner, nexusLogin, logger);
+
+        // Built before the dispatcher, which routes the repair action to it. Its own buttons go back out
+        // through ExecuteAction, so both ways of asking for the same thing take the same path.
+        GameFiles = new GameFilesVM(runner, serviceProvider, logger, ExecuteAction, _cts.Token);
+        _actions = new PreflightActionDispatcher(runner, nexusLogin, GameFiles, logger);
 
         OpenReadmeCommand = openReadme;
         OpenWebsiteCommand = openWebsite;
@@ -77,6 +81,7 @@ public partial class PreflightVM : ViewModel
             .Subscribe(e =>
             {
                 if (_byId.TryGetValue(e.Status.Id, out var check)) check.Apply(e.Status);
+                if (e.Status.Id == PreflightCheckIds.GameFiles) GameFiles.Apply(e.Status);
                 Recompute();
             })
             .DisposeWith(CompositeDisposable);
@@ -113,6 +118,7 @@ public partial class PreflightVM : ViewModel
     public ReadOnlyObservableCollection<PreflightCheckVM> Checks { get; }
     public BulkDownloadsVM BulkDownloads { get; }
     public ManualDownloadsVM ManualDownloads { get; }
+    public GameFilesVM GameFiles { get; }
 
     [Reactive] public partial PreflightCheckVM? ActiveCheck { get; set; }
     [Reactive] public partial PreflightDetailKind DetailKind { get; set; }
@@ -268,6 +274,7 @@ public partial class PreflightVM : ViewModel
         base.Dispose();
         BulkDownloads.Dispose();
         ManualDownloads.Dispose();
+        GameFiles.Dispose();
         foreach (var check in _checks) check.Dispose();
 
         // The title bar carries the checklist's own progress, so it goes when the page does. Recompute is

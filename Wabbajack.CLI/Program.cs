@@ -11,6 +11,8 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 using Octokit;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.Networking.Bethesda;
+using Wabbajack.Networking.Bethesda.Steam;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.Steam;
@@ -51,6 +53,13 @@ internal class Program
 
                 services.AddOSIntegrated();
                 services.AddSteam();
+
+                // The second game file source, behind the same IGameFileRestorer as Steam's and asked after
+                // it. The seventy Anniversary Edition Creations no Steam depot carries come from Bethesda,
+                // fetched with a ticket the running Steam client mints rather than with a Wabbajack login.
+                services.AddBethesdaCreations();
+                services.AddSteamAppTicket();
+
                 services.AddServerLib();
 
 

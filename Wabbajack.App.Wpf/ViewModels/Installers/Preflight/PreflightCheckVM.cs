@@ -15,7 +15,8 @@ public enum PreflightDetailKind
 {
     None,
     BulkDownloads,
-    ManualDownloads
+    ManualDownloads,
+    GameFiles
 }
 
 /// <summary>
@@ -34,12 +35,6 @@ public partial class PreflightCheckVM : ViewModel
     {
         Id = status.Id;
         Title = status.Title;
-        DetailKind = status.Id switch
-        {
-            PreflightCheckIds.AutomatedDownloads => PreflightDetailKind.BulkDownloads,
-            PreflightCheckIds.ManualDownloads => PreflightDetailKind.ManualDownloads,
-            _ => PreflightDetailKind.None
-        };
         StatusText = string.Empty;
         Message = string.Empty;
         ActionLabel = string.Empty;
@@ -53,7 +48,15 @@ public partial class PreflightCheckVM : ViewModel
 
     public string Id { get; }
     public string Title { get; }
-    public PreflightDetailKind DetailKind { get; }
+
+    /// <summary>
+    ///     Which panel this check wants under the checklist. Two of them always want their own; game-files
+    ///     only wants one while it is actually offering to fetch something, which is why this follows the
+    ///     status rather than being decided once from the id. The rest of the time - while it is running,
+    ///     once it has passed, or when what it found is a game install nothing here can repair - the plain
+    ///     text panel says more than an empty card would.
+    /// </summary>
+    [Reactive] public partial PreflightDetailKind DetailKind { get; set; }
 
     [Reactive] public partial PreflightState State { get; set; }
 
@@ -81,6 +84,15 @@ public partial class PreflightCheckVM : ViewModel
     public void Apply(CheckStatus status)
     {
         State = status.State;
+        DetailKind = Id switch
+        {
+            PreflightCheckIds.AutomatedDownloads => PreflightDetailKind.BulkDownloads,
+            PreflightCheckIds.ManualDownloads => PreflightDetailKind.ManualDownloads,
+            PreflightCheckIds.GameFiles when status.Actions.Any(a => a.Id == PreflightAction.RepairGameFiles.Id) =>
+                PreflightDetailKind.GameFiles,
+            _ => PreflightDetailKind.None
+        };
+
         Message = status.State == PreflightState.Running && !string.IsNullOrWhiteSpace(status.ProgressText)
             ? status.ProgressText
             : status.Message;

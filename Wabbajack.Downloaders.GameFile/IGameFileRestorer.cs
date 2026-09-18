@@ -70,6 +70,24 @@ public interface IGameFileRestorer
     GameFileRestorerStatus Status();
 
     /// <summary>
+    ///     What repairing these games' files would do beyond downloading them, in sentences written for the
+    ///     user. Empty when the answer is nothing, which is the usual one.
+    ///     <para>
+    ///         Separate from <see cref="Status" />, which asks whether a repair could run at all; this
+    ///         depends on <em>which</em> files are being repaired. It exists because one case is not a
+    ///         download at all: a store may not hand over a free tool's files until the account holds a
+    ///         licence for it, and taking that licence adds the tool to the user's library. That is the only
+    ///         thing here that writes to their account rather than their disk, so it has to be in front of
+    ///         them while they are deciding rather than reported afterwards.
+    ///     </para>
+    ///     <para>
+    ///         Only said when it is true. A repair that reaches nothing of the sort adds nothing, and a
+    ///         warning shown every time is a warning nobody reads.
+    ///     </para>
+    /// </summary>
+    IReadOnlyList<string> Consequences(IEnumerable<Game> games);
+
+    /// <summary>
     ///     Writes <paramref name="gameFile" /> of <paramref name="game" />, as published at
     ///     <paramref name="version" />, to <paramref name="output" />.
     ///     A null or empty <paramref name="version" /> means whatever the game publishes now, which is the
