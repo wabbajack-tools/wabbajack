@@ -42,6 +42,72 @@ public class CompositeGameFileRestorerTests
         Assert.Throws<ArgumentException>(() => Composite());
     }
 
+    /// <summary>
+    ///     Whether a game that is not installed could be fetched instead, across sources. One source that
+    ///     can is all preflight needs, so a source that carries add-ons rather than the game - which is what
+    ///     Bethesda's Creations are - must not be able to answer for the one that carries the game.
+    /// </summary>
+    [Fact]
+    public async Task OneSourceThatCanSupplyTheGameIsEnough()
+    {
+        var addOns = Sourcing("Bethesda", GameSourceOutcome.NoSource);
+        var depots = Sourcing("Steam", GameSourceOutcome.Available);
+
+        var result = await Composite(addOns, depots).CanSourceGame(Game.SkyrimSpecialEdition,
+            CancellationToken.None);
+
+        Assert.True(result.Available);
+        Assert.Equal("Steam", result.Reason);
+    }
+
+    /// <summary>
+    ///     When none can, what the user is told comes from a source that actually asked. "We do not carry
+    ///     that game" is not an answer about the account, and it must not shadow one that is.
+    /// </summary>
+    [Fact]
+    public async Task AnAnswerAboutTheAccountBeatsASourceThatDidNotLook()
+    {
+        var result = await Composite(Sourcing("Bethesda", GameSourceOutcome.NoSource),
+                Sourcing("Steam", GameSourceOutcome.NotOwned))
+            .CanSourceGame(Game.SkyrimSpecialEdition, CancellationToken.None);
+
+        Assert.Equal(GameSourceOutcome.NotOwned, result.Outcome);
+    }
+
+    /// <summary>
+    ///     A store that would not say has not contradicted one that said no, and an install stopped over
+    ///     "you do not own this" should only ever be stopped by an account somebody actually read.
+    /// </summary>
+    [Fact]
+    public async Task ASourceThatCouldNotFindOutOutranksOneThatSaysNo()
+    {
+        var result = await Composite(Sourcing("Steam", GameSourceOutcome.NotOwned),
+                Sourcing("Other", GameSourceOutcome.Unconfirmed))
+            .CanSourceGame(Game.SkyrimSpecialEdition, CancellationToken.None);
+
+        Assert.Equal(GameSourceOutcome.Unconfirmed, result.Outcome);
+    }
+
+    /// <summary>
+    ///     With nobody logged in anywhere, the reported answer is the one the user can act on: logging in is
+    ///     something they can go and do, and "this game is not ours" leaves them nowhere.
+    /// </summary>
+    [Fact]
+    public async Task ALoginTheUserCouldMakeOutranksASourceThatCarriesNothing()
+    {
+        var result = await Composite(Sourcing("Bethesda", GameSourceOutcome.NoSource),
+                Sourcing("Steam", GameSourceOutcome.NotReady))
+            .CanSourceGame(Game.SkyrimSpecialEdition, CancellationToken.None);
+
+        Assert.Equal(GameSourceOutcome.NotReady, result.Outcome);
+        Assert.Equal("Steam", result.Reason);
+    }
+
+    private static ScriptedRestorer Sourcing(string name, GameSourceOutcome outcome)
+    {
+        return new ScriptedRestorer(name, GameFileRestoreOutcome.FileNotFound) {Source = outcome};
+    }
+
     [Fact]
     public async Task SourcesAreAskedInTheOrderTheyWereGiven()
     {
@@ -392,6 +458,9 @@ public class CompositeGameFileRestorerTests
         public string Reason { get; init; } = "ready";
         public string? Consequence { get; init; }
 
+        /// <summary>What this source says when asked whether it could stand in for a missing install.</summary>
+        public GameSourceOutcome Source { get; init; } = GameSourceOutcome.NoSource;
+
         public int Calls { get; private set; }
         public int AskedAt { get; private set; }
 
@@ -405,6 +474,13 @@ public class CompositeGameFileRestorerTests
         public IReadOnlyList<string> Consequences(IEnumerable<Game> games)
         {
             return Consequence == null || !games.Any() ? Array.Empty<string>() : new[] {Consequence};
+        }
+
+        public Task<GameSourceResult> CanSourceGame(Game game, CancellationToken token)
+        {
+            Calls++;
+            AskedAt = Interlocked.Increment(ref _clock);
+            return Task.FromResult(new GameSourceResult(Source, SourceName));
         }
 
         public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
@@ -447,6 +523,11 @@ public class CompositeGameFileRestorerTests
         public IReadOnlyList<string> Consequences(IEnumerable<Game> games)
         {
             return Array.Empty<string>();
+        }
+
+        public Task<GameSourceResult> CanSourceGame(Game game, CancellationToken token)
+        {
+            return Task.FromResult(new GameSourceResult(GameSourceOutcome.NoSource, SourceName));
         }
 
         public Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,

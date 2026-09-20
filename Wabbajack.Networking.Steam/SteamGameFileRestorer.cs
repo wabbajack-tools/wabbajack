@@ -72,6 +72,77 @@ public class SteamGameFileRestorer : IGameFileRestorer
     }
 
     /// <summary>
+    ///     Whether this account could stand in for a missing install of the game: the game has to be sold on
+    ///     Steam, somebody has to be logged in, and the account has to own it. Those are the three things
+    ///     that decide whether preflight can carry on without a game folder, and they are asked here rather
+    ///     than there because the last of them is a question only Steam can answer.
+    ///     <para>
+    ///         A stored login is used the way <see cref="Restore" /> uses one - it is a login the user
+    ///         already made - but nobody is prompted for a new one. A user with no Steam login gets the
+    ///         same missing-game failure they have always had, with a sentence about what logging in would
+    ///         change.
+    ///     </para>
+    ///     <para>
+    ///         Ownership is asked of the app's own id rather than a depot's. A package lists whichever of
+    ///         the two the store entry happens to use and <c>DepotEntitlement.PackageGrantsDepot</c> checks
+    ///         both lists against whatever it is given, so the app id is the one thing that is certain to
+    ///         exist for every game - the depot layout of a game nobody has installed is not known here at
+    ///         all. <see cref="DepotAccess.Unconfirmed" /> is carried across as its own answer for the
+    ///         reason it exists: a licence list that never arrived is not an account that owns nothing, and
+    ///         telling somebody to go and buy a game they own is the worst answer available.
+    ///     </para>
+    /// </summary>
+    public async Task<GameSourceResult> CanSourceGame(Game game, CancellationToken token)
+    {
+        var meta = game.MetaData();
+        var appId = meta.SteamIDs.FirstOrDefault();
+
+        if (appId <= 0)
+            return new GameSourceResult(GameSourceOutcome.NoSource,
+                $"{meta.HumanFriendlyGameName} is not sold on Steam, so its files cannot be fetched from a depot.");
+
+        if (!_session.IsLoggedIn)
+        {
+            var status = Status();
+            if (!status.Ready) return new GameSourceResult(GameSourceOutcome.NotReady, status.Reason);
+
+            try
+            {
+                await _session.LoginWithStoredTokenAsync(token);
+            }
+            catch (SteamLoginRequiredException ex)
+            {
+                return new GameSourceResult(GameSourceOutcome.NotReady, ex.Message);
+            }
+        }
+
+        try
+        {
+            return await _content.CheckAccessAsync((uint) appId, (uint) appId, token) switch
+            {
+                DepotAccess.Granted => new GameSourceResult(GameSourceOutcome.Available,
+                    $"Your Steam account owns {meta.HumanFriendlyGameName}, so the files this list needs from " +
+                    "it can be fetched from Steam's depots into your downloads folder."),
+
+                DepotAccess.NotEntitled => new GameSourceResult(GameSourceOutcome.NotOwned,
+                    $"The Steam account {_session.AccountName} holds no licence for " +
+                    $"{meta.HumanFriendlyGameName} (app {appId}), so its files cannot be fetched from Steam."),
+
+                _ => new GameSourceResult(GameSourceOutcome.Unconfirmed,
+                    $"Steam did not say what the account {_session.AccountName} owns, so whether " +
+                    $"{meta.HumanFriendlyGameName} could be fetched from it is unknown. Check your connection " +
+                    "and try again.")
+            };
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Asking Steam whether this account owns {Game} failed", game);
+            return new GameSourceResult(GameSourceOutcome.Unconfirmed,
+                $"Steam could not be asked whether this account owns {meta.HumanFriendlyGameName}: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     ///     Names the free companion apps a repair of these games could reach, and says what reaching one
     ///     does to the user's library. Nothing at all for the ordinary case - a game the account owns, whose
     ///     depots are read with the licence the user already has.

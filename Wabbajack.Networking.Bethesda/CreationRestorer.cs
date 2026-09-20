@@ -90,6 +90,19 @@ public class CreationRestorer : IGameFileRestorer
     }
 
     /// <summary>
+    ///     Never a stand-in for a missing install, whatever the account owns. Creations are add-ons to a
+    ///     game rather than the game, so a machine with no Skyrim Special Edition folder is missing files
+    ///     nothing here publishes - and the ticket that asks Bethesda for a Creation is minted by a library
+    ///     that lives in that same folder, so this source does not work at all without it.
+    /// </summary>
+    public Task<GameSourceResult> CanSourceGame(Game game, CancellationToken token)
+    {
+        return Task.FromResult(new GameSourceResult(GameSourceOutcome.NoSource,
+            "Bethesda publishes Creations for Skyrim Special Edition, not the game itself, so they are no " +
+            "substitute for having it installed."));
+    }
+
+    /// <summary>
     ///     What fetching Creations for these games asks of the user, said only when one of them actually has
     ///     Creations to fetch - which today means Skyrim Special Edition and nothing else. A repair that
     ///     reaches none of this adds nothing to say, and a warning shown every time is a warning nobody

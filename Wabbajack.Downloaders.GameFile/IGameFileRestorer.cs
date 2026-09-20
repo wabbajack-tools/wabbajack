@@ -51,6 +51,38 @@ public record GameFileRestoreResult(GameFileRestoreOutcome Outcome, string? Vers
 public record GameFileRestorerStatus(bool Ready, string Reason);
 
 /// <summary>
+///     Whether a source could stand in for a game that is not installed on this machine at all.
+///     <para>
+///         The three unavailable answers are kept apart for the same reason <c>DepotAccess</c> keeps its
+///         three: "log in and this works", "this account does not own the game" and "we could not find out"
+///         are three different things for the user to do, and the last is not a no.
+///     </para>
+/// </summary>
+public enum GameSourceOutcome
+{
+    /// <summary>The account owns the game here, so its files can be fetched without a local install.</summary>
+    Available,
+
+    /// <summary>Nothing was asked: nobody is logged into this source.</summary>
+    NotReady,
+
+    /// <summary>This source does not carry this game's own files, whoever is logged in.</summary>
+    NoSource,
+
+    /// <summary>Asked, and the account does not own the game.</summary>
+    NotOwned,
+
+    /// <summary>Asked, and the source would not say. Not a denial.</summary>
+    Unconfirmed
+}
+
+/// <param name="Reason">A sentence for the user: what this means, and what they could do about it.</param>
+public record GameSourceResult(GameSourceOutcome Outcome, string Reason)
+{
+    public bool Available => Outcome == GameSourceOutcome.Available;
+}
+
+/// <summary>
 ///     Fetches a file out of a game's own published content, at a named version of that game.
 ///     This is the seam between wanting a game file and wherever game files come from. It is deliberately
 ///     not "talk to Steam": the caller says which file of which game at which version, and an implementation
@@ -68,6 +100,26 @@ public interface IGameFileRestorer
     ///     restore is never something that happens to them: an account is theirs to hand over or not.
     /// </summary>
     GameFileRestorerStatus Status();
+
+    /// <summary>
+    ///     Whether this source could supply <paramref name="game" />'s own files on a machine where the game
+    ///     is not installed. Asked by preflight when it cannot find the game folder, and only then: an
+    ///     install that has the game needs none of this.
+    ///     <para>
+    ///         A wider question than <see cref="Status" />, and a narrower one than <see cref="Restore" />.
+    ///         Wider because it asks about the account as well as the login - whether the store will hand
+    ///         this particular game over - and narrower because it is about the game's own published
+    ///         content and not about any one file. A source that carries add-ons for a game rather than the
+    ///         game answers <see cref="GameSourceOutcome.NoSource" />: those are no substitute for an
+    ///         install.
+    ///     </para>
+    ///     <para>
+    ///         It may log in with a credential the user has already given, because that is a login they
+    ///         made, but it must not ask them for a new one: this runs while preflight is reporting, not
+    ///         while the user is deciding.
+    ///     </para>
+    /// </summary>
+    Task<GameSourceResult> CanSourceGame(Game game, CancellationToken token);
 
     /// <summary>
     ///     What repairing these games' files would do beyond downloading them, in sentences written for the

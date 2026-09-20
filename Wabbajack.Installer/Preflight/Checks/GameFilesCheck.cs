@@ -65,9 +65,12 @@ public sealed class GameFilesCheck : IPreflightCheck
         // the action next.
         ctx.State.RepairableGameFiles = Array.Empty<RepairableGameFile>();
 
-        var missingRequired = meta.RequiredFiles
-            .Where(r => !folder.Combine(r).FileExists())
-            .ToList();
+        // Only of a folder that exists. game-installed lets a run carry on with no game folder at all when
+        // the game's files can be fetched instead, and "the install at "" is incomplete" is both untrue and
+        // a row the user has already been told about - by the Warning that let the run get here.
+        var missingRequired = folder == default
+            ? new List<RelativePath>()
+            : meta.RequiredFiles.Where(r => !folder.Combine(r).FileExists()).ToList();
         if (missingRequired.Count > 0)
         {
             return Task.FromResult(PreflightResult.Failed(
@@ -161,7 +164,12 @@ public sealed class GameFilesCheck : IPreflightCheck
     {
         var restorer = ctx.GameFileRestorer;
         if (restorer == null) return null;
-        if (!repairable.Any(r => ctx.GameLocator.TryGetSteamBuildId(r.State.Game, out _))) return null;
+
+        // Came from a store the restorer can fetch from, which for an installed game is what a Steam build
+        // id in its own folder says. A game that is not installed has no folder to read one out of, so
+        // game-installed's answer - a source that said it could supply this game - stands in its place.
+        if (!repairable.Any(r => ctx.GameLocator.TryGetSteamBuildId(r.State.Game, out _)
+                                 || ctx.State.SourcedGames.Contains(r.State.Game))) return null;
 
         var status = restorer.Status();
         detail.Add(string.Empty);
@@ -196,6 +204,12 @@ public sealed class GameFilesCheck : IPreflightCheck
             root = ctx.State.GameFolder;
         else if (!ctx.State.OtherGameFolders.TryGetValue(state.Game, out root))
             return Outcome.Missing;
+
+        // No folder to look in - a game that is being sourced rather than installed - so every file is
+        // missing rather than mismatched, which is also the truth: nothing here is the wrong version of
+        // anything. It is the answer the repair wants, too, since a missing file asks for the current
+        // build and needs no version index.
+        if (root == default) return Outcome.Missing;
 
         return state.GameFile.RelativeTo(root).FileExists() ? Outcome.Mismatch : Outcome.Missing;
     }

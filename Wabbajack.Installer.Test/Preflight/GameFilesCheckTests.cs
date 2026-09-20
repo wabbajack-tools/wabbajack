@@ -272,6 +272,62 @@ public class GameFilesCheckTests : IDisposable
     }
 
     /// <summary>
+    ///     A game that is not installed at all: game-installed left no folder and said the source can supply
+    ///     the game, so every file this list takes from it is missing rather than mismatched - nothing here
+    ///     is the wrong version of anything - and the repair is offered.
+    ///     <para>
+    ///         The Steam build id is what says "this came from a store we can fetch from" for an installed
+    ///         game, and it is read out of a local install. There is none, so <c>SourcedGames</c> stands in
+    ///         its place; without that this row would list every game file as missing and offer no way to
+    ///         get any of them.
+    ///     </para>
+    /// </summary>
+    [Fact]
+    public async Task AGameThatIsSourcedRatherThanInstalledHasEveryFileMissing()
+    {
+        _host.Restorer = new FakeGameFileRestorer();
+        _host.Config.ModList.Archives = new[]
+        {
+            await GameFile(null, "Data/Skyrim.esm", "esm bytes"),
+            await GameFile(null, "Data/Dawnguard.esm", "dlc bytes")
+        };
+
+        var ctx = _host.Context();
+        ctx.State.GameFolder = default;
+        ctx.State.SourcedGames.Add(Game.SkyrimSpecialEdition);
+        await _host.Inventory(ctx);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Failed, result.State);
+        Assert.Contains("2 game files are missing", result.Message);
+        Assert.Equal(new[] {PreflightAction.RepairGameFiles}, result.Actions);
+        Assert.All(ctx.State.RepairableGameFiles, f => Assert.Equal(GameFileProblem.Missing, f.Problem));
+    }
+
+    /// <summary>
+    ///     The game's own required files are a claim about an install, and there is none. Saying the install
+    ///     at "" is incomplete would be both untrue and a row the user has already seen - the Warning that
+    ///     let the run get this far.
+    /// </summary>
+    [Fact]
+    public async Task ASourcedGameIsNotCheckedForRequiredFiles()
+    {
+        _host.Restorer = new FakeGameFileRestorer();
+        _host.Config.ModList.Archives = Array.Empty<Archive>();
+
+        var ctx = _host.Context();
+        ctx.State.GameFolder = default;
+        ctx.State.SourcedGames.Add(Game.SkyrimSpecialEdition);
+        await _host.Inventory(ctx);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Contains("takes no files from the game", result.Message);
+    }
+
+    /// <summary>
     ///     A user who has not logged into Steam is told what logging in would get them, on a row that still
     ///     offers the action. What must not happen is a login starting because a check ran.
     /// </summary>

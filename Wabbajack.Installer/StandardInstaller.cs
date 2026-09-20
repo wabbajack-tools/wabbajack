@@ -79,35 +79,41 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         NextStep(Consts.StepPreparing, "Configuring Installer", 0);
         _logger.LogInformation("Configuring Processor");
 
-        if (_configuration.GameFolder == default)
-            _configuration.GameFolder = _gameLocator.GameLocation(_configuration.Game);
+        // Located rather than demanded. An install with no game folder is a real one now: preflight lets a
+        // run carry on when the game is not installed and a source can supply the files it takes from the
+        // game, and those files are in the downloads folder by the time this runs. HashArchives looks for
+        // every archive by hash across downloads and the game folders alike and never dereferences
+        // GameFileSource.GameFile, so nothing below needs a game folder to exist - and if something this
+        // list needs is not in downloads after all, the missing-archive check a few lines down says so with
+        // the names of the files rather than with "this game isn't installed".
+        if (_configuration.GameFolder == default &&
+            _gameLocator.TryFindLocation(_configuration.Game, out var located))
+            _configuration.GameFolder = located;
 
-        if (_configuration.GameFolder == default)
-        {
-            var otherGame = _configuration.Game.MetaData().CommonlyConfusedWith
-                .Where(g => _gameLocator.IsInstalled(g)).Select(g => g.MetaData()).FirstOrDefault();
-            if (otherGame != null)
-            {
-                _logger.LogError(
-                    "In order to do a proper install Wabbajack needs to know where your {lookingFor} folder resides. However this game doesn't seem to be installed, we did however find an installed " +
-                    "copy of {otherGame}, did you install the wrong game?",
-                    _configuration.Game.MetaData().HumanFriendlyGameName, otherGame.HumanFriendlyGameName);
-            }
-            else
-                _logger.LogError(
-                    "In order to do a proper install Wabbajack needs to know where your {lookingFor} folder resides. However this game doesn't seem to be installed.",
-                    _configuration.Game.MetaData().HumanFriendlyGameName);
-
-            return InstallResult.GameMissing;
-        }
-
-        if (!_configuration.GameFolder.DirectoryExists())
+        if (_configuration.GameFolder != default && !_configuration.GameFolder.DirectoryExists())
         {
             _logger.LogError("Located game {game} at \"{gameFolder}\" but the folder does not exist!",
                 _configuration.Game, _configuration.GameFolder);
             return InstallResult.GameInvalid;
         }
 
+        if (_configuration.GameFolder == default)
+        {
+            var otherGame = _configuration.Game.MetaData().CommonlyConfusedWith
+                .Where(g => _gameLocator.IsInstalled(g)).Select(g => g.MetaData()).FirstOrDefault();
+
+            // Worth a line either way: anything the modlist points at the game folder - MO2's game path,
+            // a launcher's working directory - is written with nothing in it, and the user will have to
+            // point it somewhere once they install the game.
+            _logger.LogWarning(
+                "{lookingFor} is not installed on this machine. The modlist will be installed from the downloads " +
+                "folder, but anything in it that refers to the game folder will have no path to use until the " +
+                "game is installed.{confused}",
+                _configuration.Game.MetaData().HumanFriendlyGameName,
+                otherGame != null
+                    ? $" An installed copy of {otherGame.HumanFriendlyGameName} was found - did you install the wrong game?"
+                    : string.Empty);
+        }
 
         _logger.LogInformation("Install Folder: {InstallFolder}", _configuration.Install);
         _logger.LogInformation("Downloads Folder: {DownloadFolder}", _configuration.Downloads);

@@ -144,6 +144,34 @@ check could fail a run that would have succeeded. It now runs at 350, reads the 
 already built, and hashes nothing itself. The *missing* versus *mismatched* distinction is still decided by
 the file's own path, because that is what tells the repair below whether today's build will do.
 
+**A game that is not installed does not have to stop a run.** What an install takes from the game is its
+files, and the installer looks for those by hash across the downloads folder as well as the game folders —
+which is the whole reason the repair puts fetched files in downloads. So when the folder cannot be found,
+game-installed asks `IGameFileRestorer.CanSourceGame`, and a source that says the account owns the game
+there turns the old failure into a `Warning`: the run carries on with no game folder, game-files lists
+every file the list takes from the game as missing, and the repair fetches them. The Warning still has to
+be acknowledged, because installing a list for a game that is not on the machine is a decision — the
+modlist installs, but anything in it that points at a game folder (MO2's game path, a launcher) has nowhere
+to point until the game is installed. That is also why the CLI cannot do it: `PreflightInstall` treats any
+unacknowledged Warning as not ready, exactly as it already does for a low disk-space warning.
+
+The three conditions the user asked for are one question, because only the store can answer the third:
+`SteamGameFileRestorer.CanSourceGame` wants a game with a Steam app id, a session (a stored login is used,
+nobody is prompted), and `CheckAccessAsync` on the app's own id — which is what says the account owns it.
+`DepotAccess.Unconfirmed` stays its own answer for the reason it exists elsewhere: a licence list that never
+arrived is not an account that owns nothing. `CreationRestorer` answers `NoSource` — Creations are add-ons
+to a game rather than the game — so the composite's ordinary fall-through rules decide what the user is
+told. It is only ever asked when the folder is missing, so an ordinary install pays nothing for it, and a
+folder the *user* named and that is not there is still a plain failure: they said where the game is.
+
+game-installed records the answer as `PreflightBlackboard.SourcedGames`, which is what game-files reads in
+place of `IGameLocator.TryGetSteamBuildId` — that one is read out of a local install, and there is none, so
+without it the row listing every game file as missing would offer no way to get any of them.
+`StandardInstaller.Begin` matches: it locates a game folder rather than demanding one, keeps `GameInvalid`
+for a folder that was named and is not there, and lets an install with no game folder run. Nothing below it
+needs one, and a list that turns out to be missing something says so through the missing-archive check,
+which names the files.
+
 **Fetching game files is optional, and never writes to the game folder.** `Rules/GameFileRepair` takes what
 game-files put on the blackboard and asks `IGameFileRestorer` — declared in `Wabbajack.Downloaders.GameFile`,
 beside `GameFileDownloader` and `IGameLocator` — for "this file of this game at this version". That seam
