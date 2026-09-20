@@ -78,10 +78,10 @@ public sealed class FakeGameFileRestorer : IGameFileRestorer
     }
 
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-        AbsolutePath output, CancellationToken token, long? expectedSize = null)
+        AbsolutePath output, CancellationToken token, GameFileIdentity? wanted = null)
     {
-        var wanted = gameFile.ToString();
-        Asked.Add((game, version, wanted));
+        var path = gameFile.ToString();
+        Asked.Add((game, version, path));
 
         if (!Ready) return new GameFileRestoreResult(GameFileRestoreOutcome.NotReady, version, NotReadyReason);
         if (Throws != null) throw Throws();
@@ -90,9 +90,9 @@ public sealed class FakeGameFileRestorer : IGameFileRestorer
             return new GameFileRestoreResult(GameFileRestoreOutcome.VersionUnknown, version,
                 $"The index has no record of {game} {version}.");
 
-        if (!Files.TryGetValue((version, wanted), out var content))
+        if (!Files.TryGetValue((version, path), out var content))
             return new GameFileRestoreResult(GameFileRestoreOutcome.FileNotFound, version,
-                $"Nothing published at {version ?? "the current build"} contains \"{wanted}\".");
+                $"Nothing published at {version ?? "the current build"} contains \"{path}\".");
 
         output.Parent.CreateDirectory();
         await output.WriteAllBytesAsync(Encoding.UTF8.GetBytes(content), token);

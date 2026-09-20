@@ -1,3 +1,4 @@
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
 
@@ -83,6 +84,25 @@ public record GameSourceResult(GameSourceOutcome Outcome, string Reason)
 }
 
 /// <summary>
+///     What the caller knows about the file it wants, beyond where it sits in the game folder. A modlist
+///     records both of these for every game file, and both change what a source can do:
+///     <list type="bullet">
+///         <item>
+///             The hash is an identity, and a better question than a version. A source that has been told
+///             which of its manifests carry which bytes can go straight to one, whatever build it belongs
+///             to - which is the whole of the case where a list was built against a version the store has
+///             moved past.
+///         </item>
+///         <item>
+///             The size is a cheap refusal. A manifest says how big a file is before anything is fetched,
+///             and a copy of another size cannot be the wanted one; the caller hashes everything that comes
+///             back and deletes what does not match, so downloading it only proves what the manifest said.
+///         </item>
+///     </list>
+/// </summary>
+public record GameFileIdentity(Hash Hash, long Size);
+
+/// <summary>
 ///     Fetches a file out of a game's own published content, at a named version of that game.
 ///     This is the seam between wanting a game file and wherever game files come from. It is deliberately
 ///     not "talk to Steam": the caller says which file of which game at which version, and an implementation
@@ -147,14 +167,11 @@ public interface IGameFileRestorer
     ///     The bytes are checked against whatever hash the source itself carries for the file; the caller
     ///     still has to decide whether they are the bytes <em>it</em> wanted.
     /// </summary>
-    /// <param name="expectedSize">
-    ///     How big the wanted file is, when the caller knows - a modlist records it. A source that can see a
-    ///     file's size before fetching it should refuse one of another size rather than download it: the
-    ///     caller is going to hash what comes back and throw away anything that is not the file it asked
-    ///     for, and a list built against a game version the store no longer publishes fails that check on
-    ///     nearly every file. Skyrim's textures alone are several gigabytes to establish something a number
-    ///     in a manifest already said. Null means the caller does not know, and nothing is pre-checked.
+    /// <param name="wanted">
+    ///     The hash and size of the file being asked for, when the caller knows them - see
+    ///     <see cref="GameFileIdentity" />. Null means it does not, and the source falls back to answering
+    ///     by version and path alone.
     /// </param>
     Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile, AbsolutePath output,
-        CancellationToken token, long? expectedSize = null);
+        CancellationToken token, GameFileIdentity? wanted = null);
 }

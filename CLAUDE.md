@@ -187,17 +187,52 @@ needs — a file that fails it is deleted. The whole thing is opt-in: game-files
 would buy rather than having it happen to them, and a host that registers no `IGameFileRestorer` behaves
 exactly as before. The CLI drives it with `repair-game-files`.
 
-**`Archive.Hash` is the last word, so `Archive.Size` goes with the question.** Deciding a fetched file is
-the wrong one after fetching it is correct and ruinously expensive: a list built against a version the
-store has moved past fails that check on nearly every file, and Skyrim's four texture archives alone are
-about five gigabytes downloaded to establish something the depot manifest already said. `Restore` therefore
-takes the size the modlist recorded, and `SteamGameFileRestorer` skips a candidate whose manifest entry is
-another size — per candidate, since one depot carrying the wrong copy says nothing about the next — and
+**`Archive.Hash` is the last word, so it goes with the question.** `Restore` takes a `GameFileIdentity` —
+the hash and size the modlist recorded — and both change what a source can do.
+
+The size is a cheap refusal. Deciding a fetched file is the wrong one after fetching it is correct and
+ruinously expensive: a list built against a version the store has moved past fails that check on nearly
+every file, and Skyrim's four texture archives alone are about five gigabytes downloaded to establish
+something the depot manifest already said. `SteamGameFileRestorer` skips a candidate whose manifest entry
+is another size — per candidate, since one depot carrying the wrong copy says nothing about the next — and
 reports "the copy Steam publishes now is a different file" instead of "no manifest lists that file". Sizes
 match far more often than hashes do, so this is a pre-filter and not a substitute: everything that *is*
-fetched is still hashed, and anything that fails is still deleted. `CreationRestorer` ignores the size
-deliberately — a Creation arrives as one `.ckm` carrying both of its files, so by the time either file's
-size is known the download is already paid for.
+fetched is still hashed, and anything that fails is still deleted.
+
+**The hash is an identity, and it beats every version question.** `ISteamManifestIndex.Find` asks the
+content index which manifest carries a file with these bytes, and `Restore` asks it before anything else:
+it needs no version string, so it answers for a build whose number nobody recorded and for a list whose
+recorded version was never indexed. Everything about that path falls through rather than failing — an
+entry naming a manifest Steam no longer serves, a depot this account cannot open, an index that is simply
+down — because the index is a GitHub repo and a repair must not depend on it being up. A companion app's
+licence is taken the same way it is everywhere else: only when a depot of it is about to be read.
+`CreationRestorer` ignores the identity deliberately — a Creation arrives as one `.ckm` carrying both of
+its files, so by the time either file's size is known the download is already paid for.
+
+**Steam cannot enumerate a depot's history, so the index is built by hand.** PICS says what a depot publishes *now* and nothing else. Any
+manifest can be fetched by id — the CDN serves it with a request code to an entitled account — so
+everything about an older build depends on somebody having written its ids down while they had it. There
+are exactly two places they come from: a machine with that build installed, whose `appmanifest_<app>.acf`
+records a manifest id per depot (`IGameLocator.TryGetSteamManifests`), or someone recording them while the
+build is current. `hash-game-files` therefore writes `{version}_steam_manifests.json` beside the hashes it
+was already writing: the hashes can be produced again by anyone who still has the files, and the ids
+cannot.
+
+**A manifest never says what a file hashes to.** It carries a path, a size and Valve's SHA-1; a modlist
+carries an xxHash64. Nothing connects the two but the bytes, so `index-steam-depots` fetches a build once,
+hashes every file and writes down what came out — into `{Game}/content/{xx}.json` in `indexed-game-files`,
+sharded by the first byte of the hash so a lookup is one small file over HTTP. It indexes the current
+build, the build installed on this machine (`--installed`, the only route to a version Steam has moved
+past), or an explicit depot and manifest. Cost is bandwidth — about fifteen gigabytes for a Skyrim Special
+Edition build — and nothing is kept: each file is hashed into a temporary folder and deleted.
+
+`GameFileIndexFolder` is the disk side, and it **merges**: the index is a repository several people add to
+one build at a time over years, so a run that rewrote a shard from what it fetched today would delete every
+other build's files from it. An entry is keyed by app, depot, manifest and path, so the same file in a
+dozen builds is a dozen entries under one hash — which is the redundancy that makes a repair likely to find
+a copy the account can actually open. Shards are written every twenty-five files and after every manifest,
+`indexed.json` marks only the manifests that were read all the way through, and a re-run skips both what it
+has and what it finished, so stopping a fifteen-gigabyte run costs the file in flight.
 
 **The Creation Kit is not a game, and does not need to be one.** Steam gives it an app of its own —
 1946180 for Skyrim SE, 1946160 for Fallout 4, 202480 for Skyrim, 2722710 for Starfield — with its own

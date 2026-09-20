@@ -145,7 +145,7 @@ public sealed class CompositeGameFileRestorer : IGameFileRestorer
     ///     </para>
     /// </summary>
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-        AbsolutePath output, CancellationToken token, long? expectedSize = null)
+        AbsolutePath output, CancellationToken token, GameFileIdentity? wanted = null)
     {
         var declined = new List<GameFileRestoreResult>();
         var answered = new List<GameFileRestoreResult>();
@@ -154,7 +154,7 @@ public sealed class CompositeGameFileRestorer : IGameFileRestorer
         {
             token.ThrowIfCancellationRequested();
 
-            var result = await restorer.Restore(game, version, gameFile, output, token, expectedSize);
+            var result = await restorer.Restore(game, version, gameFile, output, token, wanted);
             if (result.Fetched) return result;
 
             _logger.LogDebug("{Source} did not supply {File}: {Outcome} ({Detail})", restorer.SourceName,

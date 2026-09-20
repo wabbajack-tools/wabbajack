@@ -261,6 +261,12 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
             buildId = string.Empty;
             return false;
         }
+
+        public bool TryGetSteamManifests(Game game, out SteamManifest[] manifests)
+        {
+            manifests = Array.Empty<SteamManifest>();
+            return false;
+        }
     }
 
     private sealed class FakeHelper : ISteamAppTicketHelper

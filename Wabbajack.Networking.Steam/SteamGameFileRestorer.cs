@@ -12,6 +12,12 @@ namespace Wabbajack.Networking.Steam;
 ///     of this game at this version" into an app, a depot and a manifest:
 ///     <list type="bullet">
 ///         <item>
+///             The content index first, when the caller said which bytes it wants. It records what each
+///             indexed manifest's files hash to, so it names the manifest carrying this exact file whatever
+///             build that is - which is the only question with a right answer when a list was built against
+///             a version Steam has moved past.
+///         </item>
+///         <item>
 ///             With no version asked for, the depots the app publishes on the public branch today. That is
 ///             the file the user never installed - a DLC, the Creation Kit - and it needs no index at all.
 ///         </item>
@@ -170,7 +176,7 @@ public class SteamGameFileRestorer : IGameFileRestorer
     }
 
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-        AbsolutePath output, CancellationToken token, long? expectedSize = null)
+        AbsolutePath output, CancellationToken token, GameFileIdentity? wanted = null)
     {
         var appId = game.MetaData().SteamIDs.FirstOrDefault();
         if (appId <= 0)
@@ -193,13 +199,24 @@ public class SteamGameFileRestorer : IGameFileRestorer
             }
         }
 
-        var wanted = gameFile.ToString();
+        var wantedPath = gameFile.ToString();
         var asked = string.IsNullOrWhiteSpace(version) ? null : version;
 
         // The game's own Steam apps, all of them. The guard below is "is this the game or a companion",
         // and four games carry two SteamIDs, so asking whether the app is the first one would call the
         // second a companion and offer to add a licence for a game the user bought.
         var ownApps = game.MetaData().SteamIDs.Where(id => id > 0).Select(id => (uint) id).ToHashSet();
+
+        // The content index before anything else, when the caller said which file it wants. It names the
+        // manifest carrying those exact bytes, which is an answer no version string can give: Steam
+        // publishes one build and a list is built against whichever one its author had, so "what does the
+        // game publish now" and "what did 1.6.1170.0 publish" are both the wrong question for a file
+        // somebody indexed by hash. Nothing below is reached when this works.
+        if (wanted != null)
+        {
+            var indexed = await FromIndex(game, wanted, asked, ownApps, output, token);
+            if (indexed != null) return indexed;
+        }
 
         // What the game itself refused, kept apart from what a companion refused. The game's answer is
         // the one the user can act on - an account that does not hold Skyrim Special Edition should be
@@ -260,25 +277,25 @@ public class SteamGameFileRestorer : IGameFileRestorer
                 try
                 {
                     var found = await _content.FindFileAsync(app, candidate.DepotId, candidate.ManifestId,
-                        wanted, token);
+                        wantedPath, token);
                     if (found == null) continue;
 
                     // The manifest has already said how big the file is, and the caller has already said how
                     // big the file it wants is. A copy of another size cannot be the one it asked for, and
                     // downloading it to prove that costs whatever the file weighs - which for a list built
                     // against a game version Steam has moved past is most of a game. One number decides it.
-                    if (expectedSize is { } wantedSize && (ulong) wantedSize != found.Size)
+                    if (wanted is { } identity && (ulong) identity.Size != found.Size)
                     {
                         _logger.LogInformation(
                             "{File} in app {App} depot {Depot} is {Actual} bytes and this list wants {Wanted}; " +
-                            "not fetching it", wanted, app, candidate.DepotId, found.Size, wantedSize);
+                            "not fetching it", wantedPath, app, candidate.DepotId, found.Size, identity.Size);
                         wrongSize ??= found.Size;
                         continue;
                     }
 
                     _logger.LogInformation(
                         "{File} is in app {App} depot {Depot} manifest {Manifest} as {Path} ({Size} bytes)",
-                        wanted, app, candidate.DepotId, candidate.ManifestId, found.Path, found.Size);
+                        wantedPath, app, candidate.DepotId, candidate.ManifestId, found.Path, found.Size);
 
                     await _content.DownloadFileAsync(app, candidate.DepotId, candidate.ManifestId, found.Path,
                         output, token);
@@ -327,12 +344,73 @@ public class SteamGameFileRestorer : IGameFileRestorer
         // Nothing was downloaded to find it out.
         if (wrongSize is { } size)
             return new GameFileRestoreResult(GameFileRestoreOutcome.FileNotFound, asked,
-                $"The \"{wanted}\" Steam publishes {(asked == null ? "now" : $"for {asked}")} is a different " +
-                $"file ({size} bytes against the {expectedSize} this list needs), so it was not downloaded.");
+                $"The \"{wantedPath}\" Steam publishes {(asked == null ? "now" : $"for {asked}")} is a different " +
+                $"file ({size} bytes against the {wanted!.Size} this list needs), so it was not downloaded.");
 
         return new GameFileRestoreResult(GameFileRestoreOutcome.FileNotFound, asked,
             $"None of the {searched} depot manifests " +
-            $"{(asked == null ? "the game publishes now" : $"recorded for {asked}")} contains \"{wanted}\".");
+            $"{(asked == null ? "the game publishes now" : $"recorded for {asked}")} contains \"{wantedPath}\".");
+    }
+
+    /// <summary>
+    ///     Fetches the file straight out of whichever manifest the content index says carries those bytes,
+    ///     or null when the index has nothing that worked and the caller should ask the ordinary way.
+    ///     <para>
+    ///         Everything here is a fall-through rather than an answer. A manifest Steam has stopped
+    ///         serving, a depot this account cannot open, an index entry for a build that has since been
+    ///         pulled: none of them say the file cannot be had, only that this copy of it cannot, so the
+    ///         next copy is tried and then the search by version. An index that cannot be read at all is
+    ///         the same - it is somebody's GitHub repo, and a repair must not depend on it being up.
+    ///     </para>
+    ///     <para>
+    ///         The version reported is the one the caller asked for. The bytes are the bytes it asked for,
+    ///         whatever build the manifest belongs to, so there is nothing truer to say - and the index does
+    ///         not record a version per file on purpose, since the same file is usually in a dozen builds.
+    ///     </para>
+    /// </summary>
+    private async Task<GameFileRestoreResult?> FromIndex(Game game, GameFileIdentity wanted, string? asked,
+        IReadOnlySet<uint> ownApps, AbsolutePath output, CancellationToken token)
+    {
+        IndexedGameFile[] copies;
+        try
+        {
+            copies = await _index.Find(game, wanted.Hash, token);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogInformation("The content index could not be read, so this falls back to searching by " +
+                                   "version: {Message}", ex.Message);
+            return null;
+        }
+
+        foreach (var copy in copies)
+        {
+            token.ThrowIfCancellationRequested();
+
+            try
+            {
+                // The same rule the search below follows: a companion app's depots cannot be read without a
+                // licence, and asking for one puts it in the user's library, so it is asked for at the point
+                // the depot is about to be read and never for the game's own app.
+                if (!ownApps.Contains(copy.App)) await _content.EnsureFreeLicenseAsync(copy.App, token);
+
+                await _content.DownloadFileAsync(copy.App, copy.Depot, copy.Manifest, copy.Path, output, token);
+
+                _logger.LogInformation("{Hash} is app {App} depot {Depot} manifest {Manifest} as {Path}",
+                    wanted.Hash, copy.App, copy.Depot, copy.Manifest, copy.Path);
+
+                return new GameFileRestoreResult(GameFileRestoreOutcome.Fetched, asked,
+                    $"app {copy.App}, depot {copy.Depot}, manifest {copy.Manifest}, from the content index");
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogInformation(
+                    "The content index says {Hash} is in app {App} depot {Depot} manifest {Manifest}, which " +
+                    "could not be read: {Message}", wanted.Hash, copy.App, copy.Depot, copy.Manifest, ex.Message);
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

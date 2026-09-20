@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SteamKit2;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.Steam.DTOs;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -41,6 +42,15 @@ public class SteamGameFileRestorerTests
     private static RelativePath File(string path)
     {
         return path.ToRelativePath();
+    }
+
+    /// <summary>
+    ///     What a caller knows about the file it wants. The hash defaults to one nothing is indexed under,
+    ///     so a test about sizes falls through the content index the way an unindexed game does.
+    /// </summary>
+    private static GameFileIdentity Wanted(long size, Hash? hash = null)
+    {
+        return new GameFileIdentity(hash ?? new Hash(0xDEADBEEF), size);
     }
 
     [Fact]
@@ -160,6 +170,123 @@ public class SteamGameFileRestorerTests
     }
 
     /// <summary>
+    ///     The content index is asked first when the caller said which bytes it wants, and its answer is
+    ///     taken straight: the manifest it names is not one the game publishes now and no version was asked
+    ///     for, so nothing else in this class could have found it. This is the case a list built against a
+    ///     build Steam has moved past falls into.
+    /// </summary>
+    [Fact]
+    public async Task TheContentIndexIsAskedFirstAndItsAnswerIsFetchedDirectly()
+    {
+        var hash = new Hash(0x1234567812345678);
+        _session.IsLoggedIn = true;
+        _index.Content[hash] = new[]
+        {
+            new IndexedGameFile
+            {
+                Hash = hash, Size = 42, App = SkyrimSE, Depot = 9, Manifest = 900, Path = "Data\\Dawnguard.esm"
+            }
+        };
+        _content.Manifests[(9u, 900ul)] = new[] {"Data\\Dawnguard.esm"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, "1.6.1170.0",
+            File("Data/Dawnguard.esm"), "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None,
+            Wanted(42, hash));
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Contains("content index", result.Detail);
+        Assert.Equal((SkyrimSE, 9u, 900ul, "Data\\Dawnguard.esm"), Assert.Single(_content.Downloaded));
+
+        // Nothing else was asked: not the version index, not the depots the game publishes today.
+        Assert.Empty(_index.Asked);
+        Assert.Empty(_content.Searched);
+    }
+
+    /// <summary>
+    ///     A file the index has nothing on falls through to the search it always did, and the index is asked
+    ///     once rather than not at all - a game nobody has indexed must cost one 404 and no more.
+    /// </summary>
+    [Fact]
+    public async Task AnUnindexedFileFallsBackToSearchingTheDepots()
+    {
+        var hash = new Hash(0xABCDEF);
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, Wanted(1, hash));
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Equal(hash, Assert.Single(_index.Looked));
+        Assert.Equal((SkyrimSE, 2u, 200ul, "Data\\Dawnguard.esm"), Assert.Single(_content.Downloaded));
+    }
+
+    /// <summary>
+    ///     An index entry that cannot be read - a manifest Steam has stopped serving, a depot this account
+    ///     cannot open - is one copy failing rather than the file being unobtainable, so the next copy and
+    ///     then the ordinary search still happen.
+    /// </summary>
+    [Fact]
+    public async Task ACopyTheIndexNamesThatCannotBeReadFallsThrough()
+    {
+        var hash = new Hash(0x5150);
+        _session.IsLoggedIn = true;
+        _content.Refuses.Add(9);
+        _index.Content[hash] = new[]
+        {
+            new IndexedGameFile
+                {Hash = hash, Size = 1, App = SkyrimSE, Depot = 9, Manifest = 900, Path = "Data\\Skyrim.esm"},
+            new IndexedGameFile
+                {Hash = hash, Size = 1, App = SkyrimSE, Depot = 8, Manifest = 800, Path = "Data\\Skyrim.esm"}
+        };
+        _content.Manifests[(9u, 900ul)] = new[] {"Data\\Skyrim.esm"};
+        _content.Manifests[(8u, 800ul)] = new[] {"Data\\Skyrim.esm"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Skyrim.esm"),
+            "c:\\out\\Skyrim.esm".ToAbsolutePath(), CancellationToken.None, Wanted(1, hash));
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Equal((SkyrimSE, 8u, 800ul, "Data\\Skyrim.esm"), Assert.Single(_content.Downloaded));
+    }
+
+    /// <summary>
+    ///     The index is somebody's GitHub repo, so a repair cannot depend on it being up: one that cannot be
+    ///     read is a search by version, not a failure.
+    /// </summary>
+    [Fact]
+    public async Task AnIndexThatCannotBeReadIsNotAFailedRepair()
+    {
+        _session.IsLoggedIn = true;
+        _index.FindThrows = () => new Exception("GitHub is having a day");
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, Wanted(1));
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Single(_content.Downloaded);
+    }
+
+    /// <summary>
+    ///     A caller that says nothing about the file it wants asks nothing of the content index: there is
+    ///     nothing to look up without a hash.
+    /// </summary>
+    [Fact]
+    public async Task WithNoIdentityTheIndexIsNotAsked()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+
+        await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None);
+
+        Assert.Empty(_index.Looked);
+    }
+
+    /// <summary>
     ///     A copy of the file that is the wrong size is not the file being asked for, and the manifest says
     ///     so before a byte is fetched. This is the ordinary case for a list built against a game version
     ///     the store has moved past: the caller hashes everything that comes back and throws away what does
@@ -175,7 +302,7 @@ public class SteamGameFileRestorerTests
         _content.Sizes["Data\\Dawnguard.esm"] = 25884488;
 
         var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
-            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, 25884000);
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, Wanted(25884000));
 
         Assert.Equal(GameFileRestoreOutcome.FileNotFound, result.Outcome);
         Assert.Contains("different file", result.Detail);
@@ -196,7 +323,7 @@ public class SteamGameFileRestorerTests
         _content.Sizes["Data\\Dawnguard.esm"] = 25884488;
 
         var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
-            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, 25884488);
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, Wanted(25884488));
 
         Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
         Assert.Single(_content.Downloaded);
@@ -236,7 +363,7 @@ public class SteamGameFileRestorerTests
         _content.Sizes["2:Data\\Skyrim.esm"] = 20;
 
         var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Skyrim.esm"),
-            "c:\\out\\Skyrim.esm".ToAbsolutePath(), CancellationToken.None, 20);
+            "c:\\out\\Skyrim.esm".ToAbsolutePath(), CancellationToken.None, Wanted(20));
 
         Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
         Assert.Equal((SkyrimSE, 2u, 200ul, "Data\\Skyrim.esm"), Assert.Single(_content.Downloaded));
@@ -556,12 +683,30 @@ public class SteamGameFileRestorerTests
         public Dictionary<string, SteamManifest[]> Versions { get; } = new(StringComparer.OrdinalIgnoreCase);
         public List<(Game Game, string Version)> Asked { get; } = new();
 
+        /// <summary>What the content index knows, by the hash somebody looked up.</summary>
+        public Dictionary<Hash, IndexedGameFile[]> Content { get; } = new();
+
+        public List<Hash> Looked { get; } = new();
+
+        /// <summary>Set to make the content index unreadable, which a repair has to survive.</summary>
+        public Func<Exception>? FindThrows { get; set; }
+
         public Task<SteamManifest[]> Get(Game game, string version, CancellationToken token)
         {
             Asked.Add((game, version));
             return Task.FromResult(Versions.TryGetValue(version, out var manifests)
                 ? manifests
                 : Array.Empty<SteamManifest>());
+        }
+
+        public Task<IndexedGameFile[]> Find(Game game, Hash hash, CancellationToken token)
+        {
+            Looked.Add(hash);
+            if (FindThrows != null) throw FindThrows();
+
+            return Task.FromResult(Content.TryGetValue(hash, out var found)
+                ? found
+                : Array.Empty<IndexedGameFile>());
         }
     }
 
