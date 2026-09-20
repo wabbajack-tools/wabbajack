@@ -145,7 +145,8 @@ public class GameFilesCheckTests : IDisposable
 
         Assert.Equal(PreflightState.Failed, result.State);
         Assert.Contains("1 game file is missing", result.Message);
-        Assert.Contains("Data_Dawnguard.esm", result.Message);
+        Assert.DoesNotContain("Data_Dawnguard.esm", result.Message);
+        Assert.Contains("Data_Dawnguard.esm", result.Detail);
         Assert.Equal(ArchiveState.Missing, _progress.LastStates()["Data_Dawnguard.esm"]);
         Assert.Equal(ArchiveState.Present, _progress.LastStates()["Data_Skyrim.esm"]);
         Assert.Null(result.Actions);
@@ -233,8 +234,13 @@ public class GameFilesCheckTests : IDisposable
         Assert.Contains("missing", withoutFolder.Message);
     }
 
+    /// <summary>
+    ///     The message counts and the detail names. It used to name up to twenty files, which is drawn as
+    ///     one ellipsized line on the checklist row and repeated at the top of the game-files card: it said
+    ///     nothing the list of files underneath was not already saying, and hid the sentence that mattered.
+    /// </summary>
     [Fact]
-    public async Task TheMessageNamesAtMostTwentyFilesAndTheDetailAllOfThem()
+    public async Task TheMessageCountsTheFilesAndTheDetailNamesThem()
     {
         var archives = new List<Archive>();
         for (var i = 0; i < 25; i++)
@@ -244,9 +250,29 @@ public class GameFilesCheckTests : IDisposable
         var result = await _check.Run(await Context(), _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.Failed, result.State);
-        Assert.Contains("and 5 more", result.Message);
-        Assert.DoesNotContain("missing24", result.Message);
+        Assert.Contains("25 game files are missing", result.Message);
+        Assert.All(archives, a => Assert.DoesNotContain(a.Name, result.Message));
         Assert.Equal(25, archives.Count(a => result.Detail!.Contains(a.Name)));
+    }
+
+    /// <summary>
+    ///     A game that is not installed is not a modified install, so the row does not ask a user who has
+    ///     just been told the game is missing whether they forgot a DLC.
+    /// </summary>
+    [Fact]
+    public async Task ASourcedGameIsSaidToBeTheReasonTheFilesAreMissing()
+    {
+        _host.Config.ModList.Archives = new[] {await GameFile(null, "Data/Skyrim.esm", "esm bytes")};
+
+        var ctx = _host.Context();
+        ctx.State.GameFolder = default;
+        ctx.State.SourcedGames.Add(Game.SkyrimSpecialEdition);
+        await _host.Inventory(ctx);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Contains("Skyrim Special Edition is not installed", result.Message);
+        Assert.DoesNotContain("modified install", result.Message);
     }
 
     /// <summary>

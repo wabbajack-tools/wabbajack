@@ -232,7 +232,12 @@ public static class GameFileRepair
 
         try
         {
-            var fetched = await restorer.Restore(item.State.Game, version, item.State.GameFile, incoming, token);
+            // The modlist's own size goes with the request, so a source that can see a file's size before
+            // fetching it can refuse one that is not this file. Everything fetched is hashed below and
+            // anything that is not what the list asked for is deleted, so without this a list built against
+            // a game version the store has moved past downloads most of a game to throw it away.
+            var fetched = await restorer.Restore(item.State.Game, version, item.State.GameFile, incoming, token,
+                item.Archive.Size);
 
             if (!fetched.Fetched)
             {

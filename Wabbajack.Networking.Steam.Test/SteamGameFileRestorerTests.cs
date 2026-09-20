@@ -160,6 +160,89 @@ public class SteamGameFileRestorerTests
     }
 
     /// <summary>
+    ///     A copy of the file that is the wrong size is not the file being asked for, and the manifest says
+    ///     so before a byte is fetched. This is the ordinary case for a list built against a game version
+    ///     the store has moved past: the caller hashes everything that comes back and throws away what does
+    ///     not match, so without this Skyrim's textures are downloaded to establish what their size already
+    ///     said.
+    /// </summary>
+    [Fact]
+    public async Task AFileOfAnotherSizeIsNotDownloadedAtAll()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+        _content.Sizes["Data\\Dawnguard.esm"] = 25884488;
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, 25884000);
+
+        Assert.Equal(GameFileRestoreOutcome.FileNotFound, result.Outcome);
+        Assert.Contains("different file", result.Detail);
+        Assert.Contains("25884488", result.Detail);
+        Assert.Contains("25884000", result.Detail);
+
+        // Searched, and deliberately not fetched.
+        Assert.NotEmpty(_content.Searched);
+        Assert.Empty(_content.Downloaded);
+    }
+
+    [Fact]
+    public async Task AFileOfTheRightSizeIsFetchedAsUsual()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+        _content.Sizes["Data\\Dawnguard.esm"] = 25884488;
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, 25884488);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Single(_content.Downloaded);
+    }
+
+    /// <summary>
+    ///     A caller that does not know how big the file should be gets what it always got: every manifest
+    ///     carrying the name is a candidate.
+    /// </summary>
+    [Fact]
+    public async Task WithNoExpectedSizeNothingIsPreChecked()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+        _content.Sizes["Data\\Dawnguard.esm"] = 25884488;
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+    }
+
+    /// <summary>
+    ///     The size is checked per candidate rather than once: a depot that carries the wrong copy does not
+    ///     say anything about the next one, and the file wanted may well be in it.
+    /// </summary>
+    [Fact]
+    public async Task ADepotWithTheWrongCopyDoesNotStopTheSearch()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(1, 100));
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(1u, 100ul)] = new[] {"Data\\Skyrim.esm"};
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Skyrim.esm"};
+        _content.Sizes["1:Data\\Skyrim.esm"] = 10;
+        _content.Sizes["2:Data\\Skyrim.esm"] = 20;
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Skyrim.esm"),
+            "c:\\out\\Skyrim.esm".ToAbsolutePath(), CancellationToken.None, 20);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Equal((SkyrimSE, 2u, 200ul, "Data\\Skyrim.esm"), Assert.Single(_content.Downloaded));
+    }
+
+    /// <summary>
     ///     With a version, the depots and manifests the index recorded for it. Steam cannot be asked: its
     ///     client API only ever publishes the current build.
     /// </summary>
@@ -496,6 +579,12 @@ public class SteamGameFileRestorerTests
 
         public Dictionary<(uint Depot, ulong Manifest), string[]> Manifests { get; } = new();
 
+        /// <summary>
+        ///     What a manifest says a file weighs, by depot-relative path or by "depot:path" where one
+        ///     depot's copy differs from another's. Anything not named here is one byte long.
+        /// </summary>
+        public Dictionary<string, ulong> Sizes { get; } = new();
+
         /// <summary>Depots the account has no licence for.</summary>
         public HashSet<uint> Refuses { get; } = new();
 
@@ -616,14 +705,24 @@ public class SteamGameFileRestorerTests
             var match = names.FirstOrDefault(n => DepotPaths.AreSame(n, depotPath)) ??
                         names.SingleOrDefault(n => DepotPaths.EndsWithPath(n, depotPath));
 
-            return match == null ? null : new DepotFile(match, 1, string.Empty);
+            return match == null ? null : new DepotFile(match, SizeOf(depotId, match), string.Empty);
         }
 
         private DepotFile[] Files(uint depotId, ulong manifestId)
         {
             return Manifests.TryGetValue((depotId, manifestId), out var names)
-                ? names.Select(n => new DepotFile(n, 1, string.Empty)).ToArray()
+                ? names.Select(n => new DepotFile(n, SizeOf(depotId, n), string.Empty)).ToArray()
                 : Array.Empty<DepotFile>();
+        }
+
+        /// <summary>
+        ///     What this depot says the file weighs: the depot's own entry when one was set, otherwise the
+        ///     file's, otherwise one byte - which is what every test that is not about sizes wants.
+        /// </summary>
+        private ulong SizeOf(uint depotId, string path)
+        {
+            if (Sizes.TryGetValue($"{depotId}:{path}", out var perDepot)) return perDepot;
+            return Sizes.TryGetValue(path, out var size) ? size : 1;
         }
     }
 

@@ -187,6 +187,18 @@ needs — a file that fails it is deleted. The whole thing is opt-in: game-files
 would buy rather than having it happen to them, and a host that registers no `IGameFileRestorer` behaves
 exactly as before. The CLI drives it with `repair-game-files`.
 
+**`Archive.Hash` is the last word, so `Archive.Size` goes with the question.** Deciding a fetched file is
+the wrong one after fetching it is correct and ruinously expensive: a list built against a version the
+store has moved past fails that check on nearly every file, and Skyrim's four texture archives alone are
+about five gigabytes downloaded to establish something the depot manifest already said. `Restore` therefore
+takes the size the modlist recorded, and `SteamGameFileRestorer` skips a candidate whose manifest entry is
+another size — per candidate, since one depot carrying the wrong copy says nothing about the next — and
+reports "the copy Steam publishes now is a different file" instead of "no manifest lists that file". Sizes
+match far more often than hashes do, so this is a pre-filter and not a substitute: everything that *is*
+fetched is still hashed, and anything that fails is still deleted. `CreationRestorer` ignores the size
+deliberately — a Creation arrives as one `.ckm` carrying both of its files, so by the time either file's
+size is known the download is already paid for.
+
 **The Creation Kit is not a game, and does not need to be one.** Steam gives it an app of its own —
 1946180 for Skyrim SE, 1946160 for Fallout 4, 202480 for Skyrim, 2722710 for Starfield — with its own
 depots, but its `installdir` is the game's and Skyrim SE's even declares `sharesdirwithapp 489830`. So
@@ -315,6 +327,18 @@ preflight and by the Logins settings tile, which exists mainly so a saved login 
 is not a download source and nothing needs it logged in ahead of time. `GameFilesVM` owns the game-files
 card and the whole sequence behind `repair-game-files`: log in if there is no login, fetch with per-file
 progress, then re-run the check, which is what decides whether the run carries on.
+
+**Counts, not lists, wherever a check has more than a handful of files to talk about.** A checklist row is
+one ellipsized line and the game-files card repeats it, so naming twenty files said nothing and hid the one
+sentence that mattered; `GameFilesCheck` now puts counts and the reason in `Message` and keeps the names in
+`Detail`. The card bands its files the way the download list does — `ArchiveGroupVM` headers over
+`ArchiveRowVM` rows, one flat list, `ArchiveListTemplateSelector` between them — as Downloaded /
+Downloading / Couldn't be fetched / Remaining, every band shut and an empty one left out entirely, so a
+list that takes forty files from the game reads as four numbers. `ArchiveGroupVM` therefore carries only
+what it draws; which rows fall in a band belongs to whoever built it, because the two panels band by
+different things. And a repair's failures are counted by their message rather than reported file by file:
+they are almost always the same sentence (a game version nobody indexed fails every file with it), and
+naming one file made it read like a problem with that file.
 
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every

@@ -147,6 +147,14 @@ public interface IGameFileRestorer
     ///     The bytes are checked against whatever hash the source itself carries for the file; the caller
     ///     still has to decide whether they are the bytes <em>it</em> wanted.
     /// </summary>
+    /// <param name="expectedSize">
+    ///     How big the wanted file is, when the caller knows - a modlist records it. A source that can see a
+    ///     file's size before fetching it should refuse one of another size rather than download it: the
+    ///     caller is going to hash what comes back and throw away anything that is not the file it asked
+    ///     for, and a list built against a game version the store no longer publishes fails that check on
+    ///     nearly every file. Skyrim's textures alone are several gigabytes to establish something a number
+    ///     in a manifest already said. Null means the caller does not know, and nothing is pre-checked.
+    /// </param>
     Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile, AbsolutePath output,
-        CancellationToken token);
+        CancellationToken token, long? expectedSize = null);
 }

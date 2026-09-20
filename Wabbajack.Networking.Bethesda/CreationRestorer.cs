@@ -142,9 +142,15 @@ public class CreationRestorer : IGameFileRestorer
     ///         it is. Whether the copy published now is the one this list wants is decided where it is
     ///         decided for every other game file: by <c>Archive.Hash</c>, on the bytes that come out.
     ///     </para>
+    ///     <para>
+    ///         <paramref name="expectedSize" /> is not used, and there is nothing to gain by using it: a
+    ///         Creation is fetched as one <c>.ckm</c> that carries both of its files, so by the time either
+    ///         file's size is known the download that would have been skipped has already happened.
+    ///         <c>Archive.Hash</c> still decides whether what comes out is what the list wanted.
+    ///     </para>
     /// </summary>
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-        AbsolutePath output, CancellationToken token)
+        AbsolutePath output, CancellationToken token, long? expectedSize = null)
     {
         if (game != SupportedGame)
             return new GameFileRestoreResult(GameFileRestoreOutcome.NoSource, null,

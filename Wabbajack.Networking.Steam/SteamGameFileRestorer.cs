@@ -170,7 +170,7 @@ public class SteamGameFileRestorer : IGameFileRestorer
     }
 
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-        AbsolutePath output, CancellationToken token)
+        AbsolutePath output, CancellationToken token, long? expectedSize = null)
     {
         var appId = game.MetaData().SteamIDs.FirstOrDefault();
         if (appId <= 0)
@@ -208,6 +208,10 @@ public class SteamGameFileRestorer : IGameFileRestorer
         Exception? gameRefusal = null;
         Exception? toolRefusal = null;
         var searched = 0;
+
+        // The size of a copy that was passed over because it is not the file the caller asked for. Kept so
+        // "no manifest has that file" can be the truer "every copy of it is a different file".
+        ulong? wrongSize = null;
 
         foreach (var app in AppsToSearch(game, (uint) appId, ownApps, asked))
         {
@@ -259,6 +263,19 @@ public class SteamGameFileRestorer : IGameFileRestorer
                         wanted, token);
                     if (found == null) continue;
 
+                    // The manifest has already said how big the file is, and the caller has already said how
+                    // big the file it wants is. A copy of another size cannot be the one it asked for, and
+                    // downloading it to prove that costs whatever the file weighs - which for a list built
+                    // against a game version Steam has moved past is most of a game. One number decides it.
+                    if (expectedSize is { } wantedSize && (ulong) wantedSize != found.Size)
+                    {
+                        _logger.LogInformation(
+                            "{File} in app {App} depot {Depot} is {Actual} bytes and this list wants {Wanted}; " +
+                            "not fetching it", wanted, app, candidate.DepotId, found.Size, wantedSize);
+                        wrongSize ??= found.Size;
+                        continue;
+                    }
+
                     _logger.LogInformation(
                         "{File} is in app {App} depot {Depot} manifest {Manifest} as {Path} ({Size} bytes)",
                         wanted, app, candidate.DepotId, candidate.ManifestId, found.Path, found.Size);
@@ -304,6 +321,14 @@ public class SteamGameFileRestorer : IGameFileRestorer
                     $"Wabbajack's game file index has no record of {game.MetaData().HumanFriendlyGameName} " +
                     $"{asked}, so the depot manifests that version was published as are not known. Steam " +
                     "itself will not say: it only ever publishes the current build.");
+
+        // A file that is there and is the wrong one is a different thing to be told than a file that is not
+        // there, and it is the ordinary answer for a list built against a version the store has moved past.
+        // Nothing was downloaded to find it out.
+        if (wrongSize is { } size)
+            return new GameFileRestoreResult(GameFileRestoreOutcome.FileNotFound, asked,
+                $"The \"{wanted}\" Steam publishes {(asked == null ? "now" : $"for {asked}")} is a different " +
+                $"file ({size} bytes against the {expectedSize} this list needs), so it was not downloaded.");
 
         return new GameFileRestoreResult(GameFileRestoreOutcome.FileNotFound, asked,
             $"None of the {searched} depot manifests " +

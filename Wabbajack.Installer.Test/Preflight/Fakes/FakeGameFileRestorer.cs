@@ -78,7 +78,7 @@ public sealed class FakeGameFileRestorer : IGameFileRestorer
     }
 
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-        AbsolutePath output, CancellationToken token)
+        AbsolutePath output, CancellationToken token, long? expectedSize = null)
     {
         var wanted = gameFile.ToString();
         Asked.Add((game, version, wanted));

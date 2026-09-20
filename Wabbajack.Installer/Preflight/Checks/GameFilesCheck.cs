@@ -123,25 +123,32 @@ public sealed class GameFilesCheck : IPreflightCheck
         var parts = new List<string>();
         var detail = new List<string>();
 
+        // Counts here, names in the detail. The message is drawn on the checklist row, where it is one
+        // ellipsized line, and again at the top of the game-files card: twenty file names made both of them
+        // unreadable and said nothing the list of files underneath was not already saying.
         if (mismatched.Count > 0)
         {
             var expected = string.Join(", ", mismatched.Select(m => m.Version).Where(v => v != null).Distinct());
-            var actual = GameVersionDetector.Detect(game, folder, ctx.GameLocator, ctx.Logger);
+            var actual = folder == default
+                ? null
+                : GameVersionDetector.Detect(game, folder, ctx.GameLocator, ctx.Logger);
             var versions = expected.Length > 0
                 ? $"built against {expected}; you have {actual ?? "an unknown version"}"
                 : $"you have {actual ?? "an unknown version"}";
             parts.Add(
-                $"{Plural.Of(mismatched.Count, "game file doesn't match", "game files don't match")} ({versions}): " +
-                Summarise(mismatched.Select(m => m.Archive.Name)));
+                $"{Plural.Of(mismatched.Count, "game file doesn't match", "game files don't match")} ({versions})");
             detail.Add("Mismatched:");
             detail.AddRange(mismatched.Select(m => "  " + m.Archive.Name));
         }
 
         if (missing.Count > 0)
         {
-            parts.Add(
-                $"{Plural.Of(missing.Count, "game file is missing", "game files are missing")} (missing DLC or a modified install?): " +
-                Summarise(missing.Select(m => m.Archive.Name)));
+            // A game that is not installed is not a modified install, and asking a user who just told us
+            // they have not got the game whether they are missing a DLC is nonsense.
+            var why = ctx.State.SourcedGames.Contains(game)
+                ? $"{meta.HumanFriendlyGameName} is not installed"
+                : "missing DLC or a modified install?";
+            parts.Add($"{Plural.Of(missing.Count, "game file is missing", "game files are missing")} ({why})");
             detail.Add("Missing:");
             detail.AddRange(missing.Select(m => "  " + m.Archive.Name));
         }

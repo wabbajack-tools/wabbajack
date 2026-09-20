@@ -484,7 +484,7 @@ public class CompositeGameFileRestorerTests
         }
 
         public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-            AbsolutePath output, CancellationToken token)
+            AbsolutePath output, CancellationToken token, long? expectedSize = null)
         {
             Calls++;
             AskedAt = Interlocked.Increment(ref _clock);
@@ -531,7 +531,7 @@ public class CompositeGameFileRestorerTests
         }
 
         public Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-            AbsolutePath output, CancellationToken token)
+            AbsolutePath output, CancellationToken token, long? expectedSize = null)
         {
             return Task.FromResult(new GameFileRestoreResult(GameFileRestoreOutcome.FileNotFound, null, SourceName));
         }
