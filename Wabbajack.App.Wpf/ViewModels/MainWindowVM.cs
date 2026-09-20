@@ -23,7 +23,6 @@ using Wabbajack.Models;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
-using Wabbajack.UserIntervention;
 using Wabbajack.ViewModels;
 using System.Reactive.Concurrency;
 using Wabbajack.Util;

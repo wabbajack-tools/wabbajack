@@ -343,9 +343,31 @@ thread. Nothing executes a sibling command either — `ToggleLogin` calls the wo
 the tile's only one, so it falls through to the login when logging out cannot change anything: `LoggedIn`
 means a usable credential is in reach, not that there is a file to delete, and a host that supplies
 `NEXUS_OAUTH_INFO` would otherwise get a button reading "Log out" for ever. A login stored by the browser
-shadows the variable, so that fall-through is a real way out. One login window at a time, too —
-`MainWindowVM` serialises browser windows, so a second request would open behind the first rather than
-being dropped.
+shadows the variable, so that fall-through is a real way out. One login at a time, too — `StartLogin`
+refuses while one is out in the browser, since two tabs against two loopback ports means the one the user
+finishes is the one the other made stale.
+
+**Logging in to Nexus Mods happens in the user's own browser.** `NexusOAuthLogin` in
+`Wabbajack.Networking.NexusApi` is the whole flow — PKCE, the authorize URL, the token exchange, and what
+gets stored — and both hosts (`NexusLoginManager`'s tile and the `nexus-login` verb) call it rather than
+opening anything. It used to run in an embedded WebView2 with a cookie jar of its own, which meant logging
+in again even when the user's browser was already signed in, and put a password field inside this app. The
+redirect was "caught" by watching that WebView navigate to `https://127.0.0.1:1234`, a host nothing was
+ever listening on.
+
+Something is listening now, which is why the redirect URI is read off `LoopbackOAuthCallback.RedirectUri`
+instead of being a constant: one `TcpListener` on `IPAddress.Loopback` at port 0, so the OS picks the port,
+nothing off this machine can reach it, and the authorize request and the token exchange both have to repeat
+whatever it turned out to be. It answers `/oauth/callback` and 404s everything else — a browser asks for a
+favicon — and each connection is handled on its own, because browsers open speculative connections and send
+nothing down them. `HttpListener` is not used on purpose: it registers the prefix with http.sys, which is
+machine-wide and ACL'd, so a failure there is an elevation prompt rather than a bad login. The `state`
+parameter is checked before the code is spent, since anything on the machine can reach a loopback port. A
+connection is half-closed and drained before it is dropped: only the request line is read, and closing a
+socket with the rest of the request still in its buffer is an RST, which the browser shows in place of the
+page just written to it. `IOAuthBrowser` is the seam that leaves the process, `TryAdd`ed so a test has
+somewhere to send a URL; a login nobody finishes ends on the caller's timeout, which is what closes the
+port.
 
 A source is only reported when there is something to send with it. `GetAuthInfo` rejects an empty API key
 either side, and equally an OAuth state carrying no access token — which is not hypothetical: a refused
@@ -357,12 +379,12 @@ it turned out to be usable. `NexusCredentialTests` is the table.
 
 **A refusal from the token endpoint must not write anything.** Both places that talk to it follow the same
 rule. `RefreshToken` stores only a reply that actually carries an access token, and hands the caller a copy
-with nothing to send for this call; `NexusLoginHandler.StateToStore` decides the same thing for the login
-window, and keeps the stored `ApiKey`, which that exchange says nothing about. Storing the failure
+with nothing to send for this call; `NexusOAuthLogin.StateToStore` decides the same thing for the browser
+login, and keeps the stored `ApiKey`, which that exchange says nothing about. Storing the failure
 destroyed a login whose refresh token the next attempt might have used — and since the login tile reads the
 credential from its own constructor and its Log in button now works while logged in, both paths are
-reachable with a working login to lose. Neither throws: a browser operation is driven from an `async void`
-handler.
+reachable with a working login to lose. Neither throws: a login is started from a `ReactiveCommand` and
+nothing is awaiting its result.
 
 A refused refresh also stands for `RefreshRetryDelay` (a minute) before another is attempted. `GetAuthInfo`
 refreshes an expired token on the way to every authenticated call, so an offline machine would otherwise

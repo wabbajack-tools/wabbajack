@@ -34,7 +34,6 @@ using Wabbajack.Networking.Steam;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
-using Wabbajack.UserIntervention;
 using Wabbajack.Util;
 using Wabbajack.Common;
 using Ext = Wabbajack.Common.Ext;
@@ -479,9 +478,6 @@ public partial class App
         services.AddTransient<ModListDetailsVM>();
         services.AddTransient<FileUploadVM>();
         services.AddTransient<AboutVM>();
-
-        // Login Handlers
-        services.AddTransient<NexusLoginHandler>();
 
         // The Steam login pane, which both preflight and the Logins tile put in front of the user. Transient:
         // each one drives a single login attempt and is thrown away with it.

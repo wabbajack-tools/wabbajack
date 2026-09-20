@@ -9,16 +9,13 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
-using Wabbajack.UserIntervention;
 
 namespace Wabbajack.LoginManagers;
 
@@ -27,11 +24,19 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     private readonly ILogger<NexusLoginManager> _logger;
     private readonly ITokenProvider<NexusOAuthState> _token;
     private readonly NexusApi _api;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly NexusOAuthLogin _login;
     private readonly Subject<Unit> _refreshed = new();
 
-    /// <summary>1 while a login window is open. Set here, cleared by that window's Closed event.</summary>
-    private int _loginWindowOpen;
+    /// <summary>
+    ///     How long a login is waited for before the loopback port is closed again. The user is off in
+    ///     another window by then, and there is no window of ours for them to cancel from - long enough that
+    ///     someone hunting for their password manager is not cut off, short enough that a login they
+    ///     abandoned does not hold a socket open for the rest of the session.
+    /// </summary>
+    private static readonly TimeSpan LoginTimeout = TimeSpan.FromMinutes(10);
+
+    /// <summary>1 while a login is out in the browser, waiting to come back.</summary>
+    private int _loginInProgress;
 
     public string SiteName { get; } = "Nexus Mods";
     public ICommand TriggerLogin { get; set; }
@@ -56,12 +61,12 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     public IObservable<Unit> Refreshed => _refreshed;
 
     public NexusLoginManager(ILogger<NexusLoginManager> logger, ITokenProvider<NexusOAuthState> token, NexusApi api,
-        IServiceProvider serviceProvider)
+        NexusOAuthLogin login)
     {
         _logger = logger;
         _token = token;
         _api = api;
-        _serviceProvider = serviceProvider;
+        _login = login;
         Task.Run(RefreshTokenState);
         
         var clearLogin = ReactiveCommand.CreateFromTask(async () =>
@@ -128,35 +133,47 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     }
 
     /// <summary>
-    ///     Opens the login window, unless one is already open. Two clicks, or the settings tile and
-    ///     preflight's Log in action together, would otherwise queue a second window behind the first -
-    ///     <c>MainWindowVM</c> serialises browser windows - and open it the moment the user finished with
-    ///     the one they were looking at.
+    ///     Sends the user to Nexus Mods in their own browser, unless a login is already out there waiting to
+    ///     come back. Two clicks, or the settings tile and preflight's Log in action together, would
+    ///     otherwise open two tabs against two loopback ports, and the one the user finished would be the
+    ///     one the other had already made stale.
+    ///     <para>
+    ///         Nothing is awaited: the caller is a <c>ReactiveCommand</c> on the UI thread, and the login
+    ///         itself is a person in another application. What comes back is
+    ///         <see cref="RefreshTokenState" /> either way, which is what preflight's Nexus row and the
+    ///         settings tile are both watching.
+    ///     </para>
     /// </summary>
     private void StartLogin()
     {
-        if (Interlocked.Exchange(ref _loginWindowOpen, 1) == 1)
+        if (Interlocked.Exchange(ref _loginInProgress, 1) == 1)
         {
-            _logger.LogInformation("A {SiteName} login window is already open", SiteName);
+            _logger.LogInformation("A {SiteName} login is already waiting in the browser", SiteName);
             return;
         }
 
-        try
+        Task.Run(async () =>
         {
-            var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
-            handler.Closed += async (_, _) =>
+            using var timeout = new CancellationTokenSource(LoginTimeout);
+            try
             {
-                Interlocked.Exchange(ref _loginWindowOpen, 0);
+                await _login.Login(timeout.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Gave up waiting for the {SiteName} login to come back from the browser",
+                    SiteName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "The {SiteName} login failed", SiteName);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _loginInProgress, 0);
                 await RefreshTokenState();
-            };
-            ShowBrowserWindow.Send(handler);
-        }
-        catch (Exception)
-        {
-            // Nothing was opened, so nothing will close and clear this.
-            Interlocked.Exchange(ref _loginWindowOpen, 0);
-            throw;
-        }
+            }
+        });
     }
 
     /// <summary>

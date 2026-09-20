@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
@@ -169,6 +170,13 @@ public static class ServiceExtensions
                 EncryptedJsonTokenProvider<Dictionary<Channel, DiscordWebHookSetting>>, DiscordTokenProvider>();
 
         service.AddAllSingleton<NexusApi, ProxiedNexusApi>();
+
+        // Logging in to Nexus Mods happens in the user's own browser, with a loopback socket of this app's
+        // waiting for the redirect. The browser is TryAdded so a host that opens URLs its own way - or a
+        // test with nowhere to send one - can register that instead.
+        service.AddSingleton<NexusOAuthLogin>();
+        service.TryAddSingleton<IOAuthBrowser, SystemOAuthBrowser>();
+
         service.AddDownloadDispatcher();
 
         if (options.UseStubbedGameFolders)
