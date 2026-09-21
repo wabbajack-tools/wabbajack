@@ -176,6 +176,18 @@ public class IndexSteamDepots
 
         if (!installed && !string.IsNullOrWhiteSpace(version))
         {
+            // A version file records the depots of the game's own app. Under --app it would be read as
+            // that app's, and every id in it would be asked for under an app that does not own it - which
+            // Steam refuses, after the run has already claimed to know what it was indexing.
+            if (!game.MetaData().SteamIDs.Contains((int) app))
+            {
+                _logger.LogError(
+                    "--version reads the depot ids recorded for {Game} itself, which are not app {App}'s. " +
+                    "Index a companion app with --app alone, which reads what it publishes now, or name its " +
+                    "depot and manifest directly.", game, app);
+                return Array.Empty<DepotManifestId>();
+            }
+
             var recorded = await index.RecordedManifests(version, token);
             if (recorded.Length == 0)
             {
