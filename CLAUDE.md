@@ -144,6 +144,34 @@ check could fail a run that would have succeeded. It now runs at 350, reads the 
 already built, and hashes nothing itself. The *missing* versus *mismatched* distinction is still decided by
 the file's own path, because that is what tells the repair below whether today's build will do.
 
+**A game that is not installed does not have to stop a run.** What an install takes from the game is its
+files, and the installer looks for those by hash across the downloads folder as well as the game folders —
+which is the whole reason the repair puts fetched files in downloads. So when the folder cannot be found,
+game-installed asks `IGameFileRestorer.CanSourceGame`, and a source that says the account owns the game
+there turns the old failure into a `Warning`: the run carries on with no game folder, game-files lists
+every file the list takes from the game as missing, and the repair fetches them. The Warning still has to
+be acknowledged, because installing a list for a game that is not on the machine is a decision — the
+modlist installs, but anything in it that points at a game folder (MO2's game path, a launcher) has nowhere
+to point until the game is installed. That is also why the CLI cannot do it: `PreflightInstall` treats any
+unacknowledged Warning as not ready, exactly as it already does for a low disk-space warning.
+
+The three conditions the user asked for are one question, because only the store can answer the third:
+`SteamGameFileRestorer.CanSourceGame` wants a game with a Steam app id, a session (a stored login is used,
+nobody is prompted), and `CheckAccessAsync` on the app's own id — which is what says the account owns it.
+`DepotAccess.Unconfirmed` stays its own answer for the reason it exists elsewhere: a licence list that never
+arrived is not an account that owns nothing. `CreationRestorer` answers `NoSource` — Creations are add-ons
+to a game rather than the game — so the composite's ordinary fall-through rules decide what the user is
+told. It is only ever asked when the folder is missing, so an ordinary install pays nothing for it, and a
+folder the *user* named and that is not there is still a plain failure: they said where the game is.
+
+game-installed records the answer as `PreflightBlackboard.SourcedGames`, which is what game-files reads in
+place of `IGameLocator.TryGetSteamBuildId` — that one is read out of a local install, and there is none, so
+without it the row listing every game file as missing would offer no way to get any of them.
+`StandardInstaller.Begin` matches: it locates a game folder rather than demanding one, keeps `GameInvalid`
+for a folder that was named and is not there, and lets an install with no game folder run. Nothing below it
+needs one, and a list that turns out to be missing something says so through the missing-archive check,
+which names the files.
+
 **Fetching game files is optional, and never writes to the game folder.** `Rules/GameFileRepair` takes what
 game-files put on the blackboard and asks `IGameFileRestorer` — declared in `Wabbajack.Downloaders.GameFile`,
 beside `GameFileDownloader` and `IGameLocator` — for "this file of this game at this version". That seam
@@ -158,6 +186,63 @@ needs — a file that fails it is deleted. The whole thing is opt-in: game-files
 `PreflightAction.RepairGameFiles` only when the game came from Steam, a user with no login is told what one
 would buy rather than having it happen to them, and a host that registers no `IGameFileRestorer` behaves
 exactly as before. The CLI drives it with `repair-game-files`.
+
+**`Archive.Hash` is the last word, so it goes with the question.** `Restore` takes a `GameFileIdentity` —
+the hash and size the modlist recorded — and both change what a source can do.
+
+The size is a cheap refusal. Deciding a fetched file is the wrong one after fetching it is correct and
+ruinously expensive: a list built against a version the store has moved past fails that check on nearly
+every file, and Skyrim's four texture archives alone are about five gigabytes downloaded to establish
+something the depot manifest already said. `SteamGameFileRestorer` skips a candidate whose manifest entry
+is another size — per candidate, since one depot carrying the wrong copy says nothing about the next — and
+reports "the copy Steam publishes now is a different file" instead of "no manifest lists that file". Sizes
+match far more often than hashes do, so this is a pre-filter and not a substitute: everything that *is*
+fetched is still hashed, and anything that fails is still deleted.
+
+**The hash is an identity, and it beats every version question.** `ISteamManifestIndex.Find` asks the
+content index which manifest carries a file with these bytes, and `Restore` asks it before anything else:
+it needs no version string, so it answers for a build whose number nobody recorded and for a list whose
+recorded version was never indexed. Everything about that path falls through rather than failing — an
+entry naming a manifest Steam no longer serves, a depot this account cannot open, an index that is simply
+down — because the index is a GitHub repo and a repair must not depend on it being up. A companion app's
+licence is taken the same way it is everywhere else: only when a depot of it is about to be read.
+`CreationRestorer` ignores the identity deliberately — a Creation arrives as one `.ckm` carrying both of
+its files, so by the time either file's size is known the download is already paid for.
+
+**Steam cannot enumerate a depot's history, so the index is built by hand.** PICS says what a depot publishes *now* and nothing else. Any
+manifest can be fetched by id — the CDN serves it with a request code to an entitled account — so
+everything about an older build depends on somebody having written its ids down while they had it. There
+are exactly two places they come from: a machine with that build installed, whose `appmanifest_<app>.acf`
+records a manifest id per depot (`IGameLocator.TryGetSteamManifests`), or someone recording them while the
+build is current. `hash-game-files` therefore writes `{version}_steam_manifests.json` beside the hashes it
+was already writing: the hashes can be produced again by anyone who still has the files, and the ids
+cannot.
+
+**A manifest never says what a file hashes to.** It carries a path, a size and Valve's SHA-1; a modlist
+carries an xxHash64. Nothing connects the two but the bytes, so `index-steam-depots` fetches a build once,
+hashes every file and writes down what came out — into `{Game}/steam_depots/{xx}.json` in
+`indexed-game-files`, sharded by the first byte of the hash so a lookup is one small file over HTTP. The
+folder is named for the store whose ids are in it, beside the `{version}_steam_manifests.json` files it
+belongs with; `_indexed.json` sorts above the shards and records which manifests have been read. Four ways
+to say which: `--version` (the ids the index already holds for a build, which is how one command indexes a
+build nobody has had installed for years), `--installed` (this machine's, the only route to a version
+nobody wrote down), an explicit `--depot`/`--manifest`, or today's public build. Nothing is kept — each
+file is hashed into a temporary folder and deleted.
+
+**The SHA-1 in the manifest is what makes a second build affordable.** Every entry records it, and a file
+whose SHA-1 the index has already seen takes that build's xxHash64 without being fetched: the same bytes
+are the same bytes wherever they were published. Skyrim Special Edition's six recorded builds are
+otherwise six whole downloads of a game that barely changed between them; with it they are one download
+and five sets of differences. It costs about forty bytes an entry, which is the cheapest trade in the
+index.
+
+`GameFileIndexFolder` is the disk side, and it **merges**: the index is a repository several people add to
+one build at a time over years, so a run that rewrote a shard from what it fetched today would delete every
+other build's files from it. An entry is keyed by app, depot, manifest and path, so the same file in a
+dozen builds is a dozen entries under one hash — which is the redundancy that makes a repair likely to find
+a copy the account can actually open. Shards are written every twenty-five files and after every manifest,
+`indexed.json` marks only the manifests that were read all the way through, and a re-run skips both what it
+has and what it finished, so stopping a fifteen-gigabyte run costs the file in flight.
 
 **The Creation Kit is not a game, and does not need to be one.** Steam gives it an app of its own —
 1946180 for Skyrim SE, 1946160 for Fallout 4, 202480 for Skyrim, 2722710 for Starfield — with its own
@@ -287,6 +372,18 @@ preflight and by the Logins settings tile, which exists mainly so a saved login 
 is not a download source and nothing needs it logged in ahead of time. `GameFilesVM` owns the game-files
 card and the whole sequence behind `repair-game-files`: log in if there is no login, fetch with per-file
 progress, then re-run the check, which is what decides whether the run carries on.
+
+**Counts, not lists, wherever a check has more than a handful of files to talk about.** A checklist row is
+one ellipsized line and the game-files card repeats it, so naming twenty files said nothing and hid the one
+sentence that mattered; `GameFilesCheck` now puts counts and the reason in `Message` and keeps the names in
+`Detail`. The card bands its files the way the download list does — `ArchiveGroupVM` headers over
+`ArchiveRowVM` rows, one flat list, `ArchiveListTemplateSelector` between them — as Downloaded /
+Downloading / Couldn't be fetched / Remaining, every band shut and an empty one left out entirely, so a
+list that takes forty files from the game reads as four numbers. `ArchiveGroupVM` therefore carries only
+what it draws; which rows fall in a band belongs to whoever built it, because the two panels band by
+different things. And a repair's failures are counted by their message rather than reported file by file:
+they are almost always the same sentence (a game version nobody indexed fails every file with it), and
+naming one file made it read like a problem with that file.
 
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every

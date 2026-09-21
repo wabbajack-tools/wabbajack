@@ -56,18 +56,28 @@
                             <Grid.OpacityMask>
                                 <VisualBrush Visual="{Binding ElementName=ListMask}"/>
                             </Grid.OpacityMask>
+                            <!--
+                                Band headers, with the rows of a band the user has opened. The card is a
+                                fixed-height panel inside a scroller, so this is capped and scrolls: a
+                                band opened on a list that takes forty files from the game must not push
+                                the buttons off the bottom.
+                            -->
                             <ListBox
                                 x:Name="RowsList"
-                                MaxHeight="96"
+                                MaxHeight="160"
                                 BorderBrush="Transparent"
                                 BorderThickness="0"
                                 AlternationCount="2"
-                                ItemTemplate="{StaticResource ArchiveRowTemplate}"
                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                 ScrollViewer.CanContentScroll="True"
                                 VirtualizingPanel.IsVirtualizing="True"
                                 VirtualizingPanel.VirtualizationMode="Recycling"
                                 VirtualizingPanel.ScrollUnit="Pixel">
+                                <ListBox.ItemTemplateSelector>
+                                    <local:ArchiveListTemplateSelector
+                                        RowTemplate="{StaticResource ArchiveRowTemplate}"
+                                        GroupTemplate="{StaticResource ArchiveGroupHeaderTemplate}" />
+                                </ListBox.ItemTemplateSelector>
                                 <ListBox.Resources>
                                     <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource ListBoxItemStyle}">
                                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
