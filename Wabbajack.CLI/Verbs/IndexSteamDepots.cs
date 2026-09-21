@@ -28,12 +28,13 @@ namespace Wabbajack.CLI.Verbs;
 ///     </para>
 ///     <para>
 ///         Which manifests are worth indexing is the harder half, and Steam will not help: its client API
-///         only ever says what a depot publishes now. So the ids come from one of three places, which is
-///         what the options are for. <c>--installed</c> reads them out of the local <c>appmanifest</c>,
-///         which is the build sitting on this disk and the only source for a version Steam has already
-///         moved past. <c>--depot</c> with <c>--manifest</c> takes an id from somewhere else - the version
-///         index, a note somebody made. With neither, it indexes whatever the game publishes today, which
-///         is worth doing the day a build ships and worthless a year later.
+///         only ever says what a depot publishes now. So the ids come from one of four places, which is
+///         what the options are for. <c>--version</c> reads the ids the index itself already records for a
+///         build, which is how one command indexes a build nobody has had installed for years.
+///         <c>--installed</c> reads them out of the local <c>appmanifest</c>, the build sitting on this
+///         disk and the only source for a version nobody wrote down. <c>--depot</c> with <c>--manifest</c>
+///         takes an id from anywhere else. With none of them, it indexes whatever the game publishes
+///         today, which is worth doing the day a build ships and worthless a year later.
 ///     </para>
 ///     <para>
 ///         It is safe to stop and safe to re-run: shards are written after every manifest, files already
@@ -77,7 +78,7 @@ public class IndexSteamDepots
             new OptionDefinition(typeof(bool), "i", "installed",
                 "Index the build installed on this machine, from its Steam appmanifest"),
             new OptionDefinition(typeof(string), "v", "version",
-                "Game version to record these manifests as. Defaults to the installed one with --installed"),
+                "Game version to index: uses the depot ids the index records for it. Also the label written down"),
             new OptionDefinition(typeof(bool), "f", "force", "Re-read manifests that are already indexed")
         });
 
@@ -112,7 +113,11 @@ public class IndexSteamDepots
         {
             await SteamVerbSupport.EnsureLoggedInAsync(_session, token);
 
-            var targets = await Targets(meta.Game, appId, depot, manifest, installed, token);
+            var index = await GameFileIndexFolder.Load(output, meta.Game, _dtos, token);
+            _logger.LogInformation("The index holds {Files} files of {Game} over {Manifests} manifests",
+                index.FileCount, meta.Game, index.Manifests.Count);
+
+            var targets = await Targets(index, meta.Game, appId, depot, manifest, installed, version, token);
             if (targets.Count == 0)
             {
                 _logger.LogError("Nothing to index: no depot and manifest could be worked out for app {App}",
@@ -124,9 +129,16 @@ public class IndexSteamDepots
                 _locator.TryGetSteamBuildId(meta.Game, out var buildId))
                 version = buildId;
 
-            var index = await GameFileIndexFolder.Load(output, meta.Game, _dtos, token);
-            _logger.LogInformation("The index holds {Files} files of {Game} over {Manifests} manifests",
-                index.FileCount, meta.Game, index.Manifests.Count);
+            // A companion app - a Creation Kit - is not readable without a licence, and asking for one puts
+            // it in the user's library. Said plainly rather than done quietly, because it is the only thing
+            // this verb does to an account rather than to a disk.
+            if (!meta.SteamIDs.Contains((int) appId))
+            {
+                _logger.LogInformation(
+                    "App {App} is not {Game}'s own, so Steam is being asked for the free licence it needs; " +
+                    "this adds the app to your Steam library", appId, meta.Game);
+                await _content.EnsureFreeLicenseAsync(appId, token);
+            }
 
             var indexed = 0;
             foreach (var target in targets)
@@ -146,15 +158,38 @@ public class IndexSteamDepots
     }
 
     /// <summary>
-    ///     Which (depot, manifest) pairs to read, in the order the options say. An explicit pair is taken as
-    ///     given - it is the only way to reach a build nobody here has - the installed build comes from the
-    ///     local appmanifest, and with neither it is whatever the app publishes today.
+    ///     Which (depot, manifest) pairs to read, most specific first: an explicit pair, then the build
+    ///     installed here, then the ids the index already records for a named version, then whatever the app
+    ///     publishes today.
+    ///     <para>
+    ///         The third of those is what makes the existing index worth something. Five Skyrim Special
+    ///         Edition builds have had their depot ids written down since 2022 by people who had them
+    ///         installed; Steam still serves those manifests to anyone who can name them, so a single
+    ///         <c>--version</c> indexes a build that nobody has had installed for years.
+    ///     </para>
     /// </summary>
-    private async Task<IReadOnlyList<DepotManifestId>> Targets(Game game, uint app, uint depot, ulong manifest,
-        bool installed, CancellationToken token)
+    private async Task<IReadOnlyList<DepotManifestId>> Targets(GameFileIndexFolder index, Game game, uint app,
+        uint depot, ulong manifest, bool installed, string version, CancellationToken token)
     {
         if (depot != 0 && manifest != 0)
             return new[] {new DepotManifestId(depot, manifest)};
+
+        if (!installed && !string.IsNullOrWhiteSpace(version))
+        {
+            var recorded = await index.RecordedManifests(version, token);
+            if (recorded.Length == 0)
+            {
+                _logger.LogError(
+                    "The index records no depot manifests for {Game} {Version}, and Steam cannot be asked " +
+                    "what an old build published. Run this on a machine that has that build installed, with " +
+                    "--installed, or give --depot and --manifest.", game, version);
+                return Array.Empty<DepotManifestId>();
+            }
+
+            _logger.LogInformation("The index records {Count} depots for {Game} {Version}", recorded.Length,
+                game, version);
+            return Restrict(recorded.Select(m => new DepotManifestId(m.Depot, m.Manifest)).ToArray(), depot);
+        }
 
         if (installed)
         {
@@ -203,7 +238,9 @@ public class IndexSteamDepots
 
         await using var scratch = _temp.CreateFolder();
         var added = 0;
+        var reused = 0;
         var done = 0L;
+        var fetchedBytes = 0L;
 
         foreach (var file in files.OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase))
         {
@@ -211,6 +248,18 @@ public class IndexSteamDepots
             done += (long) file.Size;
 
             if (index.Has(app, target.DepotId, target.ManifestId, file.Path)) continue;
+
+            // The manifest has already said what Valve hashed this file to, and a file the index has seen
+            // under that SHA-1 is the same bytes wherever it came from. So a build that changed forty files
+            // costs forty downloads rather than a whole game: Skyrim's six recorded builds are one download
+            // and five sets of differences.
+            if (index.KnownBySha1(file.Sha1) is { } known)
+            {
+                index.Add(Entry(known, file, app, target));
+                added++;
+                reused++;
+                continue;
+            }
 
             // One file at a time and deleted straight after: this is a hash, not a download, and a build
             // that would not fit on the disk still has to be indexable.
@@ -223,17 +272,10 @@ public class IndexSteamDepots
                 await using var stream = scratchFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
                 var hash = await stream.HashingCopy(Stream.Null, token);
 
-                index.Add(new IndexedGameFile
-                {
-                    Hash = hash,
-                    Size = (long) file.Size,
-                    Path = file.Path,
-                    App = app,
-                    Depot = target.DepotId,
-                    Manifest = target.ManifestId
-                });
+                index.Add(Entry(hash, file, app, target));
 
                 added++;
+                fetchedBytes += (long) file.Size;
                 if (added % 25 == 0)
                 {
                     _logger.LogInformation("{Done} of {Total} ({Percent:P0}) - {File}",
@@ -279,8 +321,25 @@ public class IndexSteamDepots
         }
 
         await index.Save(token);
-        _logger.LogInformation("Depot {Depot} manifest {Manifest}: {Added} files added", target.DepotId,
-            target.ManifestId, added);
+        _logger.LogInformation(
+            "Depot {Depot} manifest {Manifest}: {Added} files added, {Reused} of them already known by their " +
+            "Steam hash; {Fetched} downloaded", target.DepotId, target.ManifestId, added, reused,
+            fetchedBytes.ToFileSizeString());
         return added;
+    }
+
+    /// <summary>One index entry. The SHA-1 goes in so the next build of this game is mostly free.</summary>
+    private static IndexedGameFile Entry(Hash hash, DepotFile file, uint app, DepotManifestId target)
+    {
+        return new IndexedGameFile
+        {
+            Hash = hash,
+            Size = (long) file.Size,
+            Path = file.Path,
+            Sha1 = file.Sha1,
+            App = app,
+            Depot = target.DepotId,
+            Manifest = target.ManifestId
+        };
     }
 }

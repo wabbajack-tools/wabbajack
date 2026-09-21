@@ -220,11 +220,21 @@ cannot.
 
 **A manifest never says what a file hashes to.** It carries a path, a size and Valve's SHA-1; a modlist
 carries an xxHash64. Nothing connects the two but the bytes, so `index-steam-depots` fetches a build once,
-hashes every file and writes down what came out — into `{Game}/content/{xx}.json` in `indexed-game-files`,
-sharded by the first byte of the hash so a lookup is one small file over HTTP. It indexes the current
-build, the build installed on this machine (`--installed`, the only route to a version Steam has moved
-past), or an explicit depot and manifest. Cost is bandwidth — about fifteen gigabytes for a Skyrim Special
-Edition build — and nothing is kept: each file is hashed into a temporary folder and deleted.
+hashes every file and writes down what came out — into `{Game}/steam_depots/{xx}.json` in
+`indexed-game-files`, sharded by the first byte of the hash so a lookup is one small file over HTTP. The
+folder is named for the store whose ids are in it, beside the `{version}_steam_manifests.json` files it
+belongs with; `_indexed.json` sorts above the shards and records which manifests have been read. Four ways
+to say which: `--version` (the ids the index already holds for a build, which is how one command indexes a
+build nobody has had installed for years), `--installed` (this machine's, the only route to a version
+nobody wrote down), an explicit `--depot`/`--manifest`, or today's public build. Nothing is kept — each
+file is hashed into a temporary folder and deleted.
+
+**The SHA-1 in the manifest is what makes a second build affordable.** Every entry records it, and a file
+whose SHA-1 the index has already seen takes that build's xxHash64 without being fetched: the same bytes
+are the same bytes wherever they were published. Skyrim Special Edition's six recorded builds are
+otherwise six whole downloads of a game that barely changed between them; with it they are one download
+and five sets of differences. It costs about forty bytes an entry, which is the cheapest trade in the
+index.
 
 `GameFileIndexFolder` is the disk side, and it **merges**: the index is a repository several people add to
 one build at a time over years, so a run that rewrote a shard from what it fetched today would delete every

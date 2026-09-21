@@ -189,6 +189,73 @@ public class GameFileIndexFolderTests : IDisposable
         Assert.True((await Load()).Has(App, 1, 100, "data\\skyrim.ESM"));
     }
 
+    /// <summary>
+    ///     What keeps a second build of a game from being a second download of it: the manifest says what
+    ///     Valve hashed each file to before anything is fetched, and a file the index has seen under that
+    ///     SHA-1 is the same bytes. Skyrim's six recorded builds differ by a few dozen files each.
+    /// </summary>
+    [Fact]
+    public async Task AFileAlreadyKnownByItsSteamHashNeedsNoDownload()
+    {
+        var hash = Hash.FromHex("9a00000000000000");
+        const string sha1 = "0123456789ABCDEF0123456789ABCDEF01234567";
+
+        var index = await Load();
+        var file = File(hash, "Data\\Skyrim.esm", 1, 100);
+        file.Sha1 = sha1;
+        index.Add(file);
+        await index.Save(CancellationToken.None);
+
+        var next = await Load();
+
+        // The same bytes in another build's manifest: known without fetching it.
+        Assert.Equal(hash, next.KnownBySha1(sha1));
+        Assert.Equal(hash, next.KnownBySha1(sha1.ToLowerInvariant()));
+
+        // And a file nobody has seen, or one whose manifest recorded no hash, is not.
+        Assert.Null(next.KnownBySha1("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
+        Assert.Null(next.KnownBySha1(string.Empty));
+    }
+
+    /// <summary>
+    ///     The ids somebody wrote down years ago, read back out of the index. This is what lets a build
+    ///     nobody has installed any more be content-indexed at all: Steam will still serve a manifest to
+    ///     anyone who can name it, and these files are where the names survive.
+    /// </summary>
+    [Fact]
+    public async Task TheDepotIdsRecordedForAVersionAreReadBack()
+    {
+        var folder = _root.Combine(Game.SkyrimSpecialEdition.ToString());
+        folder.CreateDirectory();
+
+        // Byte for byte what the repo holds for 1.6.640.0 today.
+        await folder.Combine(GameFileIndex.SteamManifestsFile("1.6.640.0")).WriteAllTextAsync(
+            """
+            [
+              {"Depot": 489833, "Manifest": 5291801952219815735},
+              {"Depot": 489832, "Manifest": 2756691988703496654},
+              {"Depot": 489831, "Manifest": 3660787314279169352}
+            ]
+            """);
+
+        var recorded = await (await Load()).RecordedManifests("1.6.640.0", CancellationToken.None);
+
+        Assert.Equal(3, recorded.Length);
+        Assert.Contains(recorded, m => m.Depot == 489831 && m.Manifest == 3660787314279169352);
+        Assert.Contains(recorded, m => m.Depot == 489832 && m.Manifest == 2756691988703496654);
+        Assert.Contains(recorded, m => m.Depot == 489833 && m.Manifest == 5291801952219815735);
+    }
+
+    /// <summary>
+    ///     A version nobody recorded is empty rather than an error - it is the ordinary answer for most
+    ///     builds of most games, and the verb turns it into a sentence about what to do instead.
+    /// </summary>
+    [Fact]
+    public async Task AVersionNobodyRecordedReadsAsNothing()
+    {
+        Assert.Empty(await (await Load()).RecordedManifests("1.6.1170.0", CancellationToken.None));
+    }
+
     private Task<GameFileIndexFolder> Load()
     {
         return GameFileIndexFolder.Load(_root, Game.SkyrimSpecialEdition, _dtos, CancellationToken.None);

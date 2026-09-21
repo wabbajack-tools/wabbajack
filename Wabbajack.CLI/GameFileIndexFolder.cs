@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
@@ -14,8 +15,8 @@ namespace Wabbajack.CLI;
 
 /// <summary>
 ///     The content index as it sits in a clone of <c>wabbajack-tools/indexed-game-files</c>: one folder per
-///     game holding <c>content/{xx}.json</c> shards of <see cref="IndexedGameFile" />, and
-///     <c>content/indexed.json</c> saying which manifests have been read.
+///     game holding <c>steam_depots/{xx}.json</c> shards of <see cref="IndexedGameFile" />, and
+///     <c>steam_depots/_indexed.json</c> saying which manifests have been read.
 ///     <para>
 ///         Everything here merges rather than replaces. The index is a repository several people add to,
 ///         one build at a time, over years; a run that rewrote a shard from what it happened to fetch today
@@ -50,6 +51,12 @@ internal sealed class GameFileIndexFolder
     /// </summary>
     private readonly HashSet<string> _keys = new();
 
+    /// <summary>
+    ///     What each Valve SHA-1 the index has seen hashed to. Every build of a game shares most of its
+    ///     files with the one before it, so this is nearly all of a second build.
+    /// </summary>
+    private readonly Dictionary<string, Hash> _bySha1 = new(StringComparer.OrdinalIgnoreCase);
+
     private GameFileIndexFolder(AbsolutePath folder, DTOSerializer dtos)
     {
         _folder = folder;
@@ -60,6 +67,18 @@ internal sealed class GameFileIndexFolder
     public IReadOnlyCollection<IndexedManifest> Manifests => _manifests.Values;
 
     public int FileCount => _shards.Values.Sum(s => s.Count);
+
+    /// <summary>
+    ///     The xxHash64 of a file whose Valve SHA-1 is already in the index, or null. Two files with the
+    ///     same SHA-1 are the same bytes, and a manifest states it before anything is fetched, so this is
+    ///     what stops a second build of a game being a second download of it: only what actually changed
+    ///     has to be read.
+    /// </summary>
+    public Hash? KnownBySha1(string sha1)
+    {
+        return string.IsNullOrWhiteSpace(sha1) ? null :
+            _bySha1.TryGetValue(sha1, out var hash) ? hash : null;
+    }
 
     /// <summary>
     ///     Loads what the index already holds for a game. A folder that is not there yet is an empty index,
@@ -77,6 +96,21 @@ internal sealed class GameFileIndexFolder
     public bool HasManifest(uint app, uint depot, ulong manifest)
     {
         return _manifests.ContainsKey((app, depot, manifest));
+    }
+
+    /// <summary>
+    ///     The depot and manifest ids somebody recorded for a version of this game, out of the index's own
+    ///     <c>{version}_steam_manifests.json</c>, or empty when nobody has.
+    ///     <para>
+    ///         This is how a build gets content-indexed by someone who does not have it installed: the ids
+    ///         were written down by whoever did, years ago, and Steam will still serve a manifest to anyone
+    ///         who can name it. It is the only reason an old build is reachable at all.
+    ///     </para>
+    /// </summary>
+    public async Task<SteamManifest[]> RecordedManifests(string version, CancellationToken token)
+    {
+        var file = _folder.Combine(GameFileIndex.SteamManifestsFile(version));
+        return file.FileExists() ? await Read<SteamManifest>(file, token) : Array.Empty<SteamManifest>();
     }
 
     /// <summary>
@@ -98,6 +132,7 @@ internal sealed class GameFileIndexFolder
         var key = KeyOf(file.App, file.Depot, file.Manifest, file.Path);
         entries[key] = file;
         _keys.Add(key);
+        if (!string.IsNullOrWhiteSpace(file.Sha1)) _bySha1[file.Sha1] = file.Hash;
         _touched.Add(shard);
     }
 
@@ -163,6 +198,7 @@ internal sealed class GameFileIndexFolder
                 var key = KeyOf(indexed.App, indexed.Depot, indexed.Manifest, indexed.Path);
                 entries[key] = indexed;
                 _keys.Add(key);
+                if (!string.IsNullOrWhiteSpace(indexed.Sha1)) _bySha1[indexed.Sha1] = indexed.Hash;
             }
 
             _shards[shard] = entries;

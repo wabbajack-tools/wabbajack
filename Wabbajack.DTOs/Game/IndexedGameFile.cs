@@ -29,6 +29,19 @@ public class IndexedGameFile
     public string Path { get; set; } = string.Empty;
 
     /// <summary>
+    ///     Valve's own SHA-1 of the file, as the manifest carries it. Recorded because it is what makes
+    ///     indexing a second build of a game affordable: a manifest states this before anything is fetched,
+    ///     and two files with the same SHA-1 are the same bytes, so a file that did not change between
+    ///     builds takes its xxHash64 from the build that was already read rather than being downloaded
+    ///     again. Six Skyrim builds are otherwise six whole downloads of a game that barely changed.
+    ///     <para>
+    ///         Empty when a manifest recorded none, which means that file has to be fetched to be known.
+    ///     </para>
+    /// </summary>
+    [JsonPropertyName("Sha1")]
+    public string Sha1 { get; set; } = string.Empty;
+
+    /// <summary>
     ///     The app the depot has to be opened under. Recorded because it is not always the game's own: the
     ///     Creation Kit installs into the game folder from an app of its own, and a depot key is asked for
     ///     per app.
@@ -80,11 +93,30 @@ public class IndexedManifest
 /// </summary>
 public static class GameFileIndex
 {
-    /// <summary>The folder inside a game's directory in <c>indexed-game-files</c>.</summary>
-    public const string ContentFolder = "content";
+    /// <summary>
+    ///     The folder inside a game's directory in <c>indexed-game-files</c>. Named for the store whose ids
+    ///     are in it, like the <c>{version}_steam_manifests.json</c> files it sits beside: anything indexed
+    ///     from somewhere that is not a Steam depot wants a folder of its own rather than a share of a
+    ///     generic one.
+    /// </summary>
+    public const string ContentFolder = "steam_depots";
 
-    /// <summary>The file recording which manifests have been read, beside the shards.</summary>
-    public const string IndexedManifestsFile = "indexed.json";
+    /// <summary>
+    ///     The file recording which manifests have been read, beside the shards. Underscored so it sorts
+    ///     above the two-hex-digit shard names it can never collide with.
+    /// </summary>
+    public const string IndexedManifestsFile = "_indexed.json";
+
+    /// <summary>
+    ///     The file recording which depots and manifests a version of a game was published as, which is
+    ///     what <c>hash-game-files</c> writes from a machine that has that build. Named here because both
+    ///     the writer and the indexer that reads it back have to agree, and the client reads the same name
+    ///     over HTTP.
+    /// </summary>
+    public static string SteamManifestsFile(string version)
+    {
+        return $"{version}_steam_manifests.json";
+    }
 
     /// <summary>
     ///     Which shard a hash falls in: the first byte of it, lower-case hex. Taken from the hex rather
