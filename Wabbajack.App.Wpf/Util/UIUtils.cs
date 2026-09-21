@@ -264,12 +264,25 @@ public static class UIUtils
         return String.Format("{0:0.##} {1}", round ? Math.Ceiling(dblSByte) : dblSByte, Suffix[i]);
     }
 
+    /// <summary>
+    ///     Opens a file Wabbajack has just written with whatever the shell has associated with it - an
+    ///     <c>.html</c> report or article lands in the user's browser.
+    ///     <para>
+    ///         Not through <see cref="OpenWebsite(string)" />: <see cref="WebsiteTarget" /> passes only
+    ///         <c>http</c>, <c>https</c> and <c>mailto</c>, and a local path is exactly what it is there to
+    ///         refuse. Loosening it so this could share it would hand every modlist-supplied link the ability
+    ///         to launch a file, which is the whole reason the filter exists. A path the app generated is a
+    ///         different question from a URL a modlist carries, so it gets a different door.
+    ///     </para>
+    ///     <para>
+    ///         Not through <c>cmd.exe /c start</c> either, for the reason recorded on
+    ///         <see cref="OpenWebsite(Uri)" />, and not through <c>Process.Start("explorer", path)</c>, which
+    ///         hands the path over as an unquoted command line and so loses everything after the first space.
+    ///     </para>
+    /// </summary>
     public static void OpenFile(AbsolutePath file)
     {
-        Process.Start(new ProcessStartInfo("cmd.exe", $"/c start \"\" \"{file}\"")
-        {
-            CreateNoWindow = true,
-        });
+        Process.Start(new ProcessStartInfo(file.ToString()) {UseShellExecute = true});
     }
 
     public static string GetSmallImageUri(ModlistMetadata metadata)

@@ -40,7 +40,6 @@ using Wabbajack.VFS;
 using Humanizer;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
-using Microsoft.Web.WebView2.Wpf;
 using System.Diagnostics;
 using System.Reactive.Concurrency;
 using Wabbajack.Reporting;
@@ -78,7 +77,28 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public partial PreflightVM? Preflight { get; set; }
 
     [Reactive] public partial string FailureDetailsTitle { get; set; } = string.Empty;
-    [Reactive] public partial string FailureDetailsDescription { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     What the failure screen says inline: the opening of a matched article, or the whole of one of the
+    ///     three short messages that are not articles at all. It starts as the reason the panel is empty,
+    ///     since the Error summary tab can be opened before anything has been diagnosed.
+    /// </summary>
+    [Reactive] public partial string FailureDetailsDescription { get; set; } =
+        "Nothing has been diagnosed yet. If the install stops, choose \"How do I fix this?\" to check your log against known issues.";
+
+    /// <summary>
+    ///     The matched article's markdown, empty when the diagnosis produced no article.
+    ///     <para>
+    ///         These come from a community repository and carry headings, links to downloads and, for a few
+    ///         of them, a screenshot, which is why they are rendered rather than shown as text. The renderer
+    ///         is <see cref="DiagnosticsArticle" /> and the reader is the user's browser -
+    ///         <see cref="OpenFailureArticleCommand" /> writes the page to a temp file and opens it.
+    ///     </para>
+    /// </summary>
+    [Reactive] public partial string FailureArticleMarkdown { get; set; } = string.Empty;
+
+    /// <summary>The screenshot a matched article may carry beside its text; null for most of them.</summary>
+    [Reactive] public partial string? FailureArticleImage { get; set; }
 
     /// <summary>
     /// Don't use the Reactive attribute on nullable enum values
@@ -104,8 +124,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public partial string SlideShowDescription { get; set; }
     [Reactive] public partial string SuggestedInstallFolder { get; set; }
     [Reactive] public partial string SuggestedDownloadFolder { get; set; }
-
-    public WebView2 ReadmeBrowser { get; set; }
 
     private readonly DTOSerializer _dtos;
     private readonly ILogger<InstallationVM> _logger;
@@ -153,6 +171,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand OpenWebsiteCommand { get; }
     public ICommand BackToGalleryCommand { get; }
     public ICommand DiagnoseFailureCommand { get; }
+    public ICommand OpenFailureArticleCommand { get; }
     public ICommand OpenLogFolderCommand { get; }
     public ICommand OpenInstallFolderCommand { get; }
     public ICommand InstallCommand { get; }
@@ -181,8 +200,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         ProgressText = $"Installation";
 
         Installer = new MO2InstallerVM(this);
-        ReadmeBrowser = serviceProvider.GetRequiredService<WebView2>();
-
 
         CancelCommand = ReactiveCommand.Create(CancelInstall, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
         EditInstallDetailsCommand = ReactiveCommand.Create(() =>
@@ -241,6 +258,9 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         BackToGalleryCommand = ReactiveCommand.Create(() => NavigateToGlobal.Send(ScreenType.ModListGallery));
 
         DiagnoseFailureCommand = ReactiveCommand.Create(() => LaunchDiagnostics());
+
+        OpenFailureArticleCommand = ReactiveCommand.Create(() => OpenFailureArticle(),
+            this.WhenAnyValue(vm => vm.FailureArticleMarkdown, markdown => !string.IsNullOrWhiteSpace(markdown)));
 
         CreateShortcutCommand = ReactiveCommand.Create(() => CreateDesktopShortcut());
 
@@ -391,10 +411,17 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             if (result.HasValue)
             {
                 FailureDetailsTitle = $"Possible issue: {result.Title}";
-                FailureDetailsDescription = result.Body;
+                FailureArticleMarkdown = result.Body;
+                FailureArticleImage = result.ImagePathOrUrl;
+
+                var lead = DiagnosticsArticle.Lead(result.Body);
+                FailureDetailsDescription = string.IsNullOrEmpty(lead)
+                    ? "A community troubleshooting article matches your log."
+                    : lead;
             }
             else
             {
+                ClearFailureArticle();
                 FailureDetailsTitle = "No common issues detected";
                 FailureDetailsDescription = "Couldn't match a known issue in your log. You can open the log file to investigate further, or join the Wabbajack Discord to ask for help.";
             }
@@ -404,11 +431,67 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         catch (Exception ex)
         {
             _logger.LogError(ex, "Diagnostics failed");
+            ClearFailureArticle();
             FailureDetailsTitle = "Diagnostics failed";
             FailureDetailsDescription = $"An error occurred while analyzing your log.\n{ex.GetType().Name}: {ex.Message}";
             InstallState = InstallState.Failure;
             DiagnosticsVisible = true;
         }
+    }
+
+    private void ClearFailureArticle()
+    {
+        FailureArticleMarkdown = string.Empty;
+        FailureArticleImage = null;
+    }
+
+    /// <summary>
+    ///     Renders the matched article and hands it to the user's browser.
+    ///     <para>
+    ///         The page used to be drawn by an embedded WebView2 through <c>NavigateToString</c>. The same
+    ///         HTML now goes to a file from <see cref="TemporaryFileManager" /> - so it is cleaned up with
+    ///         everything else the run left behind - and is opened with the shell, which keeps the headings,
+    ///         the links to downloads and the screenshots that plain text would have lost.
+    ///     </para>
+    /// </summary>
+    private void OpenFailureArticle()
+    {
+        try
+        {
+            var html = DiagnosticsArticle.BuildHtml(FailureDetailsTitle, FailureArticleMarkdown,
+                FailureArticleImage, CurrentArticleTheme());
+
+            var manager = _serviceProvider.GetRequiredService<TemporaryFileManager>();
+            var file = manager.CreateFolder().Path.Combine(DiagnosticsArticle.FileName(FailureDetailsTitle));
+
+            file.WriteAllText(html);
+            UIUtils.OpenFile(file);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not open the diagnostics article");
+        }
+    }
+
+    /// <summary>
+    ///     The app's own colours, so the article does not arrive as black-on-white in the middle of a dark
+    ///     theme. Falls back to the same literals the embedded renderer used when a brush is missing.
+    /// </summary>
+    private static ArticleTheme CurrentArticleTheme()
+    {
+        static string ToCss(System.Windows.Media.Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+
+        var resources = System.Windows.Application.Current?.Resources;
+
+        System.Windows.Media.Color? Brush(string key) =>
+            resources?[key] is System.Windows.Media.SolidColorBrush brush ? brush.Color : null;
+
+        var fallback = ArticleTheme.Default;
+
+        return new ArticleTheme(
+            Brush("ForegroundBrush") is { } fg ? ToCss(fg) : fallback.Foreground,
+            Brush("CardBackgroundBrush") is { } bg ? ToCss(bg) : fallback.Background,
+            Brush("PrimaryBrush") is { } accent ? ToCss(accent) : fallback.Accent);
     }
 
     private static string? SafeReadAllText(string path)
