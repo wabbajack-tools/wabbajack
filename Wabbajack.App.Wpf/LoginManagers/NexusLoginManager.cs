@@ -15,7 +15,6 @@ using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs.Logins;
-using Wabbajack.Messages;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.UserIntervention;
@@ -30,8 +29,8 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     private readonly IServiceProvider _serviceProvider;
     private readonly Subject<Unit> _refreshed = new();
 
-    /// <summary>1 while a login window is open. Set here, cleared by that window's Closed event.</summary>
-    private int _loginWindowOpen;
+    /// <summary>1 while a login is in flight. Set when one starts, cleared when it ends either way.</summary>
+    private int _loginRunning;
 
     public string SiteName { get; } = "Nexus Mods";
     public ICommand TriggerLogin { get; set; }
@@ -128,35 +127,45 @@ public partial class NexusLoginManager : ViewModel, ILoginFor<NexusDownloader>
     }
 
     /// <summary>
-    ///     Opens the login window, unless one is already open. Two clicks, or the settings tile and
-    ///     preflight's Log in action together, would otherwise queue a second window behind the first -
-    ///     <c>MainWindowVM</c> serialises browser windows - and open it the moment the user finished with
-    ///     the one they were looking at.
+    ///     Sends the user to Nexus Mods in their browser and waits for the redirect, unless a login is
+    ///     already in flight. Two clicks, or the settings tile and preflight's Log in action together, would
+    ///     otherwise open two tabs against two loopback ports, and the one the user finished would be a
+    ///     coin toss.
+    ///     <para>
+    ///         This returns as soon as the browser has been asked for, because the caller is a
+    ///         <c>ReactiveCommand</c> on the UI thread and the login takes as long as the user does. What
+    ///         happens next is <see cref="Refreshed" />, which preflight listens to; the token state is
+    ///         re-read whichever way the login ended, since a cancelled one still needs the row it came
+    ///         from to settle.
+    ///     </para>
     /// </summary>
     private void StartLogin()
     {
-        if (Interlocked.Exchange(ref _loginWindowOpen, 1) == 1)
+        if (Interlocked.Exchange(ref _loginRunning, 1) == 1)
         {
-            _logger.LogInformation("A {SiteName} login window is already open", SiteName);
+            _logger.LogInformation("A {SiteName} login is already in progress", SiteName);
             return;
         }
 
-        try
+        var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
+        Task.Run(async () =>
         {
-            var handler = _serviceProvider.GetRequiredService<NexusLoginHandler>();
-            handler.Closed += async (_, _) =>
+            try
             {
-                Interlocked.Exchange(ref _loginWindowOpen, 0);
+                await handler.LogIn(CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                // NexusLoginHandler.LogIn is written not to throw. This is here so that a day on which it
+                // does is a logged line rather than an unobserved task exception.
+                _logger.LogError(ex, "The {SiteName} login failed", SiteName);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _loginRunning, 0);
                 await RefreshTokenState();
-            };
-            ShowBrowserWindow.Send(handler);
-        }
-        catch (Exception)
-        {
-            // Nothing was opened, so nothing will close and clear this.
-            Interlocked.Exchange(ref _loginWindowOpen, 0);
-            throw;
-        }
+            }
+        });
     }
 
     /// <summary>

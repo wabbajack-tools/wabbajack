@@ -1,3 +1,4 @@
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
 
@@ -51,6 +52,57 @@ public record GameFileRestoreResult(GameFileRestoreOutcome Outcome, string? Vers
 public record GameFileRestorerStatus(bool Ready, string Reason);
 
 /// <summary>
+///     Whether a source could stand in for a game that is not installed on this machine at all.
+///     <para>
+///         The three unavailable answers are kept apart for the same reason <c>DepotAccess</c> keeps its
+///         three: "log in and this works", "this account does not own the game" and "we could not find out"
+///         are three different things for the user to do, and the last is not a no.
+///     </para>
+/// </summary>
+public enum GameSourceOutcome
+{
+    /// <summary>The account owns the game here, so its files can be fetched without a local install.</summary>
+    Available,
+
+    /// <summary>Nothing was asked: nobody is logged into this source.</summary>
+    NotReady,
+
+    /// <summary>This source does not carry this game's own files, whoever is logged in.</summary>
+    NoSource,
+
+    /// <summary>Asked, and the account does not own the game.</summary>
+    NotOwned,
+
+    /// <summary>Asked, and the source would not say. Not a denial.</summary>
+    Unconfirmed
+}
+
+/// <param name="Reason">A sentence for the user: what this means, and what they could do about it.</param>
+public record GameSourceResult(GameSourceOutcome Outcome, string Reason)
+{
+    public bool Available => Outcome == GameSourceOutcome.Available;
+}
+
+/// <summary>
+///     What the caller knows about the file it wants, beyond where it sits in the game folder. A modlist
+///     records both of these for every game file, and both change what a source can do:
+///     <list type="bullet">
+///         <item>
+///             The hash is an identity, and a better question than a version. A source that has been told
+///             which of its manifests carry which bytes can go straight to one, whatever build it belongs
+///             to - which is the whole of the case where a list was built against a version the store has
+///             moved past.
+///         </item>
+///         <item>
+///             The size is a cheap refusal. A manifest says how big a file is before anything is fetched,
+///             and a copy of another size cannot be the wanted one; the caller hashes everything that comes
+///             back and deletes what does not match, so downloading it only proves what the manifest said.
+///         </item>
+///     </list>
+/// </summary>
+public record GameFileIdentity(Hash Hash, long Size);
+
+/// <summary>
 ///     Fetches a file out of a game's own published content, at a named version of that game.
 ///     This is the seam between wanting a game file and wherever game files come from. It is deliberately
 ///     not "talk to Steam": the caller says which file of which game at which version, and an implementation
@@ -68,6 +120,26 @@ public interface IGameFileRestorer
     ///     restore is never something that happens to them: an account is theirs to hand over or not.
     /// </summary>
     GameFileRestorerStatus Status();
+
+    /// <summary>
+    ///     Whether this source could supply <paramref name="game" />'s own files on a machine where the game
+    ///     is not installed. Asked by preflight when it cannot find the game folder, and only then: an
+    ///     install that has the game needs none of this.
+    ///     <para>
+    ///         A wider question than <see cref="Status" />, and a narrower one than <see cref="Restore" />.
+    ///         Wider because it asks about the account as well as the login - whether the store will hand
+    ///         this particular game over - and narrower because it is about the game's own published
+    ///         content and not about any one file. A source that carries add-ons for a game rather than the
+    ///         game answers <see cref="GameSourceOutcome.NoSource" />: those are no substitute for an
+    ///         install.
+    ///     </para>
+    ///     <para>
+    ///         It may log in with a credential the user has already given, because that is a login they
+    ///         made, but it must not ask them for a new one: this runs while preflight is reporting, not
+    ///         while the user is deciding.
+    ///     </para>
+    /// </summary>
+    Task<GameSourceResult> CanSourceGame(Game game, CancellationToken token);
 
     /// <summary>
     ///     What repairing these games' files would do beyond downloading them, in sentences written for the
@@ -95,6 +167,11 @@ public interface IGameFileRestorer
     ///     The bytes are checked against whatever hash the source itself carries for the file; the caller
     ///     still has to decide whether they are the bytes <em>it</em> wanted.
     /// </summary>
+    /// <param name="wanted">
+    ///     The hash and size of the file being asked for, when the caller knows them - see
+    ///     <see cref="GameFileIdentity" />. Null means it does not, and the source falls back to answering
+    ///     by version and path alone.
+    /// </param>
     Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile, AbsolutePath output,
-        CancellationToken token);
+        CancellationToken token, GameFileIdentity? wanted = null);
 }

@@ -65,9 +65,12 @@ public sealed class GameFilesCheck : IPreflightCheck
         // the action next.
         ctx.State.RepairableGameFiles = Array.Empty<RepairableGameFile>();
 
-        var missingRequired = meta.RequiredFiles
-            .Where(r => !folder.Combine(r).FileExists())
-            .ToList();
+        // Only of a folder that exists. game-installed lets a run carry on with no game folder at all when
+        // the game's files can be fetched instead, and "the install at "" is incomplete" is both untrue and
+        // a row the user has already been told about - by the Warning that let the run get here.
+        var missingRequired = folder == default
+            ? new List<RelativePath>()
+            : meta.RequiredFiles.Where(r => !folder.Combine(r).FileExists()).ToList();
         if (missingRequired.Count > 0)
         {
             return Task.FromResult(PreflightResult.Failed(
@@ -120,25 +123,32 @@ public sealed class GameFilesCheck : IPreflightCheck
         var parts = new List<string>();
         var detail = new List<string>();
 
+        // Counts here, names in the detail. The message is drawn on the checklist row, where it is one
+        // ellipsized line, and again at the top of the game-files card: twenty file names made both of them
+        // unreadable and said nothing the list of files underneath was not already saying.
         if (mismatched.Count > 0)
         {
             var expected = string.Join(", ", mismatched.Select(m => m.Version).Where(v => v != null).Distinct());
-            var actual = GameVersionDetector.Detect(game, folder, ctx.GameLocator, ctx.Logger);
+            var actual = folder == default
+                ? null
+                : GameVersionDetector.Detect(game, folder, ctx.GameLocator, ctx.Logger);
             var versions = expected.Length > 0
                 ? $"built against {expected}; you have {actual ?? "an unknown version"}"
                 : $"you have {actual ?? "an unknown version"}";
             parts.Add(
-                $"{Plural.Of(mismatched.Count, "game file doesn't match", "game files don't match")} ({versions}): " +
-                Summarise(mismatched.Select(m => m.Archive.Name)));
+                $"{Plural.Of(mismatched.Count, "game file doesn't match", "game files don't match")} ({versions})");
             detail.Add("Mismatched:");
             detail.AddRange(mismatched.Select(m => "  " + m.Archive.Name));
         }
 
         if (missing.Count > 0)
         {
-            parts.Add(
-                $"{Plural.Of(missing.Count, "game file is missing", "game files are missing")} (missing DLC or a modified install?): " +
-                Summarise(missing.Select(m => m.Archive.Name)));
+            // A game that is not installed is not a modified install, and asking a user who just told us
+            // they have not got the game whether they are missing a DLC is nonsense.
+            var why = ctx.State.SourcedGames.Contains(game)
+                ? $"{meta.HumanFriendlyGameName} is not installed"
+                : "missing DLC or a modified install?";
+            parts.Add($"{Plural.Of(missing.Count, "game file is missing", "game files are missing")} ({why})");
             detail.Add("Missing:");
             detail.AddRange(missing.Select(m => "  " + m.Archive.Name));
         }
@@ -161,7 +171,12 @@ public sealed class GameFilesCheck : IPreflightCheck
     {
         var restorer = ctx.GameFileRestorer;
         if (restorer == null) return null;
-        if (!repairable.Any(r => ctx.GameLocator.TryGetSteamBuildId(r.State.Game, out _))) return null;
+
+        // Came from a store the restorer can fetch from, which for an installed game is what a Steam build
+        // id in its own folder says. A game that is not installed has no folder to read one out of, so
+        // game-installed's answer - a source that said it could supply this game - stands in its place.
+        if (!repairable.Any(r => ctx.GameLocator.TryGetSteamBuildId(r.State.Game, out _)
+                                 || ctx.State.SourcedGames.Contains(r.State.Game))) return null;
 
         var status = restorer.Status();
         detail.Add(string.Empty);
@@ -196,6 +211,12 @@ public sealed class GameFilesCheck : IPreflightCheck
             root = ctx.State.GameFolder;
         else if (!ctx.State.OtherGameFolders.TryGetValue(state.Game, out root))
             return Outcome.Missing;
+
+        // No folder to look in - a game that is being sourced rather than installed - so every file is
+        // missing rather than mismatched, which is also the truth: nothing here is the wrong version of
+        // anything. It is the answer the repair wants, too, since a missing file asks for the current
+        // build and needs no version index.
+        if (root == default) return Outcome.Missing;
 
         return state.GameFile.RelativeTo(root).FileExists() ? Outcome.Mismatch : Outcome.Missing;
     }

@@ -79,7 +79,6 @@
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
-    <PackageReference Include="Microsoft.Web.WebView2" />
     <PackageReference Include="Net.Codecrete.QrCodeGenerator" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="NLog.Extensions.Logging" />

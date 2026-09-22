@@ -49,7 +49,6 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.10" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
-    <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
     <PackageVersion Include="Nettle" Version="3.0.0" />
     <PackageVersion Include="Net.Codecrete.QrCodeGenerator" Version="3.2.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />

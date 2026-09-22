@@ -9,19 +9,22 @@ namespace Wabbajack;
 ///     The summary row that stands in for one band of a download list. A modlist has thousands of archives and
 ///     a flat list of finished rows is noise, so the bands the user is not watching stay folded into a count
 ///     and a total until they ask for them. A plain <see cref="ReactiveObject" />, like the rows it heads.
+///     <para>
+///         Title and open-or-shut, and nothing about which rows belong to it: the download list bands by
+///         <see cref="ArchiveRowVM.Group" />, the game-files card bands by what its repair is doing to each
+///         file, and both want the same header.
+///     </para>
 /// </summary>
 public partial class ArchiveGroupVM : ReactiveObject
 {
-    public ArchiveGroupVM(ArchiveGroup group, string title, bool expanded)
+    public ArchiveGroupVM(string title, bool expanded)
     {
-        Group = group;
         Title = title;
         IsExpanded = expanded;
         SummaryText = Describe(0, 0);
         ToggleCommand = ReactiveCommand.Create(() => { IsExpanded = !IsExpanded; });
     }
 
-    public ArchiveGroup Group { get; }
     public string Title { get; }
 
     [Reactive] public partial bool IsExpanded { get; set; }

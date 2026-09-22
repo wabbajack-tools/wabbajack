@@ -16,6 +16,7 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.VFS;
@@ -168,7 +169,44 @@ public class HashGameFiles
         await _dtos.Serialize(dtoArray, fs, writeIndented: true);
 
         _logger.LogInformation("Saved hash index to {Path}", outFile);
+
+        await WriteSteamManifests(output, gameEnum, version, token);
         return 0;
+    }
+
+    /// <summary>
+    ///     Writes the depot and manifest ids of the copy that was just hashed, beside the hashes.
+    ///     <para>
+    ///         This is the half of an indexed build that cannot be recovered later. The hashes can be
+    ///         produced again by anyone who still has the files; the manifest ids exist only in the local
+    ///         <c>appmanifest</c> and in Steam's memory of what it installed, and Steam will not say what a
+    ///         depot published last year. So whoever indexes a build has to write them down while they have
+    ///         it - after which <c>index-steam-depots</c> can read that build's depots from any machine, and
+    ///         a repair can fetch its files without the user having the game at all.
+    ///     </para>
+    ///     <para>
+    ///         Only for a game Steam installed. A GOG or retail copy has files to hash and no depots behind
+    ///         them, and that is not a failure of anything.
+    ///     </para>
+    /// </summary>
+    private async Task WriteSteamManifests(AbsolutePath output, Game game, string version,
+        CancellationToken token)
+    {
+        if (!_gameLocator.TryGetSteamManifests(game, out var manifests))
+        {
+            _logger.LogInformation(
+                "{Game} was not installed by Steam here, so there are no depot manifests to record", game);
+            return;
+        }
+
+        var file = output.Combine(game.ToString(), $"{version}_steam_manifests")
+            .WithExtension(Ext.Json);
+
+        await using var fs = File.Open(file.ToString(), FileMode.Create, FileAccess.Write, FileShare.None);
+        await _dtos.Serialize(manifests, fs, writeIndented: true);
+
+        _logger.LogInformation("Recorded {Count} depot manifests for {Game} {Version} in {Path}",
+            manifests.Length, game, version, file);
     }
 
     private class ArchiveDto
