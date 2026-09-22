@@ -48,6 +48,7 @@ public enum Game
     [Description("Warhammer 40,000: Darktide")] Warhammer40kDarktide,
     [Description("STAR WARS Knights of the Old Republic II")] Kotor2,
     [Description("Vampire: The Masquerade - Bloodlines")] VtMB,
+    [Description("Vampire: The Masquerade - Bloodlines 2")] VtMB2,
     [Description("Kingdom Come: Deliverance II")] KingdomComeDeliverance2,
     [Description("Dragon's Dogma 2")] DragonsDogma2,
     [Description("NieR:Automata")] NieRAutomata,
