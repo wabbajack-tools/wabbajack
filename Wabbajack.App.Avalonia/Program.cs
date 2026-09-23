@@ -35,6 +35,10 @@ public static class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            // The default composition surface carries an alpha channel, and Skia will not draw
+            // ClearType-style subpixel text onto anything that might be transparent, so text came out
+            // greyscale where the WPF app's is subpixel. The window is opaque; a redirection surface says so.
+            .With(new Win32PlatformOptions { CompositionMode = [Win32CompositionMode.RedirectionSurface] })
             .LogToTrace()
             .UseReactiveUI();
 
