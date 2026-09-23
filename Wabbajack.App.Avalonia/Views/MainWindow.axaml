@@ -4,6 +4,8 @@
         xmlns:v="using:Wabbajack.App.Avalonia.Views"
         xmlns:settings="using:Wabbajack.App.Avalonia.ViewModels.Settings"
         xmlns:sv="using:Wabbajack.App.Avalonia.Views.Settings"
+        xmlns:compiler="using:Wabbajack.App.Avalonia.ViewModels.Compiler"
+        xmlns:cv="using:Wabbajack.App.Avalonia.Views.Compiler"
         xmlns:svc="using:Wabbajack.App.Avalonia.Services"
         xmlns:conv="using:Wabbajack.App.Avalonia.Converters"
         xmlns:ic="using:FluentIcons.Avalonia"
@@ -92,9 +94,9 @@
                         <v:NavItem Symbol="CloudArrowDown" Text="Browse lists" />
                     </Button>
                     <Button Grid.Row="4" Classes="main nav"
-                            Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.Compiler}}"
+                            Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.CompilerHome}}"
                             AutomationProperties.AutomationId="CompileButton" AutomationProperties.Name="Create a list"
-                            Command="{Binding NavigateCommand}" CommandParameter="{x:Static svc:ScreenType.Compiler}">
+                            Command="{Binding NavigateCommand}" CommandParameter="{x:Static svc:ScreenType.CompilerHome}">
                         <v:NavItem Symbol="Toolbox" Text="Create a list" />
                     </Button>
                     <Button Grid.Row="6" Classes="main nav" Padding="12"
@@ -121,6 +123,9 @@
                                 </DataTemplate>
                                 <DataTemplate DataType="vm:PlaceholderVM">
                                     <v:PlaceholderView />
+                                </DataTemplate>
+                                <DataTemplate DataType="compiler:CompilerHomeVM">
+                                    <cv:CompilerHomeView />
                                 </DataTemplate>
                                 <DataTemplate DataType="settings:SettingsVM">
                                     <sv:SettingsView />

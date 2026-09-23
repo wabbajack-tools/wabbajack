@@ -3,12 +3,17 @@ using System.Reactive.Subjects;
 
 namespace Wabbajack.App.Avalonia.Services;
 
+/// <summary>The WPF app's ScreenType, under the same names.</summary>
 public enum ScreenType
 {
     Home,
     ModListGallery,
-    Compiler,
+    Installer,
+    CompilerHome,
+    CompilerMain,
+    ModListDetails,
     Settings,
+    Info
 }
 
 /// <summary>
@@ -22,4 +27,15 @@ public class Navigator
     public IObservable<ScreenType> Requests => _requests;
 
     public void NavigateTo(ScreenType screen) => _requests.OnNext(screen);
+
+    /// <summary>
+    /// The nav rail item a screen belongs to, as NavigationView's button map had it: the installer lights
+    /// Browse lists, and both compiler screens light Create a list.
+    /// </summary>
+    public static ScreenType NavItemFor(ScreenType screen) => screen switch
+    {
+        ScreenType.ModListGallery or ScreenType.Installer => ScreenType.ModListGallery,
+        ScreenType.CompilerHome or ScreenType.CompilerMain => ScreenType.CompilerHome,
+        _ => screen
+    };
 }

@@ -10,6 +10,7 @@ using ReactiveUI.SourceGenerators;
 using Wabbajack.App.Avalonia.Interfaces;
 using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.Services;
+using Wabbajack.App.Avalonia.ViewModels.Compiler;
 using Wabbajack.App.Avalonia.ViewModels.Settings;
 
 namespace Wabbajack.App.Avalonia.ViewModels;
@@ -20,7 +21,8 @@ public partial class MainWindowVM : ViewModel
     private HomeVM? _home;
     private SettingsVM? _settings;
     private readonly PlaceholderVM _gallery = new("Browse lists");
-    private readonly PlaceholderVM _compiler = new("Create a list");
+    private CompilerHomeVM? _compilerHome;
+    private readonly PlaceholderVM _compiler = new("Compiler");
 
     public MainWindowVM(IServiceProvider services, Navigator navigator)
     {
@@ -114,9 +116,11 @@ public partial class MainWindowVM : ViewModel
         {
             ScreenType.Home => _home ??= _services.GetRequiredService<HomeVM>(),
             ScreenType.ModListGallery => _gallery,
-            ScreenType.Compiler => _compiler,
+            ScreenType.CompilerHome => _compilerHome ??= _services.GetRequiredService<CompilerHomeVM>(),
+            ScreenType.CompilerMain => _compiler,
             ScreenType.Settings => _settings ??= _services.GetRequiredService<SettingsVM>(),
-            _ => throw new ArgumentOutOfRangeException(nameof(screen), screen, null)
+            // Not ported yet.
+            _ => new PlaceholderVM(screen.ToString())
         };
     }
 }
