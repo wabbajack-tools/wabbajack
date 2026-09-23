@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -7,15 +9,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.App.Avalonia.Interfaces;
 using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.Services;
+using Wabbajack.App.Avalonia.Util;
 using Wabbajack.App.Avalonia.ViewModels.Compiler;
 using Wabbajack.App.Avalonia.ViewModels.Gallery;
 using Wabbajack.App.Avalonia.ViewModels.Installers;
 using Wabbajack.App.Avalonia.ViewModels.Settings;
+using Wabbajack.Common;
+using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.App.Avalonia.ViewModels;
 
@@ -31,9 +38,13 @@ public partial class MainWindowVM : ViewModel
     private readonly ModListDetailsVM _modListDetails;
     private readonly InstallationVM _installer;
 
-    public MainWindowVM(IServiceProvider services, Navigator navigator, ModListDetailsVM modListDetails)
+    private readonly ILogger<MainWindowVM> _logger;
+
+    public MainWindowVM(IServiceProvider services, Navigator navigator, ModListDetailsVM modListDetails,
+        ILogger<MainWindowVM> logger, SystemParametersConstructor systemParams, HttpClient httpClient, Client wjClient)
     {
         _services = services;
+        _logger = logger;
         // Built up front, as in WPF: it listens for the list to show before the pane is first opened.
         _modListDetails = modListDetails;
         // Also up front, as in WPF: it listens for the modlist to load, which arrives before the screen is shown.
@@ -93,9 +104,84 @@ public partial class MainWindowVM : ViewModel
             .DisposeWith(CompositeDisposable);
 
         var location = Environment.ProcessPath ?? typeof(MainWindowVM).Assembly.Location;
-        Version = "v" + FileVersionInfo.GetVersionInfo(location).FileVersion;
+        var fileVersion = FileVersionInfo.GetVersionInfo(location).FileVersion;
+        Version = "v" + fileVersion;
 
         NavigateTo(ScreenType.Home);
+
+        LogStartup(fileVersion, systemParams, httpClient, wjClient);
+    }
+
+    /// <summary>
+    ///     The block every WPF log opens with, which support reads first: versions, paths, the machine, its drives
+    ///     and its TLS setup. It also lands in the installer's log pane. The two start metrics go with it.
+    /// </summary>
+    private void LogStartup(string? fileVersion, SystemParametersConstructor systemParams, HttpClient httpClient, Client wjClient)
+    {
+        try
+        {
+            var assemblyLocation = typeof(MainWindowVM).Assembly.Location;
+            var processLocation = Environment.ProcessPath ?? throw new Exception("Process location is unavailable!");
+
+            _logger.LogInformation("Wabbajack information:");
+            _logger.LogInformation("    Version: {FileVersion}", fileVersion);
+            _logger.LogInformation("    Build: {Sha}", ThisAssembly.Git.Sha);
+            _logger.LogInformation("    Entry point: {EntryPoint}", KnownFolders.EntryPoint);
+            _logger.LogInformation("    Assembly Location: {AssemblyLocation}", assemblyLocation);
+            _logger.LogInformation("    Process Location: {ProcessLocation}", processLocation);
+
+            _logger.LogInformation("General information:");
+            _logger.LogInformation("    Windows version: {Version}", Environment.OSVersion.VersionString);
+
+            var p = systemParams.Create();
+
+            _logger.LogInformation("System information: ");
+            _logger.LogInformation("    GPU: {GpuName} ({VRAM})", p.GpuName, p.VideoMemorySize.ToFileSizeString());
+            _logger.LogInformation("    RAM: {MemorySize}", p.SystemMemorySize.ToFileSizeString());
+            _logger.LogInformation("    Primary display resolution: {ScreenWidth}x{ScreenHeight}", p.ScreenWidth, p.ScreenHeight);
+            _logger.LogInformation("    Pagefile: {PageSize}", p.SystemPageSize.ToFileSizeString());
+            _logger.LogInformation("    VideoMemorySizeMb (ENB): {EnbLEVRAMSize}", p.EnbLEVRAMSize.ToString());
+
+            try
+            {
+                _logger.LogInformation("System partitions: ");
+                var partitions = DriveHelper.Partitions;
+                foreach (var drive in DriveHelper.Drives)
+                {
+                    if (!drive.IsReady || drive.DriveType != DriveType.Fixed) continue;
+                    var driveType = partitions[drive.RootDirectory.Name[0]].MediaType.ToString();
+                    _logger.LogInformation("    {RootDir} ({DriveType}): {FreeSpace} free", drive.RootDirectory.ToString(),
+                        driveType, drive.AvailableFreeSpace.ToFileSizeString());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Failed to retrieve drive information: {ex}", ex.ToString());
+            }
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var response = await httpClient.GetAsync("https://www.howsmyssl.com/a/check");
+                    _logger.LogInformation("TLS Information: {content}", await response.Content.ReadAsStringAsync());
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("An error occurred while retrieving TLS information: {ex}", ex.ToString());
+                }
+            });
+
+            if (p.SystemPageSize == 0)
+                _logger.LogWarning("Pagefile is disabled! This will cause issues such as crashing with Wabbajack and other applications!");
+
+            Task.Run(() => wjClient.SendMetric("started_wabbajack", fileVersion)).FireAndForget();
+            Task.Run(() => wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha)).FireAndForget();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "During App configuration");
+        }
     }
 
     public string WindowTitle => "Wabbajack";

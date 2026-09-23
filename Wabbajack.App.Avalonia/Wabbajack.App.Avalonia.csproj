@@ -14,6 +14,9 @@
         <RootNamespace>Wabbajack.App.Avalonia</RootNamespace>
         <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
         <Version>$(VERSION)</Version>
+        <!-- Stated outright, as the WPF app does, so GitInfo does not stamp a version from the git tags. -->
+        <AssemblyVersion>$(VERSION)</AssemblyVersion>
+        <FileVersion>$(VERSION)</FileVersion>
         <!-- Required for source-generated [Reactive] partial properties that carry an initializer
              (partial-property initializers are a preview language feature in the .NET 10 SDK). -->
         <LangVersion>preview</LangVersion>
@@ -37,6 +40,11 @@
         <PackageReference Include="Avalonia.Themes.Fluent" />
         <PackageReference Include="Avalonia.ReactiveUI" />
         <PackageReference Include="FluentIcons.Avalonia" />
+        <!-- The git SHA the startup log and the metrics report. -->
+        <PackageReference Include="GitInfo">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Hosting" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="ReactiveUI" />

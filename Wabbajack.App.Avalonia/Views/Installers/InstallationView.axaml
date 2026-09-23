@@ -143,7 +143,8 @@
                         </Canvas>
                     </Border>
                     <Border CornerRadius="8" Padding="32">
-                        <Grid VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                        <!-- Clipped as WPF's layout clip did: the two button rows are wider than a narrow panel. -->
+                        <Grid VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ClipToBounds="True">
                             <TextBlock x:Name="StoppedInstallMsg" Grid.Row="0" Text="Installation failed" FontSize="18" />
                             <TextBlock x:Name="StoppedTitle" FontWeight="SemiBold" Grid.Row="1" FontSize="40" Text="Not enough space" Margin="0,-4,0,4" />
                             <TextBlock x:Name="StoppedDescription" Grid.Row="2" FontSize="14" TextWrapping="Wrap"

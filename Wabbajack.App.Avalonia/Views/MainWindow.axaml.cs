@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
@@ -8,6 +9,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.App.Avalonia.ViewModels;
 
@@ -21,11 +24,41 @@ public partial class MainWindow : Window
         TitleBar.PointerPressed += TitleBar_PointerPressed;
         FloatingWindowBackground.PointerPressed += FloatingWindowBackground_PointerPressed;
         KeyDown += OnKeyDown;
-        Closed += (_, _) => VM?.CancelRunningTasks(TimeSpan.FromSeconds(10));
+        Closed += (_, _) => OnClosed();
+
+        // As in WPF: an exception nothing caught is written to the log before the process goes down.
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            Logger.LogError((Exception)e.ExceptionObject, "Uncaught error");
         DataContextChanged += (_, _) => WatchViewModel();
     }
 
     private MainWindowVM? VM => DataContext as MainWindowVM;
+
+    private static ILogger<MainWindow> Logger => Program.Services.GetRequiredService<ILogger<MainWindow>>();
+
+    /// <summary>
+    ///     WPF's shutdown: stop what is running, then empty the temp folder beside the working directory, which
+    ///     extraction can leave gigabytes in.
+    /// </summary>
+    private void OnClosed()
+    {
+        Logger.LogInformation("Beginning shutdown...");
+        VM?.CancelRunningTasks(TimeSpan.FromSeconds(10));
+
+        var tempDirectory = Path.Combine(Environment.CurrentDirectory, "temp");
+        Logger.LogInformation("Clearing {TempDir}", tempDirectory);
+        try
+        {
+            var directory = new DirectoryInfo(tempDirectory);
+            foreach (var file in directory.EnumerateFiles()) file.Delete();
+            foreach (var dir in directory.EnumerateDirectories()) dir.Delete(true);
+            Logger.LogInformation("Finished clearing {TempDir}", tempDirectory);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            Logger.LogInformation("Unable to find {TempDir}", tempDirectory);
+        }
+    }
 
     private readonly SerialDisposable _vmSubscriptions = new();
     private readonly SerialDisposable _progressSubscriptions = new();
