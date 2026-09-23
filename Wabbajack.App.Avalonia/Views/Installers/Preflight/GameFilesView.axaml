@@ -1,0 +1,76 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          xmlns:pvm="using:Wabbajack.App.Avalonia.ViewModels.Installers.Preflight"
+                          x:Class="Wabbajack.App.Avalonia.Views.Installers.Preflight.GameFilesView"
+                          x:TypeArguments="pvm:GameFilesVM"
+                          x:DataType="pvm:GameFilesVM">
+    <UserControl.Styles>
+        <StyleInclude Source="avares://Wabbajack.Avalonia/Views/Installers/Preflight/ArchiveRowResources.axaml" />
+    </UserControl.Styles>
+
+    <!--
+        The offer to fetch game files: what is wrong, the files banded by what the repair is doing to them,
+        what fetching would do, the one thing it does outside the downloads folder when it does, how the repair
+        went, and the two ways out. Top-aligned inside a scroller, like the manual download card, so a window
+        shorter than the supported one scrolls rather than clipping the buttons off the bottom.
+    -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <c:AttentionBorder x:Name="Card" ClipToBounds="True" VerticalAlignment="Top">
+            <Grid Margin="16,10,16,10" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <TextBlock x:Name="HeaderText" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="SummaryText" Grid.Column="1" FontSize="12" Foreground="{StaticResource ComplementaryWhite25Brush}"
+                               VerticalAlignment="Center" Margin="12,0,0,0" />
+                </Grid>
+
+                <TextBlock x:Name="MessageText" Grid.Row="1" FontSize="13" TextWrapping="Wrap" Margin="0,6,0,0" />
+
+                <!--
+                    Band headers, with the rows of a band the user has opened, capped so an opened band on a list
+                    that takes forty files from the game cannot push the buttons off the card. Masked to a rounded
+                    rectangle inside a -1 margin, as in WPF.
+                -->
+                <Border x:Name="ListBorder" Grid.Row="2" Margin="0,10,0,0">
+                    <Border Margin="-1" CornerRadius="8" ClipToBounds="True" RenderOptions.TextRenderingMode="Antialias">
+                        <ListBox x:Name="RowsList" Classes="archives" MaxHeight="160" ItemTemplate="{StaticResource ArchiveListTemplates}" />
+                    </Border>
+                </Border>
+
+                <!-- Transparent66ForegroundBrush: #CA is the plain blend that lands on WPF's gamma-space blend over the card. -->
+                <TextBlock x:Name="ExplainText" Grid.Row="3" FontSize="12" Foreground="#CAE5E5E8" TextWrapping="Wrap" Margin="0,10,0,0" />
+
+                <!--
+                    The one thing a repair does outside the downloads folder, when it does it: taking a free
+                    licence for a tool puts it in the user's Steam library. Said in the offer, in the warning
+                    colour, so it is read before the button rather than found afterwards.
+                -->
+                <Grid x:Name="ConsequenceRow" Grid.Row="4" Margin="0,8,0,0" IsVisible="False" ColumnDefinitions="Auto,*">
+                    <ic:SymbolIcon FontSize="16" IconVariant="Filled" Symbol="Warning" Foreground="{StaticResource WarningBrush}"
+                                   VerticalAlignment="Top" Margin="1,1,0,0" />
+                    <TextBlock x:Name="ConsequenceText" Grid.Column="1" FontSize="12" Foreground="{StaticResource WarningBrush}"
+                               TextWrapping="Wrap" Margin="11,0,0,0" VerticalAlignment="Center" />
+                </Grid>
+
+                <Grid x:Name="StatusRow" Grid.Row="5" Margin="0,8,0,0" IsVisible="False" ColumnDefinitions="Auto,*">
+                    <Grid Width="18" Height="18" VerticalAlignment="Top" Margin="0,1,0,0">
+                        <c:ProgressRing x:Name="StatusRing" Width="18" Height="18" Foreground="{StaticResource PrimaryBrush}"
+                                        IsActive="False" IsVisible="False" />
+                        <ic:SymbolIcon x:Name="StatusIcon" FontSize="18" IconVariant="Filled" Symbol="CheckmarkCircle"
+                                       Foreground="{StaticResource SuccessBrush}" IsVisible="False" />
+                    </Grid>
+                    <TextBlock x:Name="StatusText" Grid.Column="1" FontSize="13" Margin="10,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap" />
+                </Grid>
+
+                <Grid Grid.Row="6" Margin="0,12,0,0" ColumnDefinitions="*,Auto,Auto">
+                    <c:WJButton x:Name="CheckAgainButton" Grid.Column="1" ButtonStyle="Mono" Text="I fixed it, check again"
+                                Icon="ArrowCounterclockwise" IconSize="16" Width="210" Height="32" Margin="0,0,8,0" />
+                    <c:WJButton x:Name="RepairButton" Grid.Column="2" ButtonStyle="Color" Icon="ArrowDownload" IconSize="16"
+                                Width="210" Height="32" />
+                </Grid>
+            </Grid>
+        </c:AttentionBorder>
+    </ScrollViewer>
+</rxui:ReactiveUserControl>

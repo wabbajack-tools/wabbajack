@@ -11,8 +11,10 @@ using Wabbajack.App.Avalonia.LoginManagers;
 using Wabbajack.App.Avalonia.Services;
 using Wabbajack.App.Avalonia.Util;
 using Wabbajack.App.Avalonia.ViewModels;
+using Wabbajack.App.Avalonia.ViewModels.Common;
 using Wabbajack.App.Avalonia.ViewModels.Compiler;
 using Wabbajack.App.Avalonia.ViewModels.Gallery;
+using Wabbajack.App.Avalonia.ViewModels.Installers;
 using Wabbajack.App.Avalonia.ViewModels.Settings;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
@@ -89,6 +91,10 @@ public static class Program
         services.AddSingleton<GameIconCache>();
         services.AddSingleton<NexusCollectionDownloader>();
         services.AddSingleton<FilePicker>();
+        services.AddSingleton<ResourceMonitor>();
+        services.AddSingleton<SystemParametersConstructor>();
+        // One instance, held by MainWindowVM from the start: it listens for the modlist to load.
+        services.AddTransient<InstallationVM>();
         services.AddTransient<AboutVM>();
         // Transient: each one drives a single login attempt and is thrown away with it.
         services.AddTransient<SteamLoginVM>();
@@ -116,6 +122,11 @@ public static class Program
 
         config.AddRuleForAllLevels(fileTarget);
         config.AddRuleForAllLevels(new ConsoleTarget("console"));
+
+        // What the installer and compiler log panes show.
+        var uiTarget = new LogStream { Name = "ui", Layout = "${message:withexception=false}" };
+        loggingBuilder.Services.AddSingleton(uiTarget);
+        config.AddRuleForAllLevels(uiTarget);
 
         loggingBuilder.ClearProviders();
         loggingBuilder.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);

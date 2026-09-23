@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
@@ -12,6 +14,7 @@ using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.Services;
 using Wabbajack.App.Avalonia.ViewModels.Compiler;
 using Wabbajack.App.Avalonia.ViewModels.Gallery;
+using Wabbajack.App.Avalonia.ViewModels.Installers;
 using Wabbajack.App.Avalonia.ViewModels.Settings;
 
 namespace Wabbajack.App.Avalonia.ViewModels;
@@ -26,12 +29,15 @@ public partial class MainWindowVM : ViewModel
     private readonly PlaceholderVM _compiler = new("Compiler");
 
     private readonly ModListDetailsVM _modListDetails;
+    private readonly InstallationVM _installer;
 
     public MainWindowVM(IServiceProvider services, Navigator navigator, ModListDetailsVM modListDetails)
     {
         _services = services;
         // Built up front, as in WPF: it listens for the list to show before the pane is first opened.
         _modListDetails = modListDetails;
+        // Also up front, as in WPF: it listens for the modlist to load, which arrives before the screen is shown.
+        _installer = services.GetRequiredService<InstallationVM>();
 
         NavigateCommand = ReactiveCommand.Create<ScreenType>(NavigateTo);
         GetHelpCommand = ReactiveCommand.Create(() =>
@@ -51,6 +57,16 @@ public partial class MainWindowVM : ViewModel
         MessageBus.Current.Listen<ShowFloatingWindow>()
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(m => HandleShowFloatingWindow(m.Screen))
+            .DisposeWith(CompositeDisposable);
+
+        MessageBus.Current.Listen<ShowNavigation>()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ => NavigationVisible = true)
+            .DisposeWith(CompositeDisposable);
+
+        MessageBus.Current.Listen<HideNavigation>()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ => NavigationVisible = false)
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<ShowSteamLogin>()
@@ -95,6 +111,9 @@ public partial class MainWindowVM : ViewModel
     [Reactive] public partial bool ShowGetHelp { get; private set; }
     [Reactive] public partial bool ShowLoadLocalFile { get; private set; }
 
+    /// <summary>False while the installer is running preflight or an install, which takes the nav rail away.</summary>
+    [Reactive] public partial bool NavigationVisible { get; private set; } = true;
+
     /// <summary>
     ///     What Escape and a click outside a floating pane do: ask the pane to close if it knows how, and
     ///     otherwise just take it down.
@@ -130,6 +149,39 @@ public partial class MainWindowVM : ViewModel
         };
     }
 
+    /// <summary>
+    ///     Asks a yes-or-no question in a floating pane and takes the pane down once it is answered. The
+    ///     installer asks this through StandardInstaller's OnConfirmAction.
+    /// </summary>
+    public async Task<bool> ShowConfirmationDialog(string title, string message)
+    {
+        var dialog = new ConfirmationDialogVM(title, message);
+        ActiveFloatingPane = dialog;
+        var result = await dialog.Result;
+        ActiveFloatingPane = null;
+        return result;
+    }
+
+    /// <summary>
+    ///     What the WPF window did on closing: cancel everything that takes the app-wide token, stop a preflight,
+    ///     and give an install or a preflight up to <paramref name="timeout" /> to unwind.
+    /// </summary>
+    public void CancelRunningTasks(TimeSpan timeout)
+    {
+        var endTime = DateTime.Now.Add(timeout);
+        _services.GetRequiredService<CancellationTokenSource>().Cancel();
+        _installer.CancelPreflightForShutdown();
+
+        bool IsInstalling() => _installer.InstallState is InstallState.Installing or InstallState.Preflight;
+
+        // Polled often enough that a preflight, which usually has nothing left to unwind, does not hold the
+        // process open for a whole tick after the window has gone.
+        while (DateTime.Now < endTime && IsInstalling())
+        {
+            Thread.Sleep(TimeSpan.FromMilliseconds(100));
+        }
+    }
+
     private void NavigateTo(ScreenType screen)
     {
         ActiveScreen = screen;
@@ -140,6 +192,7 @@ public partial class MainWindowVM : ViewModel
             ScreenType.CompilerHome => _compilerHome ??= _services.GetRequiredService<CompilerHomeVM>(),
             ScreenType.CompilerMain => _compiler,
             ScreenType.Settings => _settings ??= _services.GetRequiredService<SettingsVM>(),
+            ScreenType.Installer => _installer,
             // Not ported yet.
             _ => new PlaceholderVM(screen.ToString())
         };

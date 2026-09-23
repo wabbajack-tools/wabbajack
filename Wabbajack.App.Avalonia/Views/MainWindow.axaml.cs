@@ -1,9 +1,14 @@
 using System;
 using System.Diagnostics;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using ReactiveUI;
 using Wabbajack.App.Avalonia.ViewModels;
 
 namespace Wabbajack.App.Avalonia.Views;
@@ -16,9 +21,77 @@ public partial class MainWindow : Window
         TitleBar.PointerPressed += TitleBar_PointerPressed;
         FloatingWindowBackground.PointerPressed += FloatingWindowBackground_PointerPressed;
         KeyDown += OnKeyDown;
+        Closed += (_, _) => VM?.CancelRunningTasks(TimeSpan.FromSeconds(10));
+        DataContextChanged += (_, _) => WatchViewModel();
     }
 
     private MainWindowVM? VM => DataContext as MainWindowVM;
+
+    private readonly SerialDisposable _vmSubscriptions = new();
+    private readonly SerialDisposable _progressSubscriptions = new();
+
+    /// <summary>
+    ///     What the WPF window bound by hand: the nav rail comes and goes with NavigationVisible, and a screen
+    ///     that reports progress gets the two boxes in the title bar, fed from its ProgressViewModel.
+    /// </summary>
+    private void WatchViewModel()
+    {
+        var subscriptions = new CompositeDisposable();
+        _vmSubscriptions.Disposable = subscriptions;
+        if (VM is not { } vm) return;
+
+        vm.WhenAnyValue(x => x.NavigationVisible)
+            .Subscribe(visible =>
+            {
+                MainArea.ColumnDefinitions[0].Width = new GridLength(visible ? 115 : 0);
+                NavRail.IsVisible = visible;
+            })
+            .DisposeWith(subscriptions);
+
+        vm.WhenAnyValue(x => x.ActivePane)
+            .Subscribe(pane =>
+            {
+                WizardSteps.IsVisible = pane is IProgressVM;
+                _progressSubscriptions.Disposable = pane is ProgressViewModel progress ? WatchProgress(progress) : null;
+            })
+            .DisposeWith(subscriptions);
+    }
+
+    private IDisposable WatchProgress(ProgressViewModel wizard)
+    {
+        var subscriptions = new CompositeDisposable();
+
+        wizard.WhenAnyValue(x => x.ConfigurationText)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(text => ConfigurationText.Text = text)
+            .DisposeWith(subscriptions);
+        wizard.WhenAnyValue(x => x.ProgressText)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(text => ProgressText.Text = text)
+            .DisposeWith(subscriptions);
+        wizard.WhenAnyValue(x => x.ProgressPercent.Value)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(p =>
+            {
+                // Shown only between the ends, and hidden rather than collapsed, as in WPF.
+                ProgressPercentage.Opacity = p > 0 && p < 1 ? 1 : 0;
+                ProgressPercentage.Text = (int)(p * 100) + "%";
+                WizardProgress.Value = p;
+            })
+            .DisposeWith(subscriptions);
+        wizard.WhenAnyValue(x => x.CurrentStep)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(step =>
+            {
+                ConfigurationText.Width = step == Step.Configuration ? 500 : double.NaN;
+                ConfigurationText.HorizontalAlignment = step == Step.Configuration ? HorizontalAlignment.Left : HorizontalAlignment.Center;
+                ProgressText.Width = step == Step.Busy ? 500 : double.NaN;
+                ProgressText.HorizontalAlignment = step == Step.Busy ? HorizontalAlignment.Left : HorizontalAlignment.Center;
+            })
+            .DisposeWith(subscriptions);
+
+        return subscriptions;
+    }
 
     protected override void OnOpened(EventArgs e)
     {

@@ -1,0 +1,108 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          xmlns:common="using:Wabbajack.App.Avalonia.Views.Common"
+                          xmlns:pvm="using:Wabbajack.App.Avalonia.ViewModels.Installers.Preflight"
+                          xmlns:pv="using:Wabbajack.App.Avalonia.Views.Installers.Preflight"
+                          x:Class="Wabbajack.App.Avalonia.Views.Installers.Preflight.PreflightView"
+                          x:TypeArguments="pvm:PreflightVM"
+                          x:DataType="pvm:PreflightVM">
+    <!--
+        The page between the folder picker and the install. Left: the list's image, the checklist's overall
+        progress and the list's links. Right: the checklist, the panel for whichever check wants the user, and
+        Back / Install.
+
+        Transparent66ForegroundBrush text: WPF blends translucent text in gamma space, so each use is the plain
+        blend that lands on WPF's colour over what it sits on (#C9 on the pane, #C7 on the 08 tone).
+    -->
+    <Grid ColumnDefinitions="2.35*,16,3*">
+        <!--
+            ClipToBounds stands in for WPF's layout clip: on a short window the link buttons want more room than
+            the column has, and WPF cut the last one off at the column's edge rather than letting it overhang.
+        -->
+        <Grid RowDefinitions="Auto,Auto,*,Auto" ClipToBounds="True">
+            <common:DetailImageView x:Name="DetailImage" TitleFontSize="36" AuthorFontSize="16" Margin="0,0,0,16" />
+
+            <Border Grid.Row="1" Background="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="8"
+                    Padding="16,12,16,14" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock x:Name="SummaryText" FontSize="14" />
+                    <!-- WPF asked for 4px, but MahApps' bar has a 6px minimum, so it drew 6 (measured). -->
+                    <c:MetroProgressBar x:Name="SummaryProgress" Height="6" Margin="0,10,0,0"
+                                 Background="{StaticResource ComplementaryPrimary16Brush}"
+                                 Foreground="{StaticResource PrimaryBrush}" Maximum="1" />
+                </StackPanel>
+            </Border>
+
+            <Grid Grid.Row="3" RowDefinitions="Auto,Auto,Auto,Auto">
+                <c:WJButton x:Name="DocumentationButton" Text="Readme" Icon="Document" Grid.Row="0" Margin="0,0,0,8" Width="NaN" />
+                <c:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="0,0,0,8" Width="NaN" />
+                <c:WJButton x:Name="CommunityButton" Text="Community" Icon="PeopleChat" Grid.Row="2" Margin="0,0,0,8" Width="NaN" />
+                <c:WJButton x:Name="ManifestButton" Text="Archives" Icon="BoxSearch" Grid.Row="3" Width="NaN" />
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="RightColumn" Grid.Column="2" RowDefinitions="Auto,Auto,*,Auto">
+            <Grid x:Name="PageHeader" Grid.Row="0" Margin="0,0,0,12" ColumnDefinitions="Auto,*">
+                <TextBlock Text="Preflight" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="Checking everything the install needs before it starts" FontSize="13"
+                           Foreground="#C9E5E5E8" VerticalAlignment="Center" Margin="12,2,0,0" TextTrimming="CharacterEllipsis" />
+            </Grid>
+
+            <!--
+                The checklist is status, the detail panel is where the user acts, so the checklist is the one
+                that scrolls. Its cap is set in code-behind from the column's height so the panel below always
+                keeps room for a whole card; the running check is scrolled back into view as it moves.
+            -->
+            <ScrollViewer x:Name="ChecksScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Top">
+                <ItemsControl x:Name="ChecksList" Background="Transparent">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="pvm:PreflightCheckVM">
+                            <pv:PreflightCheckRowView Margin="0,0,0,4" ViewModel="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <Grid x:Name="DetailPanel" Grid.Row="2" Margin="0,8,0,16" RowDefinitions="Auto,*">
+                <Grid Grid.Row="0" Margin="4,0,0,8" ColumnDefinitions="*,Auto">
+                    <StackPanel Orientation="Horizontal">
+                        <ic:SymbolIcon x:Name="DetailIcon" FontSize="16" IconVariant="Regular" Symbol="TaskListSquare"
+                                       Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="Current step" FontSize="13" Foreground="#C9E5E5E8" VerticalAlignment="Center" Margin="8,0,0,0" />
+                        <TextBlock x:Name="DetailSeparator" Text="·" FontSize="13" Foreground="#C9E5E5E8" VerticalAlignment="Center" Margin="6,0,6,0" />
+                        <TextBlock x:Name="DetailTitle" FontSize="13" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <c:WJButton x:Name="ShowAllButton" Grid.Column="1" ButtonStyle="Transparent" Text="Show all" Icon="ChevronDown"
+                                IconSize="14" Direction="RightToLeft" Width="130" Height="24" HorizontalAlignment="Right"
+                                Margin="8,0,0,0" IsVisible="False" />
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <Border x:Name="TextDetail" Background="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="8" Padding="16">
+                        <Grid RowDefinitions="Auto,*">
+                            <!-- Wrapped: WPF steps these lines by the unrounded 1.2 em (16.8px, 14.4px below), measured. -->
+                            <TextBlock x:Name="DetailMessage" FontSize="14" TextWrapping="Wrap" LineHeight="16.8" />
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,8,0,0">
+                                <TextBlock x:Name="DetailText" FontSize="12" Foreground="#C7E5E5E8" TextWrapping="Wrap" LineHeight="14.4" />
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                    <pv:BulkDownloadsView x:Name="BulkView" IsVisible="False" />
+                    <pv:ManualDownloadView x:Name="ManualView" IsVisible="False" />
+                    <pv:GameFilesView x:Name="GameFilesView" IsVisible="False" />
+                </Grid>
+            </Grid>
+
+            <Grid x:Name="PageActions" Grid.Row="3" ColumnDefinitions="*,Auto,Auto">
+                <c:WJButton x:Name="BackButton" Grid.Column="1" ButtonStyle="Mono" Text="Back" Icon="ChevronLeft"
+                            Direction="RightToLeft" HorizontalAlignment="Right" Margin="0,0,16,0" />
+                <c:WJButton x:Name="InstallButton" Grid.Column="2" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown"
+                            HorizontalAlignment="Right" />
+            </Grid>
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>

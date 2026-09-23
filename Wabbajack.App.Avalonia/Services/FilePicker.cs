@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.App.Avalonia.Services;
 
@@ -19,7 +20,14 @@ public class FilePicker
         (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.StorageProvider;
 
     /// <summary>One existing file. <paramref name="filters" /> are (name, pattern) pairs, e.g. ("Modlist", "modlist.txt").</summary>
-    public async Task<AbsolutePath> PickFile(string title, params (string Name, string Pattern)[] filters)
+    public Task<AbsolutePath> PickFile(string title, params (string Name, string Pattern)[] filters)
+        => PickFile(title, default, filters);
+
+    /// <summary>
+    ///     One existing file, with the dialog opened in <paramref name="startIn" /> when that folder exists, as
+    ///     the WPF OpenFileDialog's InitialDirectory did.
+    /// </summary>
+    public async Task<AbsolutePath> PickFile(string title, AbsolutePath startIn, params (string Name, string Pattern)[] filters)
     {
         if (Storage is not { } storage) return default;
 
@@ -27,6 +35,7 @@ public class FilePicker
         {
             Title = title,
             AllowMultiple = false,
+            SuggestedStartLocation = await StartFolder(storage, startIn),
             FileTypeFilter = filters.Select(f => new FilePickerFileType(f.Name) { Patterns = [f.Pattern] }).ToList()
         });
 
@@ -40,5 +49,11 @@ public class FilePicker
 
         var folders = await storage.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = title, AllowMultiple = false });
         return folders.FirstOrDefault()?.TryGetLocalPath() is { } path ? path.ToAbsolutePath() : default;
+    }
+
+    private static async Task<IStorageFolder?> StartFolder(IStorageProvider storage, AbsolutePath folder)
+    {
+        if (folder == default || !folder.DirectoryExists()) return null;
+        return await storage.TryGetFolderFromPathAsync(folder.ToString());
     }
 }

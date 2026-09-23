@@ -89,6 +89,18 @@ public static class UIUtils
         return $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{metadata.RepositoryName}/{fileName}";
     }
 
+    /// <summary>Opens Explorer on the file's folder with the file selected.</summary>
+    public static void OpenFolderAndSelectFile(AbsolutePath pathToFile)
+    {
+        Process.Start(new ProcessStartInfo { FileName = "explorer.exe ", Arguments = $"/select, \"{pathToFile}\"" });
+    }
+
+    /// <summary>Opens a file with whatever the shell has registered for it.</summary>
+    public static void OpenFile(AbsolutePath file)
+    {
+        Process.Start(new ProcessStartInfo(file.ToString()) { UseShellExecute = true });
+    }
+
     public static void OpenFolder(AbsolutePath path)
     {
         var folderPath = path.ToString();

@@ -1,0 +1,218 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          xmlns:common="using:Wabbajack.App.Avalonia.Views.Common"
+                          xmlns:ivm="using:Wabbajack.App.Avalonia.ViewModels.Installers"
+                          xmlns:pv="using:Wabbajack.App.Avalonia.Views.Installers.Preflight"
+                          x:Class="Wabbajack.App.Avalonia.Views.Installers.InstallationView"
+                          x:TypeArguments="ivm:InstallationVM"
+                          x:DataType="ivm:InstallationVM">
+    <UserControl.Styles>
+        <!--
+            TitleStyle and DescriptionStyle. Both were explicit styles in WPF, which cost these TextBlocks the
+            app's implicit style and with it its 13px, so they are 12px. The description's Opacity is an element
+            opacity, which WPF blends plainly (unlike a translucent brush), so it carries over as it is.
+        -->
+        <Style Selector="TextBlock.title">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style Selector="TextBlock.description">
+            <Setter Property="FontSize" Value="12" />
+            <!--
+                A wrapped paragraph in WPF steps each line by the unrounded 1.2 em (14.4px here) and only rounds
+                the whole block, so four lines are 58px rather than four rounded 14s. Measured against WPF.
+            -->
+            <Setter Property="LineHeight" Value="14.4" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="Opacity" Value="0.66" />
+        </Style>
+        <!-- PickerStyle: MainFilePickerStyle with a margin under it. -->
+        <Style Selector="common|FilePicker.picker">
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <!-- WorkerIndicatorBorder. -->
+        <Style Selector="Border.worker">
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="{StaticResource ComplementaryPrimary08Brush}" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="0,8,0,8" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <!-- Configuration: the two folders on the left with the list's links, its image and Install on the right. -->
+        <Grid x:Name="SetupGrid" ColumnDefinitions="*,16,3.5*">
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+                <StackPanel x:Name="InstallationLocationPanel" Margin="0,0,0,8">
+                    <TextBlock Classes="title" Text="Installation Location" />
+                    <TextBlock Classes="description">
+                        <Run Text="The folder where the list will be installed into." /><LineBreak /><Run Text="Choose an empty folder outside Windows-protected areas. Using an SSD is highly recommended for optimal performance." />
+                    </TextBlock>
+                    <common:FilePicker x:Name="InstallationLocationPicker" Classes="picker" Icon="Folder"
+                                       ToolTip.Tip="Path to the folder where the list will be installed to"
+                                       IsEnabled="{Binding LoadingLock.IsNotLoading}" />
+                </StackPanel>
+
+                <StackPanel x:Name="DownloadLocationPanel" Grid.Row="1" Margin="0,0,0,8">
+                    <TextBlock Classes="title" Text="Downloads Location" />
+                    <TextBlock Classes="description">
+                        <Run Text="The folder where the downloads will be stored." /><LineBreak /><Run Text="By default these are stored in a subdirectory of the installation folder, but you can also use a shared folder so previous downloads are reused. Downloads can be deleted after installation." />
+                    </TextBlock>
+                    <common:FilePicker x:Name="DownloadLocationPicker" Classes="picker" Icon="Folder"
+                                       ToolTip.Tip="Path to the folder where the mod archives will be downloaded to"
+                                       IsEnabled="{Binding LoadingLock.IsNotLoading}" />
+                </StackPanel>
+
+                <Grid Grid.Row="3" RowDefinitions="Auto,Auto,Auto,Auto">
+                    <c:WJButton x:Name="DocumentationButton" Text="Readme" Icon="Document" Grid.Row="0" Margin="0,0,0,8" Width="NaN" />
+                    <c:WJButton x:Name="WebsiteButton" Text="Website" Icon="Globe" Grid.Row="1" Margin="0,0,0,8" Width="NaN" />
+                    <c:WJButton x:Name="CommunityButton" Text="Community" Icon="PeopleChat" Grid.Row="2" Margin="0,0,0,8" Width="NaN" />
+                    <c:WJButton x:Name="ManifestButton" Text="Archives" Icon="BoxSearch" Grid.Row="3" Width="NaN" />
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Column="2" RowDefinitions="*,Auto">
+                <common:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" Margin="0,0,0,16" />
+                <!-- MahApps' ProgressRing at its default size and accent colour. -->
+                <c:ProgressRing x:Name="ModlistLoadingRing" Width="60" Height="60" Foreground="#CCD8BAF8" IsVisible="False" />
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto">
+                    <Border x:Name="ErrorStateBorder" Grid.Column="0" Background="{StaticResource ErrorBrush}"
+                            Margin="0,0,16,0" CornerRadius="8">
+                        <Grid ColumnDefinitions="Auto,8,Auto">
+                            <ic:SymbolIcon Grid.Column="0" Symbol="Warning" FontSize="18" Width="18" Height="18" Margin="16,0,0,0" />
+                            <TextBlock x:Name="ErrorStateText" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,16,0" />
+                        </Grid>
+                    </Border>
+                    <c:WJButton x:Name="InstallButton" Grid.Column="2" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown"
+                                HorizontalAlignment="Right" />
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <pv:PreflightView x:Name="PreflightView" IsVisible="False" />
+
+        <!-- Installing, and the failure screen that replaces the job list when it stops. -->
+        <Grid x:Name="InstallationGrid" IsVisible="False" ColumnDefinitions="2.35*,16,3*">
+            <Grid RowDefinitions="Auto,*,Auto">
+                <common:DetailImageView x:Name="InstallDetailImage" TitleFontSize="36" AuthorFontSize="16" Margin="0,0,0,16" />
+
+                <common:CpuView x:Name="CpuView" Grid.Row="1" Margin="0,0,0,16" />
+
+                <Grid x:Name="WorkerIndicators" Grid.Row="2" ColumnDefinitions="*,16,*,16,*">
+                    <Border Grid.Column="0" Classes="worker"
+                            ToolTip.Tip="An indicator representing the speed at which Wabbajack is validating the integrity of your installation by hashing required files. Speed is largely determined by disk read speeds and CPU power.">
+                        <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                            <ic:SymbolIcon Grid.Column="0" Symbol="NumberSymbol" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8,0,0,0" />
+                            <TextBlock Grid.Column="1" Margin="8,0,0,0" Text="Validation" />
+                            <TextBlock Grid.Column="3" x:Name="HashSpeedText" HorizontalAlignment="Right" Margin="0,0,8,0" />
+                        </Grid>
+                    </Border>
+                    <Border Grid.Column="2" Classes="worker"
+                            ToolTip.Tip="An indicator representing the speed at which Wabbajack is extracting downloaded files to your installation location. Speed is largely determined by disk read-write speeds and CPU power.">
+                        <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                            <ic:SymbolIcon Grid.Column="0" Symbol="Dock" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8,0,0,0" />
+                            <TextBlock Grid.Column="1" Margin="8,0,0,0" Text="Extraction" />
+                            <TextBlock Grid.Column="3" x:Name="ExtractionSpeedText" HorizontalAlignment="Right" Margin="0,0,8,0" />
+                        </Grid>
+                    </Border>
+                    <Border Grid.Column="4" Classes="worker"
+                            ToolTip.Tip="An indicator representing the speed at which Wabbajack is downloading required files. Speed is largely determined by your internet connection and disk speed.">
+                        <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                            <ic:SymbolIcon Grid.Column="0" Symbol="ArrowDownload" HorizontalAlignment="Left" Foreground="{StaticResource PrimaryBrush}" FontSize="18" Margin="8,0,0,0" />
+                            <TextBlock Grid.Column="1" Margin="8,0,0,0" Text="Download" />
+                            <TextBlock Grid.Column="3" x:Name="DownloadSpeedText" HorizontalAlignment="Right" Margin="0,0,8,0" />
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <Grid x:Name="StoppedMessage" Grid.Row="1" Grid.RowSpan="2">
+                    <!--
+                        A huge faint icon pushed against the right edge, two thirds of it showing: WPF put it after a
+                        rectangle as wide as the message less two thirds of the icon, in a StackPanel that clipped it
+                        to the message's box. Placed and sized in code-behind.
+                    -->
+                    <Border x:Name="StoppedBorder" CornerRadius="8" Background="{StaticResource SuccessBrush}">
+                        <Canvas x:Name="StoppedIconHost" ClipToBounds="True">
+                            <ic:SymbolIcon x:Name="StoppedIcon" IconVariant="Filled" Symbol="ErrorCircle"
+                                           Foreground="{StaticResource Transparent04PrimaryBrush}" />
+                        </Canvas>
+                    </Border>
+                    <Border CornerRadius="8" Padding="32">
+                        <Grid VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                            <TextBlock x:Name="StoppedInstallMsg" Grid.Row="0" Text="Installation failed" FontSize="18" />
+                            <TextBlock x:Name="StoppedTitle" FontWeight="SemiBold" Grid.Row="1" FontSize="40" Text="Not enough space" Margin="0,-4,0,4" />
+                            <TextBlock x:Name="StoppedDescription" Grid.Row="2" FontSize="14" TextWrapping="Wrap"
+                                       Text="The modlist installation has failed because your installation or downloads directory has run out of space. Please make sure enough space is available on the disk and try again." />
+
+                            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,16,0,0">
+                                <c:WJButton x:Name="StoppedButton" HorizontalAlignment="Left" Text="Open Logs Folder" Icon="FolderOpen" ButtonStyle="SemiTransparent" />
+                                <c:WJButton x:Name="DiagnoseButton" Margin="8,0,0,0" HorizontalAlignment="Left" Text="How do I fix this?" Icon="Wrench" ButtonStyle="Mono" />
+                            </StackPanel>
+
+                            <TextBlock x:Name="IfThisDidNotHelpText" Grid.Row="4" Margin="0,24,0,8" Text="If this didn't help:" FontSize="14" />
+                            <StackPanel Grid.Row="5" Orientation="Horizontal">
+                                <c:WJButton x:Name="JoinDiscordButton" Text="Join our Discord" Icon="PeopleChat" ButtonStyle="Mono" />
+                                <c:WJButton x:Name="VisitWikiButton" Margin="8,0,0,0" Text="Visit our Wiki" Icon="Globe" ButtonStyle="Mono" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <Grid x:Name="RightSideGrid" Grid.Column="2" RowDefinitions="Auto,*,Auto">
+                <Grid Grid.Row="0" Margin="0,0,0,16" ColumnDefinitions="Auto,*,Auto,8,Auto">
+                    <Border Grid.Column="0" Classes="toggleContainer">
+                        <StackPanel Orientation="Horizontal" Margin="4">
+                            <ToggleButton x:Name="LogToggleButton" IsChecked="True" MinWidth="100" Content="Log Viewer" />
+                            <ToggleButton x:Name="ErrorToggleButton" MinWidth="110" Content="Error summary" />
+                        </StackPanel>
+                    </Border>
+                    <c:WJButton x:Name="OpenReadmeButton" Grid.Column="2" ButtonStyle="Mono" Text="Readme" Icon="Document"
+                                IconSize="20" MinWidth="120" HorizontalAlignment="Right" />
+                    <c:WJButton x:Name="OpenLogFolderButton" Grid.Column="4" ButtonStyle="Mono" Text="Open log file" Icon="WindowNew"
+                                IconSize="20" MinWidth="160" HorizontalAlignment="Right" />
+                </Grid>
+
+                <common:LogView x:Name="LogView" Grid.Row="1" Margin="0,0,0,16" LoggerProvider="{Binding LoggerProvider}" />
+
+                <Grid x:Name="ErrorSummaryGrid" Grid.Row="1" Margin="0,0,0,16" IsVisible="False">
+                    <Border CornerRadius="8" Background="{StaticResource ComplementaryPrimary08Brush}" Padding="24">
+                        <Grid VerticalAlignment="Top" RowDefinitions="Auto,Auto,Auto">
+                            <TextBlock x:Name="FailureDetailsTitleText" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <!-- WPF's LineHeight="20" on 14px text, whose natural line is 17px. -->
+                            <TextBlock x:Name="FailureDetailsDescriptionText" Grid.Row="1" Margin="0,8,0,0" FontSize="14"
+                                       LineSpacing="3" TextWrapping="Wrap" />
+                            <c:WJButton x:Name="ReadFullArticleButton" Grid.Row="2" Margin="0,16,0,0" HorizontalAlignment="Left"
+                                        ButtonStyle="Mono" Text="Read the full article" Icon="WindowNew" IconSize="20" Width="220" />
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto">
+                    <c:WJButton x:Name="CancelButton" Grid.Column="2" ButtonStyle="Danger" Text="Cancel" Icon="Dismiss"
+                                HorizontalAlignment="Right" IsVisible="False" />
+                    <c:WJButton x:Name="EditInstallDetailsButton" Grid.Column="1" ButtonStyle="Mono" Text="Edit Installation Details"
+                                Icon="TextBulletListSquareSettings" HorizontalAlignment="Right" Margin="0,0,16,0" />
+                    <c:WJButton x:Name="RetryButton" Grid.Column="2" ButtonStyle="Color" Text="Retry" Icon="ArrowCounterclockwise"
+                                HorizontalAlignment="Right" />
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- Success: the list's image, large, with the ways into the installed list under it. -->
+        <Grid x:Name="CompletedInstallationGrid" IsVisible="False" RowDefinitions="*,16,Auto">
+            <common:DetailImageView x:Name="CompletedImage" TitleFontSize="60" AuthorFontSize="27" />
+            <Grid x:Name="CompletedButtons" Grid.Row="2" ColumnDefinitions="Auto,*,Auto,16,Auto,16,Auto">
+                <c:WJButton x:Name="BackToGalleryButton" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
+                <c:WJButton x:Name="ReadmeButton" Grid.Column="2" Text="Open Readme" Icon="WindowNew" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <c:WJButton x:Name="CreateShortcutButton" Grid.Column="4" Text="Create Desktop Shortcut" Icon="DesktopArrowRight" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <c:WJButton x:Name="OpenFolderButton" Grid.Column="6" Text="Open in File Explorer" Icon="FolderOpen" HorizontalAlignment="Right" ButtonStyle="Color" />
+            </Grid>
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>

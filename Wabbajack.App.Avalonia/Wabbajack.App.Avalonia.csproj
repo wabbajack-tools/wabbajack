@@ -17,6 +17,8 @@
         <!-- Required for source-generated [Reactive] partial properties that carry an initializer
              (partial-property initializers are a preview language feature in the .NET 10 SDK). -->
         <LangVersion>preview</LangVersion>
+        <!-- SystemParametersConstructor reads DXGI adapters through pointers, as in the WPF app. -->
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -47,6 +49,9 @@
         <PackageReference Include="NLog.Extensions.Logging" />
         <PackageReference Include="Net.Codecrete.QrCodeGenerator" />
         <PackageReference Include="SixLabors.ImageSharp" />
+        <!-- What SystemParametersConstructor reads the screen and video memory with, as in the WPF app. -->
+        <PackageReference Include="PInvoke.User32" />
+        <PackageReference Include="Silk.NET.DXGI" />
     </ItemGroup>
 
     <ItemGroup>
@@ -55,6 +60,8 @@
         <ProjectReference Include="..\Wabbajack.Networking.GitHub\Wabbajack.Networking.GitHub.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Steam\Wabbajack.Networking.Steam.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.Bethesda\Wabbajack.Networking.Bethesda.csproj" />
+        <!-- The installer's failure screen: the log diagnosis and the article it opens. -->
+        <ProjectReference Include="..\Wabbajack.Reporting\Wabbajack.Reporting.csproj" />
         <!-- Not Wabbajack.CLI, although Settings launches it: that project is net10.0-windows and this one is
              not. An install ships the CLI in its "cli" folder, which is where the button looks. -->
 

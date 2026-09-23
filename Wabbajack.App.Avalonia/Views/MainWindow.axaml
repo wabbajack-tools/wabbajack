@@ -8,8 +8,11 @@
         xmlns:gallery="using:Wabbajack.App.Avalonia.ViewModels.Gallery"
         xmlns:gv="using:Wabbajack.App.Avalonia.Views.Gallery"
         xmlns:cv="using:Wabbajack.App.Avalonia.Views.Compiler"
+        xmlns:installers="using:Wabbajack.App.Avalonia.ViewModels.Installers"
+        xmlns:iv="using:Wabbajack.App.Avalonia.Views.Installers"
         xmlns:svc="using:Wabbajack.App.Avalonia.Services"
         xmlns:conv="using:Wabbajack.App.Avalonia.Converters"
+        xmlns:c="using:Wabbajack.App.Avalonia.Controls"
         xmlns:ic="using:FluentIcons.Avalonia"
         x:Class="Wabbajack.App.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowVM"
@@ -41,6 +44,40 @@
                 <Image Grid.Column="0" Width="18" Height="18" Margin="16,0,8,0"
                        Source="{StaticResource WabbajackLegacyLogo}" />
                 <TextBlock Grid.Column="1" FontSize="13" VerticalAlignment="Center" Text="{Binding WindowTitle}" />
+
+                <!--
+                    WizardSteps: a screen that reports progress (the installer) puts two boxes in the middle of the
+                    title bar, its configuration text and its progress, each a bar filled as far as it has got.
+                    The wide one is 500px and left-aligned; which that is follows the screen's step (code-behind).
+                    WPF masked each inside a -1 margin, so each draws a pixel past its box, with greyscale text.
+                -->
+                <DockPanel x:Name="WizardSteps" Grid.Column="0" Grid.ColumnSpan="7" HorizontalAlignment="Center"
+                           Margin="0,10,0,10" IsVisible="False" RenderOptions.TextRenderingMode="Antialias">
+                    <Border Margin="12,1,0,1">
+                        <Grid Margin="-1">
+                            <Border CornerRadius="8" ClipToBounds="True" Background="{StaticResource ComplementaryBackgroundBrush}">
+                                <Grid>
+                                    <c:MetroProgressBar x:Name="WizardConfiguration" Background="Transparent"
+                                                 Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" Value="1" />
+                                    <TextBlock x:Name="ConfigurationText" Padding="12,0,12,0" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <Border Margin="12,1,0,1">
+                        <Grid Margin="-1">
+                            <Border CornerRadius="8" ClipToBounds="True" Background="{StaticResource ComplementaryBackgroundBrush}">
+                                <Grid>
+                                    <c:MetroProgressBar x:Name="WizardProgress" Background="Transparent"
+                                                 Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" />
+                                    <TextBlock x:Name="ProgressText" Padding="12,0,12,0" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="ProgressPercentage" Padding="0,0,12,0" VerticalAlignment="Center"
+                                               HorizontalAlignment="Right" Opacity="0" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </DockPanel>
 
                 <!-- Each shows only on a screen that offers it, as in WPF. -->
                 <StackPanel Grid.Column="3" Orientation="Horizontal">
@@ -79,9 +116,9 @@
                 </Button>
             </Grid>
 
-            <Grid Grid.Row="1" ColumnDefinitions="115,*">
+            <Grid x:Name="MainArea" Grid.Row="1" ColumnDefinitions="115,*">
                 <!-- The nav rail. -->
-                <Grid Grid.Column="0" RowDefinitions="Auto,8,Auto,8,Auto,*,Auto,Auto">
+                <Grid x:Name="NavRail" Grid.Column="0" RowDefinitions="Auto,8,Auto,8,Auto,*,Auto,Auto">
                     <Button Grid.Row="0" Classes="main nav"
                             Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.Home}}"
                             AutomationProperties.AutomationId="HomeButton" AutomationProperties.Name="Home"
@@ -134,6 +171,9 @@
                                 <DataTemplate DataType="settings:SettingsVM">
                                     <sv:SettingsView />
                                 </DataTemplate>
+                                <DataTemplate DataType="installers:InstallationVM">
+                                    <iv:InstallationView />
+                                </DataTemplate>
                             </ContentControl.DataTemplates>
                         </ContentControl>
                     </Grid>
@@ -151,6 +191,9 @@
                 <Border CornerRadius="8" Margin="32" Background="{StaticResource ComplementaryBackgroundBrush}">
                     <ContentControl Content="{Binding ActiveFloatingPane}" Margin="16" VerticalAlignment="Stretch">
                         <ContentControl.DataTemplates>
+                            <DataTemplate DataType="vm:ConfirmationDialogVM">
+                                <v:ConfirmationDialogView />
+                            </DataTemplate>
                             <DataTemplate DataType="vm:SteamLoginVM">
                                 <v:SteamLoginView />
                             </DataTemplate>

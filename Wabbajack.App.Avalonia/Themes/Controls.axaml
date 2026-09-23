@@ -291,12 +291,17 @@
         <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
         <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
     </Style>
+    <!--
+        DisabledButtonForeground is a 25% white, and WPF blends translucent text (the icons are glyphs too) in
+        gamma space, which lands brighter than a plain blend: on the 16 tone a disabled button has, WPF draws it at
+        131 grey where 25% plainly would give 110. #62 is the plain blend that lands on WPF's, measured.
+    -->
     <Style Selector="Button.wj:disabled">
-        <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+        <Setter Property="Foreground" Value="#62E5E5E8" />
         <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
     </Style>
     <Style Selector="Button.wj:disabled ic|SymbolIcon">
-        <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+        <Setter Property="Foreground" Value="#62E5E5E8" />
     </Style>
 
     <!-- WJColorButtonStyle: primary fill, dark text and icon; the icon turns primary on hover. -->
@@ -318,7 +323,7 @@
         <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
     </Style>
     <Style Selector="Button.wj.wjColor:disabled ic|SymbolIcon">
-        <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+        <Setter Property="Foreground" Value="#62E5E5E8" />
     </Style>
 
     <!-- WJDangerButtonStyle: Mono until hovered, then red. -->
@@ -333,6 +338,16 @@
     </Style>
     <Style Selector="Button.wj.wjSemi:pointerover">
         <Setter Property="Background" Value="{StaticResource Transparent16PrimaryBrush}" />
+    </Style>
+
+    <!--
+        MainButtonBaseStyle's disabled trigger. In WPF a trigger outranks every setter, including those of the
+        Color and SemiTransparent styles built on it, so a disabled one of those is grey like the rest. Here a
+        later style wins instead, so the disabled state is restated after them.
+    -->
+    <Style Selector="Button.wj.wjColor:disabled, Button.wj.wjSemi:disabled">
+        <Setter Property="Foreground" Value="#62E5E5E8" />
+        <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
     </Style>
 
     <!--
