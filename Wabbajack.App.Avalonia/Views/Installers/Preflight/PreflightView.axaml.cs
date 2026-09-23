@@ -138,6 +138,22 @@ public partial class PreflightView : ReactiveUserControl<PreflightVM>
                 })
                 .DisposeWith(dispose);
 
+            this.WhenAnyValue(x => x.ViewModel!.ShowRunningStatus, x => x.ViewModel!.RunningHasTotal,
+                    x => x.ViewModel!.RunningFraction, x => x.ViewModel!.RunningCountText,
+                    x => x.ViewModel!.RunningStatsText)
+                .Subscribe(t =>
+                {
+                    var (show, hasTotal, fraction, count, stats) = t;
+                    RunningPanel.IsVisible = show;
+                    RunningProgress.IsVisible = hasTotal;
+                    RunningProgress.Value = fraction;
+                    // Only animated while it is showing, so a hidden bar is not redrawn for nothing.
+                    RunningPulse.IsVisible = show && !hasTotal;
+                    RunningCount.Text = count;
+                    RunningStats.Text = stats;
+                })
+                .DisposeWith(dispose);
+
             this.BindCommand(ViewModel, vm => vm.BackCommand, v => v.BackButton)
                 .DisposeWith(dispose);
             this.BindCommand(ViewModel, vm => vm.InstallCommand, v => v.InstallButton)

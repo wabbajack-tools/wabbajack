@@ -157,6 +157,9 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     public LogStream LoggerProvider { get; }
 
     [Reactive] public partial string HashingSpeed { get; set; }
+
+    /// <summary>Bytes hashed per second, for preflight's running panel, which says nothing when this is zero.</summary>
+    [Reactive] public partial long HashingThroughput { get; set; }
     [Reactive] public partial string ExtractingSpeed { get; set; }
     [Reactive] public partial string DownloadingSpeed { get; set; }
 
@@ -286,6 +289,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                                 break;
                             case "File Hashing":
                                 HashingSpeed = $"{update.Throughput.ToFileSizeString()}/s";
+                                HashingThroughput = update.Throughput;
                                 break;
                             case "File Extractor":
                                 ExtractingSpeed = $"{update.Throughput.ToFileSizeString()}/s";
@@ -739,7 +743,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             var runner = PreflightRunner.Create(_serviceProvider, cfg);
             var preflight = new PreflightVM(runner, _nexusLoginManager, this, _logger, _serviceProvider,
-                this.WhenAnyValue(x => x.DownloadingSpeed), OpenReadmeCommand, OpenWebsiteCommand,
+                this.WhenAnyValue(x => x.DownloadingSpeed), this.WhenAnyValue(x => x.HashingThroughput),
+                OpenReadmeCommand, OpenWebsiteCommand,
                 OpenCommunityCommand, OpenManifestCommand);
             preflight.InstallCommand
                 .Subscribe(_ => RunInstaller(cfg).FireAndForget())

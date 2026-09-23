@@ -29,7 +29,8 @@ public sealed class ArchiveInventoryCheck : IPreflightCheck
 
         progress.Report(0, 0, "Working out which archives this install needs");
         var required = await RequiredArchives.Compute(ctx.ModList, ctx.Config.Install, ctx.HashCache, ctx.Limiter,
-            token);
+            token, onChecked: (done, total) =>
+                progress.Report(done, total, "Checking what is already installed"));
         ctx.State.RequiredArchives = required;
 
         var gameFolders = new List<AbsolutePath>();

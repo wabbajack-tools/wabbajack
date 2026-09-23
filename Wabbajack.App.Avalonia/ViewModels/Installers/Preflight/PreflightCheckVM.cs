@@ -72,6 +72,22 @@ public partial class PreflightCheckVM : ViewModel
 
     [Reactive] public partial Percent Progress { get; set; }
     [Reactive] public partial bool HasProgress { get; set; }
+
+    /// <summary>How far a running check has got, as counts; the total is zero while it has none to give.</summary>
+    [Reactive] public partial long ProgressCurrent { get; set; }
+    [Reactive] public partial long ProgressTotal { get; set; }
+
+    /// <summary>When the current run of this check started, or null when it is not running.</summary>
+    [Reactive] public partial DateTime? RunningSince { get; set; }
+
+    /// <summary>
+    ///     When the running check last changed what it says it is doing. A check can count through more than one
+    ///     phase (archive-inventory checks the install, then hashes), and a time estimate has to start again
+    ///     with each.
+    /// </summary>
+    [Reactive] public partial DateTime? PhaseSince { get; set; }
+
+    private string? _phase;
     [Reactive] public partial bool IsActive { get; set; }
     [Reactive] public partial bool Acknowledged { get; set; }
     [Reactive] public partial string ActionLabel { get; set; }
@@ -84,6 +100,25 @@ public partial class PreflightCheckVM : ViewModel
 
     public void Apply(CheckStatus status)
     {
+        if (status.State == PreflightState.Running)
+        {
+            var now = DateTime.Now;
+            RunningSince ??= now;
+            if (PhaseSince == null || status.ProgressText != _phase)
+            {
+                PhaseSince = now;
+                _phase = status.ProgressText;
+            }
+        }
+        else
+        {
+            RunningSince = null;
+            PhaseSince = null;
+            _phase = null;
+        }
+        ProgressCurrent = status.ProgressCurrent;
+        ProgressTotal = status.ProgressTotal;
+
         State = status.State;
         DetailKind = Id switch
         {

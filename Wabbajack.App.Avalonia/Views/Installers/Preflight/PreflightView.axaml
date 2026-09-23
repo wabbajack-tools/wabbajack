@@ -83,10 +83,30 @@
 
                 <Grid Grid.Row="1">
                     <Border x:Name="TextDetail" Background="{StaticResource ComplementaryPrimary08Brush}" CornerRadius="8" Padding="16">
-                        <Grid RowDefinitions="Auto,*">
+                        <Grid RowDefinitions="Auto,Auto,*">
                             <!-- Wrapped: WPF steps these lines by the unrounded 1.2 em (16.8px, 14.4px below), measured. -->
                             <TextBlock x:Name="DetailMessage" FontSize="14" TextWrapping="Wrap" LineHeight="16.8" />
-                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,8,0,0">
+                            <!--
+                                While a check runs: a bar, how far it has got, and how fast and how long, so a long
+                                hash of a big downloads folder reads as alive. Counts only; never a list of files.
+                                The bar just moves when the check has no count to give yet.
+                            -->
+                            <StackPanel x:Name="RunningPanel" Grid.Row="1" Margin="0,12,0,0" Spacing="6" IsVisible="False">
+                                <Panel Height="6">
+                                    <c:MetroProgressBar x:Name="RunningProgress" Maximum="1"
+                                                        Background="{StaticResource ComplementaryPrimary16Brush}"
+                                                        Foreground="{StaticResource PrimaryBrush}" />
+                                    <ProgressBar x:Name="RunningPulse" IsIndeterminate="True" MinHeight="6" Height="6"
+                                                 CornerRadius="0" Background="{StaticResource ComplementaryPrimary16Brush}"
+                                                 Foreground="{StaticResource PrimaryBrush}" />
+                                </Panel>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock x:Name="RunningCount" FontSize="12" Foreground="#C7E5E5E8" />
+                                    <TextBlock x:Name="RunningStats" Grid.Column="1" FontSize="12" Foreground="#C7E5E5E8"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+                            </StackPanel>
+                            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,8,0,0">
                                 <TextBlock x:Name="DetailText" FontSize="12" Foreground="#C7E5E5E8" TextWrapping="Wrap" LineHeight="14.4" />
                             </ScrollViewer>
                         </Grid>

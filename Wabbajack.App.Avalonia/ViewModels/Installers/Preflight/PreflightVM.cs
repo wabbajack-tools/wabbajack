@@ -42,7 +42,8 @@ public partial class PreflightVM : ViewModel
     private bool _disposed;
 
     public PreflightVM(PreflightRunner runner, NexusLoginManager nexusLogin, ProgressViewModel progressHost,
-        ILogger logger, IServiceProvider serviceProvider, IObservable<string> downloadSpeed, ICommand openReadme,
+        ILogger logger, IServiceProvider serviceProvider, IObservable<string> downloadSpeed,
+        IObservable<long> hashingThroughput, ICommand openReadme,
         ICommand openWebsite, ICommand openCommunity, ICommand openManifest)
     {
         _runner = runner;
@@ -109,6 +110,19 @@ public partial class PreflightVM : ViewModel
             .Subscribe(_ => Run(t => _actions.Execute(PreflightCheckIds.NexusLogin, "retry", t)).FireAndForget())
             .DisposeWith(CompositeDisposable);
 
+        // The running panel: what is being hashed now, and a tick so elapsed time moves between reports.
+        hashingThroughput
+            .ObserveOnGuiThread()
+            .Subscribe(bytes =>
+            {
+                _hashingThroughput = bytes;
+                UpdateRunningStatus();
+            })
+            .DisposeWith(CompositeDisposable);
+        Observable.Interval(TimeSpan.FromSeconds(1), RxApp.MainThreadScheduler)
+            .Subscribe(_ => UpdateRunningStatus())
+            .DisposeWith(CompositeDisposable);
+
         InstallCommand = ReactiveCommand.Create(() => { },
             this.WhenAnyValue(x => x.AllPassed, x => x.IsRunning, (passed, running) => passed && !running));
         BackCommand = ReactiveCommand.Create(() => { });
@@ -129,6 +143,21 @@ public partial class PreflightVM : ViewModel
     [Reactive] public partial int TotalCount { get; set; }
     [Reactive] public partial Percent OverallPercent { get; set; }
     [Reactive] public partial string SummaryText { get; set; }
+
+    /// <summary>
+    ///     Whether the detail panel shows the running status: the active check is running and has no panel of
+    ///     its own (the download checks do).
+    /// </summary>
+    [Reactive] public partial bool ShowRunningStatus { get; set; }
+
+    /// <summary>Whether the running check has a count to show; without one the bar just moves.</summary>
+    [Reactive] public partial bool RunningHasTotal { get; set; }
+
+    [Reactive] public partial double RunningFraction { get; set; }
+    [Reactive] public partial string RunningCountText { get; set; } = string.Empty;
+    [Reactive] public partial string RunningStatsText { get; set; } = string.Empty;
+
+    private long _hashingThroughput;
 
     /// <summary>Empty on purpose: the owner subscribes and starts the install.</summary>
     public ReactiveCommand<Unit, Unit> InstallCommand { get; }
@@ -231,6 +260,27 @@ public partial class PreflightVM : ViewModel
 
         _progressHost.ProgressText = $"Preflight: {SummaryText}";
         _progressHost.ProgressPercent = OverallPercent;
+
+        UpdateRunningStatus();
+    }
+
+    private void UpdateRunningStatus()
+    {
+        if (_disposed) return;
+
+        var check = ActiveCheck;
+        var running = check is { State: PreflightState.Running, RunningSince: not null }
+                      && DetailKind == PreflightDetailKind.None;
+        ShowRunningStatus = running;
+        if (!running) return;
+
+        var now = DateTime.Now;
+        var (count, stats) = RunningStatus.Describe(check!.ProgressCurrent, check.ProgressTotal,
+            now - check.RunningSince!.Value, now - (check.PhaseSince ?? now), _hashingThroughput);
+        RunningHasTotal = check.ProgressTotal > 0;
+        RunningFraction = check.ProgressTotal > 0 ? Math.Min(1.0, (double) check.ProgressCurrent / check.ProgressTotal) : 0;
+        RunningCountText = count;
+        RunningStatsText = stats;
     }
 
     /// <summary>
