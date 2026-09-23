@@ -22,6 +22,8 @@
     <PackageVersion Include="FluentAssertions" Version="7.2.2" />
     <PackageVersion Include="FluentFTP" Version="54.2.1" />
     <PackageVersion Include="FluentIcons.Wpf" Version="2.1.333" />
+    <!-- The last release built against Avalonia 11; 2.1.x requires Avalonia 12. -->
+    <PackageVersion Include="FluentIcons.Avalonia" Version="2.0.321" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.4.0" />
     <PackageVersion Include="GameFinder.StoreHandlers.EADesktop" Version="4.9.0" />
     <PackageVersion Include="GameFinder.StoreHandlers.EGS" Version="4.9.0" />

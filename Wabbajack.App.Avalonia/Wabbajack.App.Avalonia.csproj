@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <!-- Plain net10.0, unlike the WPF app: nothing here needs the Windows desktop targeting pack,
+             and every library this references is net10.0 already. Whether the app actually runs
+             elsewhere is a separate question - GameLocator and the shell integration still assume
+             Windows - but the UI framework is no longer the thing stopping it. -->
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <AssemblyName>Wabbajack.Avalonia</AssemblyName>
+        <RootNamespace>Wabbajack.App.Avalonia</RootNamespace>
+        <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
+        <Version>$(VERSION)</Version>
+        <!-- Required for source-generated [Reactive] partial properties that carry an initializer
+             (partial-property initializers are a preview language feature in the .NET 10 SDK). -->
+        <LangVersion>preview</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>CS8600,CS8601,CS8618,CS8604,CS1998</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" />
+        <PackageReference Include="Avalonia.Desktop" />
+        <PackageReference Include="Avalonia.Diagnostics" />
+        <PackageReference Include="Avalonia.Themes.Fluent" />
+        <PackageReference Include="Avalonia.ReactiveUI" />
+        <PackageReference Include="FluentIcons.Avalonia" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+        <PackageReference Include="ReactiveUI" />
+        <PackageReference Include="ReactiveUI.SourceGenerators">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="DynamicData" />
+        <PackageReference Include="Humanizer" />
+        <PackageReference Include="NLog.Extensions.Logging" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.WabbajackClientApi\Wabbajack.Networking.WabbajackClientApi.csproj" />
+    </ItemGroup>
+
+</Project>

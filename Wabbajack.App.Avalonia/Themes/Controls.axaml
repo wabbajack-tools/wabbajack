@@ -1,0 +1,136 @@
+<!--
+    The handful of WPF styles the shell and Home need, rebuilt as Avalonia selectors. WPF picked a style
+    by key (Style="{StaticResource MainButtonStyleLessRounded}") and swapped one in code to show the
+    active nav item; here a style is a class on the control (Classes="card"), and the active nav item is
+    one more class the view toggles. The look is the WPF one: same colours, radii and paddings.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Everything inherits the app font and the light foreground, as the WPF window did. -->
+    <Style Selector="Window">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    </Style>
+
+    <!-- MainButtonStyle / MainButtonStyleLessRounded: a filled, rounded button that lightens on hover. -->
+    <Style Selector="Button.main">
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.main:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary16Brush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.main:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary32Brush}" />
+    </Style>
+
+    <!-- The title bar's two text buttons sit on the darker 08 fill. -->
+    <Style Selector="Button.titlebar">
+        <Setter Property="Background" Value="{StaticResource BackgroundPrimary08Brush}" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- IconBareButtonStyle: the window buttons. No fill until hovered. -->
+    <Style Selector="Button.bare">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.bare:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource WindowHoverBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <!--
+        The nav rail. WPF gave inactive items the bare look and swapped ActiveNavButtonStyle in for the
+        active one: the hover background, primary foreground, and a 5x40 accent bar down the left edge.
+        The bar is a child of every item here and only shown with the class, so switching screens moves a
+        class rather than a template.
+    -->
+    <Style Selector="Button.nav">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Height" Value="95" />
+        <Setter Property="Margin" Value="8,0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.nav:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource WindowHoverBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.nav Border.accent">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Button.nav.active">
+        <Setter Property="Background" Value="{StaticResource WindowHoverBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.nav.active Border.accent">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Button.nav.active TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.nav:pointerover TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <!-- The Home cards: a 3px outline in the 08 tone, 16 radius, no fill. -->
+    <Style Selector="Border.card">
+        <Setter Property="BorderBrush" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        <Setter Property="BorderThickness" Value="3" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Margin" Value="0,0,16,16" />
+    </Style>
+
+    <!-- A Hyperlink inside running text, drawn the way the WPF theme drew one: primary, bold, no underline. -->
+    <Style Selector="Button.inlineLink">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="Button.inlineLink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    </Style>
+
+    <!-- BigButton with ButtonStyle="Color": the primary-filled banner at the foot of Home. -->
+    <Style Selector="Button.bigColor">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.bigColor TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="Button.bigColor:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource PrimaryVariantBrush}" />
+    </Style>
+</Styles>

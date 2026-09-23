@@ -1,0 +1,106 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels"
+        xmlns:v="using:Wabbajack.App.Avalonia.Views"
+        xmlns:svc="using:Wabbajack.App.Avalonia.Services"
+        xmlns:conv="using:Wabbajack.App.Avalonia.Converters"
+        xmlns:ic="using:FluentIcons.Avalonia"
+        x:Class="Wabbajack.App.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding WindowTitle}"
+        Icon="avares://Wabbajack.Avalonia/Assets/wabbajack.ico"
+        Width="1441" Height="695" MinWidth="1100" MinHeight="500"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        Background="{StaticResource BackgroundBrush}">
+    <!--
+        The WPF window let MahApps draw the chrome and then hid every part of it. Here the OS title bar
+        is switched off outright and the window draws its own, as it did: logo and name on the left, Get
+        Help, then minimise / maximise / close. Dragging the bar moves the window (code-behind).
+
+        A maximised window is sized past the screen edge by the resize border it no longer draws;
+        OffScreenMargin is that overhang, and is zero otherwise.
+    -->
+    <Grid RowDefinitions="54,*" Margin="{Binding $parent[Window].OffScreenMargin}">
+        <Grid x:Name="TitleBar" Grid.Row="0" Background="{StaticResource BackgroundBrush}"
+              ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto">
+            <Image Grid.Column="0" Width="18" Height="18" Margin="16,0,8,0"
+                   Source="{StaticResource WabbajackLegacyLogo}" />
+            <TextBlock Grid.Column="1" FontSize="13" VerticalAlignment="Center" Text="{Binding WindowTitle}" />
+
+            <Button Grid.Column="3" Classes="main titlebar" Margin="0,10,12,10"
+                    AutomationProperties.AutomationId="GetHelpButton" AutomationProperties.Name="Get Help"
+                    Command="{Binding GetHelpCommand}">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock FontSize="13" Text="Get Help" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ic:SymbolIcon FontSize="18" Symbol="QuestionCircle" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Button Grid.Column="4" Classes="bare" AutomationProperties.AutomationId="MinimizeButton" AutomationProperties.Name="Minimize"
+                    Click="Minimize_Click">
+                <ic:SymbolIcon Symbol="Subtract" FontSize="18" />
+            </Button>
+            <Button Grid.Column="5" Classes="bare" AutomationProperties.AutomationId="MaximizeButton" AutomationProperties.Name="Maximize"
+                    Click="Maximize_Click">
+                <ic:SymbolIcon Symbol="Maximize" FontSize="18" />
+            </Button>
+            <Button Grid.Column="6" Classes="bare" AutomationProperties.AutomationId="CloseButton" AutomationProperties.Name="Close"
+                    Click="Close_Click">
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="18" />
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnDefinitions="115,*">
+            <!-- The nav rail. -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,8,Auto,8,Auto,*,Auto,Auto">
+                <Button Grid.Row="0" Classes="nav"
+                        Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.Home}}"
+                        AutomationProperties.AutomationId="HomeButton" AutomationProperties.Name="Home"
+                        Command="{Binding NavigateCommand}" CommandParameter="{x:Static svc:ScreenType.Home}">
+                    <v:NavItem Symbol="Home" Text="Home" />
+                </Button>
+                <Button Grid.Row="2" Classes="nav"
+                        Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.ModListGallery}}"
+                        AutomationProperties.AutomationId="BrowseButton" AutomationProperties.Name="Browse lists"
+                        Command="{Binding NavigateCommand}" CommandParameter="{x:Static svc:ScreenType.ModListGallery}">
+                    <v:NavItem Symbol="CloudArrowDown" Text="Browse lists" />
+                </Button>
+                <Button Grid.Row="4" Classes="nav"
+                        Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.Compiler}}"
+                        AutomationProperties.AutomationId="CompileButton" AutomationProperties.Name="Create a list"
+                        Command="{Binding NavigateCommand}" CommandParameter="{x:Static svc:ScreenType.Compiler}">
+                    <v:NavItem Symbol="Toolbox" Text="Create a list" />
+                </Button>
+                <Button Grid.Row="6" Classes="nav"
+                        Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.Settings}}"
+                        AutomationProperties.AutomationId="SettingsButton" AutomationProperties.Name="Settings"
+                        Command="{Binding NavigateCommand}" CommandParameter="{x:Static svc:ScreenType.Settings}">
+                    <v:NavItem Symbol="Settings" Text="Settings" />
+                </Button>
+                <TextBlock Grid.Row="7" FontSize="12" HorizontalAlignment="Center" Margin="0,10"
+                           Opacity="0.66" Text="{Binding Version}" />
+            </Grid>
+
+            <!-- The main pane, with the logo watermark tilted behind whatever screen is showing. -->
+            <Border Grid.Column="1" Background="{StaticResource ComplementaryBackgroundBrush}"
+                    CornerRadius="8" ClipToBounds="True">
+                <Grid>
+                    <Image Source="{StaticResource WabbajackLogoBackground}" Stretch="Uniform"
+                           HorizontalAlignment="Right" IsHitTestVisible="False"
+                           RenderTransform="scale(1.7) rotate(15deg)" />
+                    <ContentControl Content="{Binding ActivePane}" Margin="16">
+                        <ContentControl.DataTemplates>
+                            <DataTemplate DataType="vm:HomeViewModel">
+                                <v:HomeView />
+                            </DataTemplate>
+                            <DataTemplate DataType="vm:PlaceholderViewModel">
+                                <v:PlaceholderView />
+                            </DataTemplate>
+                        </ContentControl.DataTemplates>
+                    </ContentControl>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
