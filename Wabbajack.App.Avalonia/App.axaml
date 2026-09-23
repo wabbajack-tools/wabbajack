@@ -9,6 +9,26 @@
                 <ResourceInclude Source="avares://Wabbajack.Avalonia/Themes/Logos.axaml" />
             </ResourceDictionary.MergedDictionaries>
             <FontFamily x:Key="PrimaryFont">avares://Wabbajack.Avalonia/Assets/Fonts#Gabarito</FontFamily>
+
+            <!--
+                Resources Fluent's TextBox template reads, pinned to the WPF theme. Fluent changes a TextBox's
+                fill and border on hover and focus and thickens the border when focused; the WPF TextBox did
+                none of that, so every state gets the same values. These are looked up before the theme's.
+            -->
+            <StaticResource x:Key="TextControlBackground" ResourceKey="TextBoxBackground" />
+            <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="TextBoxBackground" />
+            <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="TextBoxBackground" />
+            <StaticResource x:Key="TextControlBackgroundDisabled" ResourceKey="TextBoxDisabledBackground" />
+            <StaticResource x:Key="TextControlBorderBrush" ResourceKey="TextBoxBorder" />
+            <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="TextBoxBorder" />
+            <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="TextBoxBorder" />
+            <StaticResource x:Key="TextControlBorderBrushDisabled" ResourceKey="TextBoxDisabledBackground" />
+            <StaticResource x:Key="TextControlForeground" ResourceKey="ForegroundBrush" />
+            <StaticResource x:Key="TextControlForegroundPointerOver" ResourceKey="ForegroundBrush" />
+            <StaticResource x:Key="TextControlForegroundFocused" ResourceKey="ForegroundBrush" />
+            <StaticResource x:Key="TextControlForegroundDisabled" ResourceKey="TextBoxDisabledForeground" />
+            <Thickness x:Key="TextControlBorderThemeThickness">1</Thickness>
+            <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
         </ResourceDictionary>
     </Application.Resources>
     <Application.Styles>

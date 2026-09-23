@@ -6,12 +6,20 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using NLog.Targets;
+using Octokit;
+using Wabbajack.App.Avalonia.LoginManagers;
 using Wabbajack.App.Avalonia.Services;
+using Wabbajack.App.Avalonia.Util;
 using Wabbajack.App.Avalonia.ViewModels;
-using Wabbajack.App.Avalonia.Views;
+using Wabbajack.App.Avalonia.ViewModels.Settings;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.Interventions;
+using Wabbajack.Networking.Bethesda;
+using Wabbajack.Networking.Bethesda.Steam;
+using Wabbajack.Networking.NexusApi.OAuth;
+using Wabbajack.Networking.Steam;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
-using Wabbajack.DTOs.Interventions;
 
 namespace Wabbajack.App.Avalonia;
 
@@ -42,14 +50,40 @@ public static class Program
             .LogToTrace()
             .UseReactiveUI();
 
+    /// <summary>What the WPF app's App.ConfigureServices registers, for the screens ported so far.</summary>
     private static void ConfigureServices(IServiceCollection services)
     {
         services.AddOSIntegrated();
+
+        // Registered before AddSteam so it wins over the intervention-based default, which raises a
+        // GetAuthCode intervention that the throwing handler below would take a login down over.
+        services.AddSingleton<SteamGuardPrompt>();
+        services.AddSingleton<ISteamGuardPrompt>(s => s.GetRequiredService<SteamGuardPrompt>());
+        services.AddSteam();
+
+        // The second game file source, asked after Steam's: Creations fetched with a ticket from the Steam
+        // client the user is already running.
+        services.AddBethesdaCreations();
+        services.AddSteamAppTicket();
+
         services.AddSingleton<IUserInterventionHandler, ThrowingUserInterventionHandler>();
+        services.AddSingleton<ImageCacheManager>();
+        services.AddSingleton<Networking.GitHub.Client>();
+        services.AddSingleton(_ => new GitHubClient(new ProductHeaderValue("wabbajack")));
+
+        // One NexusOAuthLogin, because it is what holds "one login at a time".
+        services.AddSingleton<NexusOAuthLogin>();
+        services.AddTransient<NexusLoginHandler>();
+        services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
+        services.AddAllSingleton<INeedsLogin, SteamLoginManager>();
 
         services.AddSingleton<Navigator>();
-        services.AddSingleton<MainWindowViewModel>();
-        services.AddTransient<HomeViewModel>();
+        services.AddSingleton<MainWindowVM>();
+        services.AddTransient<HomeVM>();
+        services.AddTransient<SettingsVM>();
+        services.AddTransient<AboutVM>();
+        // Transient: each one drives a single login attempt and is thrown away with it.
+        services.AddTransient<SteamLoginVM>();
     }
 
     private static void AddLogging(ILoggingBuilder loggingBuilder)

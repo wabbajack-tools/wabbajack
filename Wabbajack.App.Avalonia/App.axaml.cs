@@ -17,7 +17,7 @@ public partial class App : Application
         {
             desktop.MainWindow = new MainWindow
             {
-                DataContext = Program.Services.GetRequiredService<MainWindowViewModel>()
+                DataContext = Program.Services.GetRequiredService<MainWindowVM>()
             };
         }
 

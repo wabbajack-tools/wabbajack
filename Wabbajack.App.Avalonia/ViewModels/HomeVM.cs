@@ -5,17 +5,19 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
+using System.Windows.Input;
+using Wabbajack.App.Avalonia.Interfaces;
 using Wabbajack.App.Avalonia.Services;
 using Wabbajack.Networking.WabbajackClientApi;
 
 namespace Wabbajack.App.Avalonia.ViewModels;
 
-public partial class HomeViewModel : ViewModelBase
+public partial class HomeVM : ViewModel, ICanGetHelpVM
 {
-    private readonly ILogger<HomeViewModel> _logger;
+    private readonly ILogger<HomeVM> _logger;
     private readonly Client _wjClient;
 
-    public HomeViewModel(ILogger<HomeViewModel> logger, Client wjClient, Navigator navigator)
+    public HomeVM(ILogger<HomeVM> logger, Client wjClient, Navigator navigator)
     {
         _logger = logger;
         _wjClient = wjClient;
@@ -26,6 +28,7 @@ public partial class HomeViewModel : ViewModelBase
         OpenGitHubCommand = ReactiveCommand.Create(() => Links.Open(Links.GitHub));
         OpenDiscordCommand = ReactiveCommand.Create(() => Links.Open(Links.Discord));
         OpenWikiCommand = ReactiveCommand.Create(() => Links.Open(Links.Wiki));
+        GetHelpCommand = ReactiveCommand.Create(() => Links.Open(Links.Wiki));
 
         _ = LoadModLists();
     }
@@ -36,6 +39,7 @@ public partial class HomeViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> OpenGitHubCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenDiscordCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenWikiCommand { get; }
+    public ICommand GetHelpCommand { get; }
 
     // The WPF view left both counts blank until the lists arrived, and blank on a failure; so does this.
     [Reactive] public partial string ModlistCount { get; private set; } = "";

@@ -2,11 +2,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels"
         xmlns:v="using:Wabbajack.App.Avalonia.Views"
+        xmlns:settings="using:Wabbajack.App.Avalonia.ViewModels.Settings"
+        xmlns:sv="using:Wabbajack.App.Avalonia.Views.Settings"
         xmlns:svc="using:Wabbajack.App.Avalonia.Services"
         xmlns:conv="using:Wabbajack.App.Avalonia.Converters"
         xmlns:ic="using:FluentIcons.Avalonia"
         x:Class="Wabbajack.App.Avalonia.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+        x:DataType="vm:MainWindowVM"
         Title="{Binding WindowTitle}"
         Icon="avares://Wabbajack.Avalonia/Assets/wabbajack.ico"
         Width="1427" Height="688" MinWidth="1086" MinHeight="493"
@@ -18,7 +20,7 @@
     <!--
         The WPF window let MahApps draw the chrome and then hid every part of it. Here the OS title bar
         is switched off outright and the window draws its own, as it did: logo and name on the left, Get
-        Help, then minimise / maximise / close. Dragging the bar moves the window (code-behind).
+        Help, then minimise / maximise / close. Pressing the bar drags the window (code-behind).
 
         A maximised window is sized past the screen edge by the resize border it no longer draws;
         OffScreenMargin is that overhang, and is zero otherwise.
@@ -37,15 +39,29 @@
                        Source="{StaticResource WabbajackLegacyLogo}" />
                 <TextBlock Grid.Column="1" FontSize="13" VerticalAlignment="Center" Text="{Binding WindowTitle}" />
 
-                <Button Grid.Column="3" Classes="main lessRounded" Margin="0,10,12,10" Padding="12,0"
-                        VerticalAlignment="Stretch" Background="{StaticResource BackgroundPrimary08Brush}"
-                        AutomationProperties.AutomationId="GetHelpButton" AutomationProperties.Name="Get Help"
-                        Command="{Binding GetHelpCommand}">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock FontSize="13" Text="Get Help" VerticalAlignment="Center" Margin="0,0,8,0" />
-                        <ic:SymbolIcon FontSize="18" Symbol="QuestionCircle" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                <!-- Each shows only on a screen that offers it, as in WPF. -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                    <Button Classes="main lessRounded" Margin="0,10,12,10" Padding="12,0"
+                            Background="{StaticResource BackgroundPrimary08Brush}"
+                            IsVisible="{Binding ShowLoadLocalFile}"
+                            AutomationProperties.AutomationId="LoadLocalFileButton" AutomationProperties.Name="Install from disk"
+                            Command="{Binding LoadLocalFileCommand}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock FontSize="13" Text="Install from disk" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <ic:SymbolIcon FontSize="18" Symbol="ArrowUpload" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="main lessRounded" Margin="0,10,12,10" Padding="12,0"
+                            Background="{StaticResource BackgroundPrimary08Brush}"
+                            IsVisible="{Binding ShowGetHelp}"
+                            AutomationProperties.AutomationId="GetHelpButton" AutomationProperties.Name="Get Help"
+                            Command="{Binding GetHelpCommand}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock FontSize="13" Text="Get Help" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <ic:SymbolIcon FontSize="18" Symbol="QuestionCircle" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
                 <Button Grid.Column="4" Classes="bare" AutomationProperties.AutomationId="MinimizeButton" AutomationProperties.Name="Minimize"
                         Click="Minimize_Click">
                     <ic:SymbolIcon Symbol="Subtract" FontSize="18" />
@@ -100,15 +116,37 @@
                                RenderTransform="scale(1.7) rotate(15deg)" />
                         <ContentControl Content="{Binding ActivePane}" Margin="16">
                             <ContentControl.DataTemplates>
-                                <DataTemplate DataType="vm:HomeViewModel">
+                                <DataTemplate DataType="vm:HomeVM">
                                     <v:HomeView />
                                 </DataTemplate>
-                                <DataTemplate DataType="vm:PlaceholderViewModel">
+                                <DataTemplate DataType="vm:PlaceholderVM">
                                     <v:PlaceholderView />
+                                </DataTemplate>
+                                <DataTemplate DataType="settings:SettingsVM">
+                                    <sv:SettingsView />
                                 </DataTemplate>
                             </ContentControl.DataTemplates>
                         </ContentControl>
                     </Grid>
+                </Border>
+            </Grid>
+
+            <!--
+                Floating panes (the Steam login, later the modlist details and file upload) sit over the whole
+                window, title bar included, with what is behind dimmed. Pressing on the dimmed part drags the
+                window, and a quick click there closes the pane, as does Escape (code-behind).
+            -->
+            <Grid Grid.Row="0" Grid.RowSpan="2" ZIndex="2"
+                  IsVisible="{Binding ActiveFloatingPane, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Rectangle x:Name="FloatingWindowBackground" Fill="{StaticResource BackgroundBrush}" Opacity="0.75" />
+                <Border CornerRadius="8" Margin="32" Background="{StaticResource ComplementaryBackgroundBrush}">
+                    <ContentControl Content="{Binding ActiveFloatingPane}" Margin="16" VerticalAlignment="Stretch">
+                        <ContentControl.DataTemplates>
+                            <DataTemplate DataType="vm:SteamLoginVM">
+                                <v:SteamLoginView />
+                            </DataTemplate>
+                        </ContentControl.DataTemplates>
+                    </ContentControl>
                 </Border>
             </Grid>
         </Grid>

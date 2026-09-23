@@ -3,7 +3,7 @@
              xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels"
              xmlns:ic="using:FluentIcons.Avalonia"
              x:Class="Wabbajack.App.Avalonia.Views.HomeView"
-             x:DataType="vm:HomeViewModel">
+             x:DataType="vm:HomeVM">
     <UserControl.Styles>
         <Style Selector="TextBlock.cardTitle">
             <Setter Property="FontSize" Value="24" />

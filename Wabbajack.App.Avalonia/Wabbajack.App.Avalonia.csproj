@@ -44,11 +44,19 @@
         <PackageReference Include="DynamicData" />
         <PackageReference Include="Humanizer" />
         <PackageReference Include="NLog.Extensions.Logging" />
+        <PackageReference Include="Net.Codecrete.QrCodeGenerator" />
+        <PackageReference Include="SixLabors.ImageSharp" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.WabbajackClientApi\Wabbajack.Networking.WabbajackClientApi.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.GitHub\Wabbajack.Networking.GitHub.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.Steam\Wabbajack.Networking.Steam.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.Bethesda\Wabbajack.Networking.Bethesda.csproj" />
+        <!-- Not Wabbajack.CLI, although Settings launches it: that project is net10.0-windows and this one is
+             not. An install ships the CLI in its "cli" folder, which is where the button looks. -->
+
     </ItemGroup>
 
 </Project>

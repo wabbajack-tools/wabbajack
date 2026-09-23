@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Wabbajack.App.Avalonia.ViewModels;
 
 namespace Wabbajack.App.Avalonia.Views;
 
@@ -12,7 +14,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         TitleBar.PointerPressed += TitleBar_PointerPressed;
+        FloatingWindowBackground.PointerPressed += FloatingWindowBackground_PointerPressed;
+        KeyDown += OnKeyDown;
     }
+
+    private MainWindowVM? VM => DataContext as MainWindowVM;
 
     protected override void OnOpened(EventArgs e)
     {
@@ -20,15 +26,38 @@ public partial class MainWindow : Window
         HideSystemBorder();
     }
 
+    /// <summary>
+    ///     As WPF's title bar did: pressing it on a maximised window restores the window first, then the press
+    ///     drags. There is no double-click to maximise; WPF had none.
+    /// </summary>
     private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            return;
+        if (WindowState == WindowState.Maximized)
+            WindowState = WindowState.Normal;
 
-        if (e.ClickCount == 2)
-            ToggleMaximized();
-        else
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             BeginMoveDrag(e);
+    }
+
+    /// <summary>
+    ///     The dimmed area around a floating pane drags the window like the title bar, and a click on it that
+    ///     is over within a fifth of a second closes the pane. The drag holds the press until release, so
+    ///     the time it took says which of the two happened.
+    /// </summary>
+    private void FloatingWindowBackground_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+
+        var pressed = Stopwatch.StartNew();
+        BeginMoveDrag(e);
+        if (pressed.Elapsed < TimeSpan.FromSeconds(0.2))
+            VM?.DismissFloatingPane();
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && VM?.ActiveFloatingPane != null)
+            VM.DismissFloatingPane();
     }
 
     private void Minimize_Click(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
