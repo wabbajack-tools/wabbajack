@@ -25,9 +25,13 @@ public partial class MainWindowVM : ViewModel
     private CompilerHomeVM? _compilerHome;
     private readonly PlaceholderVM _compiler = new("Compiler");
 
-    public MainWindowVM(IServiceProvider services, Navigator navigator)
+    private readonly ModListDetailsVM _modListDetails;
+
+    public MainWindowVM(IServiceProvider services, Navigator navigator, ModListDetailsVM modListDetails)
     {
         _services = services;
+        // Built up front, as in WPF: it listens for the list to show before the pane is first opened.
+        _modListDetails = modListDetails;
 
         NavigateCommand = ReactiveCommand.Create<ScreenType>(NavigateTo);
         GetHelpCommand = ReactiveCommand.Create(() =>
@@ -42,6 +46,11 @@ public partial class MainWindowVM : ViewModel
         navigator.Requests
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(NavigateTo)
+            .DisposeWith(CompositeDisposable);
+
+        MessageBus.Current.Listen<ShowFloatingWindow>()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(m => HandleShowFloatingWindow(m.Screen))
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<ShowSteamLogin>()
@@ -108,6 +117,17 @@ public partial class MainWindowVM : ViewModel
         await msg.ViewModel.Result;
 
         if (ReferenceEquals(ActiveFloatingPane, msg.ViewModel)) ActiveFloatingPane = null;
+    }
+
+    private void HandleShowFloatingWindow(FloatingScreenType screen)
+    {
+        ActiveFloatingPane = screen switch
+        {
+            FloatingScreenType.None => null,
+            FloatingScreenType.ModListDetails => _modListDetails,
+            // The file upload pane is not ported yet.
+            _ => ActiveFloatingPane
+        };
     }
 
     private void NavigateTo(ScreenType screen)

@@ -85,6 +85,7 @@ public static class Program
         services.AddTransient<SettingsVM>();
         services.AddTransient<CompilerHomeVM>();
         services.AddTransient<ModListGalleryVM>();
+        services.AddSingleton<ModListDetailsVM>();
         services.AddSingleton<GameIconCache>();
         services.AddSingleton<NexusCollectionDownloader>();
         services.AddSingleton<FilePicker>();

@@ -5,6 +5,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using FluentIcons.Avalonia;
 using FluentIcons.Common;
+using Wabbajack.RateLimiter;
 
 namespace Wabbajack.App.Avalonia.Controls;
 
@@ -46,6 +47,9 @@ public class WJButton : Button
 
     public static readonly StyledProperty<ButtonStyle> ButtonStyleProperty =
         AvaloniaProperty.Register<WJButton, ButtonStyle>(nameof(ButtonStyle));
+
+    public static readonly StyledProperty<Percent> ProgressPercentageProperty =
+        AvaloniaProperty.Register<WJButton, Percent>(nameof(ProgressPercentage), Percent.One);
 
     private readonly TextBlock _text = new() { VerticalAlignment = VerticalAlignment.Center };
     private readonly SymbolIcon _icon = new() { VerticalAlignment = VerticalAlignment.Center };
@@ -108,13 +112,27 @@ public class WJButton : Button
         set => SetValue(ButtonStyleProperty, value);
     }
 
+    /// <summary>
+    ///     For the Progress style: how far along the fill is. Anything short of one draws the button as a bar,
+    ///     primary up to the percentage and the 08 tone after it, with the text and icon inverted where the
+    ///     fill has reached them.
+    /// </summary>
+    public Percent ProgressPercentage
+    {
+        get => GetValue(ProgressPercentageProperty);
+        set => SetValue(ProgressPercentageProperty, value);
+    }
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
 
         // WPF bound the grid's width to the button's, so the text and the icon sit at its two ends.
         if (change.Property == BoundsProperty)
+        {
             _grid.Width = Bounds.Width;
+            ApplyProgress();
+        }
         else if (change.Property == TextProperty)
             _text.Text = Text;
         else if (change.Property == IconProperty)
@@ -131,6 +149,9 @@ public class WJButton : Button
             ApplyDirection();
         else if (change.Property == ButtonStyleProperty)
             ApplyStyle();
+
+        if (change.Property == ProgressPercentageProperty || change.Property == ButtonStyleProperty)
+            ApplyProgress();
     }
 
     private void ApplyDirection()
@@ -141,6 +162,56 @@ public class WJButton : Button
         _icon.Margin = ltr ? new Thickness(0, 0, 16, 0) : new Thickness(16, 0, 0, 0);
         _icon.HorizontalAlignment = ltr ? HorizontalAlignment.Right : HorizontalAlignment.Left;
     }
+
+    /// <summary>
+    ///     The WPF button's progress fill, kept to its arithmetic. Its text and icon gradients were stretched
+    ///     across the button's width from their own left edges and offset by a formula that is not quite
+    ///     "where the fill is", so the inversion runs slightly off the bar; that is reproduced rather than
+    ///     corrected, since it is what the WPF app shows.
+    /// </summary>
+    private void ApplyProgress()
+    {
+        var percent = ProgressPercentage;
+        if (ButtonStyle != ButtonStyle.Progress || percent == Percent.One)
+        {
+            ClearValue(BackgroundProperty);
+            _text.ClearValue(TextBlock.ForegroundProperty);
+            _icon.ClearValue(SymbolIcon.ForegroundProperty);
+            return;
+        }
+
+        var width = Bounds.Width;
+        var p = percent.Value;
+        var done = Colour("BackgroundColor");
+        var todo = Colour("DisabledForegroundColor");
+
+        Background = Split(Colour("Primary"), Colour("ComplementaryPrimary08"), p, width);
+
+        var textSpan = width - _text.Margin.Left;
+        var textStart = 1 - textSpan / width;
+        _text.Foreground = Split(done, todo, p < textStart ? 0 : (p - textStart) * (width / textSpan), width);
+
+        var iconSpan = width - _icon.Bounds.Width - _icon.Margin.Right;
+        var iconStart = iconSpan / width;
+        _icon.Foreground = Split(done, todo, p < iconStart ? 0 : (p - iconStart) * (width / iconSpan), width);
+    }
+
+    /// <summary>A hard edge from one colour to the other at a fraction of <paramref name="width" />, from the left of whatever it paints.</summary>
+    private static LinearGradientBrush Split(Color before, Color after, double at, double width) => new()
+    {
+        StartPoint = new RelativePoint(0, 0, RelativeUnit.Absolute),
+        EndPoint = new RelativePoint(Math.Max(width, 1), 0, RelativeUnit.Absolute),
+        GradientStops =
+        {
+            new GradientStop(before, 0),
+            new GradientStop(before, at),
+            new GradientStop(after, at + 0.001),
+            new GradientStop(after, 1)
+        }
+    };
+
+    private static Color Colour(string key) =>
+        Application.Current!.TryGetResource(key, null, out var value) && value is Color colour ? colour : Colors.Transparent;
 
     private void ApplyStyle()
     {

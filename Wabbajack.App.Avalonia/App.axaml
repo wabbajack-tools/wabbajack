@@ -37,9 +37,11 @@
     </Application.Resources>
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
         <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/Controls.axaml" />
         <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/InputControls.axaml" />
         <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/RangeSlider.axaml" />
         <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/MultiSelectComboBox.axaml" />
+        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/DataGrid.axaml" />
     </Application.Styles>
 </Application>

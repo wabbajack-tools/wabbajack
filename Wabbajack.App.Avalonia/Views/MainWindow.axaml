@@ -19,8 +19,7 @@
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1"
-        Background="{StaticResource WindowBackgroundBrush}"
-        RenderOptions.TextRenderingMode="SubpixelAntialias">
+        Background="{StaticResource WindowBackgroundBrush}">
     <!--
         The WPF window let MahApps draw the chrome and then hid every part of it. Here the OS title bar
         is switched off outright and the window draws its own, as it did: logo and name on the left, Get
@@ -154,6 +153,9 @@
                         <ContentControl.DataTemplates>
                             <DataTemplate DataType="vm:SteamLoginVM">
                                 <v:SteamLoginView />
+                            </DataTemplate>
+                            <DataTemplate DataType="gallery:ModListDetailsVM">
+                                <gv:ModListDetailsView />
                             </DataTemplate>
                         </ContentControl.DataTemplates>
                     </ContentControl>
