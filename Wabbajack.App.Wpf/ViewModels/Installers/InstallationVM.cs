@@ -33,6 +33,8 @@ using Wabbajack.Paths;
 using Wabbajack.RateLimiter;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
+using Wabbajack.Networking.Steam;
+using Wabbajack.Translation;
 using Wabbajack.Util;
 using Wabbajack.CLI.Verbs;
 using Microsoft.Extensions.DependencyInjection;
@@ -144,6 +146,16 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     [Reactive] public partial string HashingSpeed { get; set; }
     [Reactive] public partial string ExtractingSpeed { get; set; }
     [Reactive] public partial string DownloadingSpeed { get; set; }
+
+    [Reactive] public partial IReadOnlyList<GameLanguage> TranslationLanguageOptions { get; set; } = [];
+    [Reactive] public partial bool TranslationSupported { get; set; }
+    [Reactive] public partial bool TranslateModlist { get; set; }
+    [Reactive] public partial GameLanguage? TranslationLanguage { get; set; }
+    [Reactive] public partial bool DownloadTranslationVoices { get; set; }
+    [Reactive] public partial string TranslationVoicesStatus { get; set; } = string.Empty;
+    private bool _restoringTranslationSettings;
+    private bool _choosingTranslationVoices;
+    private string _translationVoicesNote = string.Empty;
     
     // Command properties
     public ICommand OpenManifestCommand { get; }
@@ -160,6 +172,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand EditInstallDetailsCommand { get; }
     public ICommand VerifyCommand { get; }
     public ICommand CreateShortcutCommand { get; }
+    public ICommand ChooseTranslationVoicesCommand { get; }
     
     public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager, IServiceProvider serviceProvider,
         SystemParametersConstructor parametersConstructor, IGameLocator gameLocator, LogStream loggerProvider, ResourceMonitor resourceMonitor,
@@ -194,6 +207,18 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             ProgressState = ProgressState.Normal;
             this.Activator.Activate();
         });
+        ChooseTranslationVoicesCommand = ReactiveCommand.Create(() => ChooseTranslationVoices().FireAndForget(),
+            this.WhenAnyValue(vm => vm.TranslateModlist, vm => vm.TranslationLanguage,
+                (enabled, language) => enabled && language is {HasVoices: true}));
+        this.WhenAnyValue(vm => vm.TranslateModlist, vm => vm.TranslationLanguage)
+            .Select(t => (Enabled: t.Item1, Language: t.Item2?.Id))
+            .Where(t => !t.Enabled || t.Language != null)
+            .DistinctUntilChanged()
+            .Where(_ => !_restoringTranslationSettings)
+            .Skip(1)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ => ChooseTranslationVoices().FireAndForget());
+
         InstallCommand = ReactiveCommand.Create(() => BeginPreflight().FireAndForget(), this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading,
                                                                                                         vm => vm.ValidationResult,
                                                                                                        (notLoading, validationResult) => notLoading && (validationResult?.Succeeded ?? false)));
@@ -295,6 +320,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                   vm => vm.WabbajackFileLocation.TargetPath,
                   vm => vm.Installer.Location.TargetPath,
                   vm => vm.Installer.DownloadLocation.TargetPath)
+                .CombineLatest(this.WhenAnyValue(vm => vm.TranslateModlist, vm => vm.TranslationLanguage), (t, _) => t)
                 .Select(t =>
                 {
                     var (wjVr, dlVr, instVr, wjPath, instPath, dlPath) = t;
@@ -486,6 +512,9 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         if (!WabbajackFileLocation.TargetPath.FileExists())
             yield return ValidationResult.Fail("Wabbajack modlist file does not exist");
 
+        if (TranslateModlist && TranslationSupported && TranslationLanguage == null)
+            yield return ValidationResult.Fail("Select a language to translate to");
+
         var downloadPath = Installer.DownloadLocation.TargetPath;
         if (downloadPath.Depth <= 1)
             yield return DownloadsPathValidationResult.Fail("Please specify a download location");
@@ -609,6 +638,12 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         try
         {
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
+            var translationSupport = TranslationGames.For(ModList.GameType);
+            TranslationSupported = translationSupport != null;
+            TranslationLanguageOptions = translationSupport?.Languages ?? [];
+            if (TranslationLanguage != null && !TranslationLanguageOptions.Contains(TranslationLanguage))
+                TranslationLanguage = null;
+            if (!TranslationSupported) TranslateModlist = false;
             var stream = await StandardInstaller.ModListImageStream(path);
             if(stream != null) ModListImage = UIUtils.BitmapImageFromStream(stream);
 
@@ -654,6 +689,12 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             {
                 Installer.Location.TargetPath = prevSettings.InstallLocation;
                 Installer.DownloadLocation.TargetPath = prevSettings.DownloadLocation;
+                _restoringTranslationSettings = true;
+                TranslateModlist = TranslationSupported && prevSettings.TranslateModlist;
+                TranslationLanguage = TranslationGames.For(ModList.GameType)?.Find(prevSettings.TranslationLanguage ?? "");
+                DownloadTranslationVoices = prevSettings.DownloadTranslationVoices && TranslationLanguage is {HasVoices: true};
+                _restoringTranslationSettings = false;
+                UpdateTranslationVoicesStatus();
             }
             
             ll.Succeed();
@@ -720,7 +761,10 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 ModListLocation = WabbajackFileLocation.TargetPath,
                 InstallLocation = Installer.Location.TargetPath,
                 DownloadLocation = Installer.DownloadLocation.TargetPath,
-                Metadata = ModlistMetadata
+                Metadata = ModlistMetadata,
+                TranslateModlist = TranslateModlist,
+                TranslationLanguage = TranslationLanguage?.Id,
+                DownloadTranslationVoices = DownloadTranslationVoices
             });
             await _settingsManager.Save(LastLoadedModlist, WabbajackFileLocation.TargetPath);
 
@@ -877,16 +921,22 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 _logger.LogInformation("    Other games that can be sourced from: {otherGames}", string.Join(", ", cfg.OtherGames.Select(g => g.ToString())));
 
                 InstallResult result;
+                var translationOutcome = string.Empty;
                 using (_cancellationTokenSource = new CancellationTokenSource())
                 {
                     result = await StandardInstaller.Begin(_cancellationTokenSource.Token);
+                    if (result == Wabbajack.Installer.InstallResult.Succeeded && TranslateModlist &&
+                        TranslationSupported && TranslationLanguage != null)
+                        translationOutcome = await RunTranslation(cfg, TranslationLanguage,
+                            _cancellationTokenSource.Token);
                 }
                 if (result == Wabbajack.Installer.InstallResult.Succeeded)
                 {
                     RxApp.MainThreadScheduler.Schedule(() =>
                     {
                         InstallResult = result;
-                        ProgressText = $"Finished installing {ModList.Name}";
+                        ProgressText = $"Finished installing {ModList.Name}{translationOutcome}";
+                        ProgressPercent = Percent.One;
                         InstallState = InstallState.Success;
                     });
                 }
@@ -927,6 +977,149 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         public AbsolutePath DownloadLocation { get; set; }
         
         public ModlistMetadata Metadata { get; set; }
+
+        public bool TranslateModlist { get; set; }
+        public string? TranslationLanguage { get; set; }
+        public bool DownloadTranslationVoices { get; set; }
+    }
+
+    private void UpdateTranslationVoicesStatus()
+    {
+        var language = TranslationLanguage;
+        TranslationVoicesStatus = !TranslateModlist || language == null
+            ? string.Empty
+            : !language.HasVoices
+                ? $"{language.DisplayName} has no official voice files, so voices stay in English."
+                : DownloadTranslationVoices
+                    ? $"{language.DisplayName} voice files will be downloaded from {(language.Voices is NexusVoices ? "Nexus Mods" : "Steam")} after the install.{_translationVoicesNote}"
+                    : $"Voices stay in English.{_translationVoicesNote}";
+    }
+
+    private async Task ChooseTranslationVoices()
+    {
+        // Stops a second prompt and a second Steam login while one is open
+        if (_choosingTranslationVoices) return;
+        _choosingTranslationVoices = true;
+        try
+        {
+            await ChooseTranslationVoicesOnce();
+        }
+        finally
+        {
+            _choosingTranslationVoices = false;
+        }
+    }
+
+    private async Task ChooseTranslationVoicesOnce()
+    {
+        var language = TranslationLanguage;
+        _translationVoicesNote = string.Empty;
+        if (!TranslateModlist || language is not {HasVoices: true})
+        {
+            DownloadTranslationVoices = false;
+            UpdateTranslationVoicesStatus();
+            return;
+        }
+
+        var mainWindowVM = (MainWindowVM)System.Windows.Application.Current.MainWindow.DataContext;
+        var steam = language.Voices is SteamVoices;
+        var message = steam
+            ? $"Wabbajack can download {language.Voices!.Description}. This needs a one time Steam login inside Wabbajack.\n\n" +
+              "Your Steam password is only ever sent to Steam. Wabbajack does not store it and does not share it " +
+              "with anyone. Wabbajack keeps an encrypted Steam login token on this PC so it can download the game " +
+              "files you own, the same way the Steam client does, and you can log out at any time from Settings, Logins.\n\n"
+            : $"Wabbajack can download {language.Voices!.Description}. It is installed as loose voice files over the " +
+              "English ones and is downloaded with your Nexus Mods login, like the translation files.\n\n";
+        var wanted = await mainWindowVM.ShowConfirmationDialog($"Download {language.DisplayName} voice files?",
+            message + $"If you choose Cancel, the game text is still translated to {language.DisplayName} and the voices stay in English.");
+        if (!wanted)
+        {
+            DownloadTranslationVoices = false;
+            UpdateTranslationVoicesStatus();
+            return;
+        }
+
+        if (!steam)
+        {
+            DownloadTranslationVoices = true;
+            UpdateTranslationVoicesStatus();
+            return;
+        }
+
+        var (loggedIn, note) = await EnsureSteamLogin();
+        _translationVoicesNote = note;
+        DownloadTranslationVoices = loggedIn;
+        UpdateTranslationVoicesStatus();
+    }
+
+    private async Task<(bool LoggedIn, string Note)> EnsureSteamLogin()
+    {
+        var session = _serviceProvider.GetRequiredService<ISteamSession>();
+        if (session.IsLoggedIn) return (true, " Already logged into Steam.");
+        if (session.HaveStoredToken)
+        {
+            try
+            {
+                var result = await session.LoginWithStoredTokenAsync(CancellationToken.None);
+                return (true, $" Using the saved Steam login for {result.AccountName}.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation("Stored Steam login was not accepted: {Message}", ex.Message);
+            }
+        }
+
+        var pane = _serviceProvider.GetRequiredService<SteamLoginVM>();
+        try
+        {
+            return await ShowSteamLogin.Send(pane)
+                ? (true, string.Empty)
+                : (false, " The Steam login did not complete; use Voice files to try again.");
+        }
+        finally
+        {
+            pane.Dispose();
+        }
+    }
+
+    private async Task<string> RunTranslation(InstallerConfiguration cfg, GameLanguage language,
+        CancellationToken token)
+    {
+        try
+        {
+            var runner = _serviceProvider.GetRequiredService<TranslationRunner>();
+            var progress = new OrderedProgress<TranslationProgress>(p => RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                ProgressText = $"{p.Stage}: {p.Text}";
+                ProgressPercent = Percent.FactoryPutInRange(p.Fraction);
+            }));
+            var manual = _serviceProvider.GetRequiredService<WpfManualTranslationDownloads>();
+            manual.LanguageName = language.DisplayName;
+            var summary = await runner.Run(
+                new TranslationRequest(cfg.Install, cfg.Downloads, cfg.Game, cfg.GameFolder, language,
+                    DownloadTranslationVoices),
+                manual, progress, token);
+            var missed = summary.TranslationFilesFound - summary.TranslationFilesDownloaded;
+            var profiles = summary.Profiles.Count > 1 ? $" in {summary.Profiles.Count} profiles" : "";
+            return $". {summary.PluginsTranslated} plugins translated to {language.DisplayName}{profiles}" +
+                   (missed > 0 ? $", {missed} translation files could not be downloaded" : "") +
+                   (summary.VoiceArchivesFailed.Count > 0 ? ", some voice files failed to download" : "") +
+                   string.Concat(summary.Warnings.Select(w => ". " + w));
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Translating the modlist to {Language} failed", language.DisplayName);
+            return $". Translation to {language.DisplayName} failed, see the log";
+        }
+    }
+
+    private sealed class OrderedProgress<T>(Action<T> report) : IProgress<T>
+    {
+        public void Report(T value) => report(value);
     }
 
     private async Task PopulateNextModSlide(ModList modList)

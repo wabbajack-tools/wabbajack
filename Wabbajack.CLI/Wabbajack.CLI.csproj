@@ -52,6 +52,7 @@
         <ProjectReference Include="..\Wabbajack.Reporting\Wabbajack.Reporting.csproj" />
         <ProjectReference Include="..\Wabbajack.Server.Lib\Wabbajack.Server.Lib.csproj" />
         <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+        <ProjectReference Include="..\Wabbajack.Translation\Wabbajack.Translation.csproj" />
         <ProjectReference Include="..\Wabbajack.VFS\Wabbajack.VFS.csproj" />
     </ItemGroup>
 

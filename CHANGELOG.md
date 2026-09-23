@@ -2,6 +2,7 @@
 
 #### Version - TBD - TBD
 * Fixed modlist images remaining stale due to not being picked up by the list validation actions
+* Added Automatic translation patch downloads for modlists
 
 #### Version - 4.2.3.0 - 09/09/2026
 * Added initial suppoprt for STALKER 2 ([@Fluffernuttersandwich](https://github.com/Fluffernuttersandwich)) PR #2963

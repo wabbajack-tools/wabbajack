@@ -62,7 +62,8 @@
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="3.5*" />
             </Grid.ColumnDefinitions>
-            <Grid>
+            <ScrollViewer x:Name="SetupScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid MinHeight="{Binding ViewportHeight, ElementName=SetupScroll}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -98,6 +99,47 @@
                                       IsEnabled="{Binding LoadingLock.IsNotLoading}" />
                 </StackPanel>
 
+                <StackPanel x:Name="TranslationPanel" Grid.Row="2" Style="{StaticResource Panel}" VerticalAlignment="Top">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <CheckBox x:Name="TranslateCheckBox" VerticalAlignment="Center" IsEnabled="{Binding LoadingLock.IsNotLoading}"
+                                  FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                            <TextBlock Text="(Experimental) Automatically download translations for this modlist" TextWrapping="Wrap" />
+                        </CheckBox>
+                        <ic:SymbolIcon
+                            Grid.Column="1"
+                            Symbol="QuestionCircle"
+                            FontSize="18"
+                            Width="18"
+                            Height="18"
+                            Margin="8, 0, 0, 0"
+                            VerticalAlignment="Center"
+                            ToolTipService.InitialShowDelay="0"
+                            ToolTipService.ShowDuration="60000"
+                            ToolTip="If enabled, Wabbajack will automatically find, download and install translation patches for as many of the mods in this modlist as it can find on Nexus Mods. Coverage may vary.&#x0a;&#x0a;It uses the Mutagen framework to merge the patches so the modlist's own patches are respected, then switches the game's .ini files to the chosen language, and can optionally download that language's voice files from Steam." />
+                    </Grid>
+                    <StackPanel x:Name="TranslationOptionsPanel" Margin="0, 8, 0, 0">
+                        <ComboBox x:Name="TranslationLanguagePicker" IsSynchronizedWithCurrentItem="False">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Padding="2, 8, 0, 8" Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <Grid Margin="0, 8, 0, 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="TranslationVoicesText" Style="{StaticResource DescriptionStyle}" VerticalAlignment="Center" />
+                            <Button x:Name="TranslationVoicesButton" Grid.Column="1" Content="Voice files" Margin="8, 0, 0, 8" Padding="8, 2" VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+
                 <Grid Grid.Row="3">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -112,6 +154,7 @@
                 </Grid>
 
             </Grid>
+            </ScrollViewer>
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />

@@ -110,6 +110,7 @@
     <ProjectReference Include="..\Wabbajack.Networking.Steam\Wabbajack.Networking.Steam.csproj" />
     <ProjectReference Include="..\Wabbajack.Reporting\Wabbajack.Reporting.csproj" />
     <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+    <ProjectReference Include="..\Wabbajack.Translation\Wabbajack.Translation.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -705,17 +705,84 @@ public class ManualDownloadAcquirerTests : IAsyncDisposable
         await AssertPlaced(acquirer, archive, bytes);
     }
 
-    [Fact]
-    public async Task AnArchiveWithoutAHashIsRejected()
+    private static async Task<(Archive Archive, byte[] Bytes)> MakeWithoutHash(string name, int seed)
     {
-        var (archive, _) = await Make("NoHash.7z", 77);
+        var (archive, bytes) = await Make(name, seed);
         archive.Hash = default;
-        var acquirer = NewAcquirer();
-
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
-            acquirer.Start(new[] {archive}, _folder.Watch, _folder.Destination, CancellationToken.None));
-        Assert.Contains("NoHash.7z", ex.Message);
+        return (archive, bytes);
     }
+
+    [Fact]
+    public async Task AnArchiveWithoutAHashIsPlacedByNameAndSize()
+    {
+        var (archive, bytes) = await MakeWithoutHash("Translation-123-1-0.7z", 77);
+        var acquirer = await Started(new[] {archive});
+
+        await PreflightTestFolder.WriteFile(_folder.Watch, "Translation-123-1-0.7z", bytes);
+
+        await WaitForState(acquirer, archive.Name, ManualDownloadState.Moved);
+        var dest = _folder.Destination.Combine(archive.Name);
+        Assert.Equal(bytes, await dest.ReadAllBytesAsync());
+        Assert.Equal(dest, Item(acquirer, archive.Name).PlacedPath);
+    }
+
+    [Fact]
+    public async Task AnArchiveWithoutAHashIgnoresASameSizedFileWithAnotherName()
+    {
+        var (archive, bytes) = await MakeWithoutHash("Translation-123-1-0.7z", 78);
+        var acquirer = await Started(new[] {archive});
+
+        await PreflightTestFolder.WriteFile(_folder.Watch, "SomethingElse.7z", bytes);
+
+        await WaitForState(acquirer, archive.Name, ManualDownloadState.WrongFile);
+        Assert.False(_folder.Destination.Combine(archive.Name).FileExists());
+    }
+
+    [Fact]
+    public async Task AnArchiveWithoutAHashAcceptsTheBrowsersNumberedCopy()
+    {
+        var (archive, bytes) = await MakeWithoutHash("Translation-123-1-0.7z", 79);
+        var acquirer = await Started(new[] {archive});
+
+        await PreflightTestFolder.WriteFile(_folder.Watch, "Translation-123-1-0 (1).7z", bytes);
+
+        await WaitForState(acquirer, archive.Name, ManualDownloadState.Moved);
+        Assert.Equal(bytes, await _folder.Destination.Combine(archive.Name).ReadAllBytesAsync());
+    }
+
+    [Fact]
+    public async Task AnArchiveWithoutAHashTakesAFileTheUserPicks()
+    {
+        var (archive, bytes) = await MakeWithoutHash("Translation-123-1-0.7z", 80);
+        var acquirer = await Started(new[] {archive}, FastOptions(watcher: false, poll: TimeSpan.FromHours(1)));
+        var picked = await PreflightTestFolder.WriteFile(_folder.Root, "renamed by the user.7z", bytes);
+
+        await acquirer.AddFileManually(archive.Name, picked, CancellationToken.None);
+
+        await WaitForState(acquirer, archive.Name, ManualDownloadState.Moved);
+        Assert.Equal(bytes, await _folder.Destination.Combine(archive.Name).ReadAllBytesAsync());
+    }
+
+    [Fact]
+    public async Task AnArchiveWithoutAHashAlreadyInTheDestinationIsDone()
+    {
+        var (archive, bytes) = await MakeWithoutHash("Translation-123-1-0.7z", 81);
+        _folder.Destination.CreateDirectory();
+        await PreflightTestFolder.WriteFile(_folder.Destination, archive.Name, bytes);
+
+        var acquirer = await Started(new[] {archive});
+
+        await WaitForState(acquirer, archive.Name, ManualDownloadState.Moved);
+    }
+
+    [Theory]
+    [InlineData("Mod-1-0.7z", "Mod-1-0.7z", true)]
+    [InlineData("mod-1-0.7Z", "Mod-1-0.7z", true)]
+    [InlineData("Mod-1-0 (2).7z", "Mod-1-0.7z", true)]
+    [InlineData("Mod-1-0 (x).7z", "Mod-1-0.7z", false)]
+    [InlineData("Mod-1-1.7z", "Mod-1-0.7z", false)]
+    public void NamesMatchAcceptsBrowserCopies(string file, string archive, bool expected) =>
+        Assert.Equal(expected, ManualDownloadAcquirer.NamesMatch(file.ToRelativePath(), archive));
 
     [Fact]
     public async Task AnEmptyQueueIsCompleteImmediately()

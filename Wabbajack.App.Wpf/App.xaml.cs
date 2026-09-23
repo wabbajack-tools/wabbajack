@@ -34,6 +34,7 @@ using Wabbajack.Networking.Steam;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
+using Wabbajack.Translation;
 using Wabbajack.UserIntervention;
 using Wabbajack.Util;
 using Wabbajack.Common;
@@ -491,6 +492,8 @@ public partial class App
         services.AddAllSingleton<INeedsLogin, NexusLoginManager>();
         services.AddAllSingleton<INeedsLogin, SteamLoginManager>();
         services.AddSingleton<NexusCollectionDownloader>();
+        services.AddTranslation();
+        services.AddTransient<WpfManualTranslationDownloads>();
         // Verbs
         services.AddSingleton<CommandLineBuilder>();
         services.AddCLIVerbs();

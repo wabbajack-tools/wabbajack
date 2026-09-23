@@ -158,9 +158,6 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
             if (string.IsNullOrWhiteSpace(archive.Name))
                 throw new ArgumentException("Every archive needs a name; it is the file name it is placed under.",
                     nameof(pending));
-            if (archive.Hash == default)
-                throw new ArgumentException(
-                    $"Archive {archive.Name} has no hash, so a download of it could never be verified.", nameof(pending));
             if (archive.Size <= 0)
                 throw new ArgumentException($"Archive {archive.Name} has no size, so it cannot be matched.",
                     nameof(pending));
@@ -605,7 +602,7 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
                 Reject(requested, path, $"{path.FileName} could not be read: {ex.Message}");
                 return;
             }
-
+            // Translation files have no known hash (not in original WJfile), so match on name and size
             if (hash == default)
             {
                 Revert(detected, path, false);
@@ -820,6 +817,22 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
 
     #region Matching
 
+    public static bool NamesMatch(RelativePath fileName, string archiveName)
+    {
+        var name = fileName.ToString();
+        if (name.Equals(archiveName, StringComparison.OrdinalIgnoreCase)) return true;
+        var stem = Path.GetFileNameWithoutExtension(name);
+        var extension = Path.GetExtension(name);
+        var open = stem.LastIndexOf(" (", StringComparison.Ordinal);
+        return open > 0 && stem.EndsWith(')') && int.TryParse(stem[(open + 2)..^1], out _) &&
+               (stem[..open] + extension).Equals(archiveName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool Matches(Entry entry, AbsolutePath path, Hash hash, Entry? requested) =>
+        entry.Archive.Hash == default
+            ? entry == requested || NamesMatch(path.FileName, entry.Archive.Name)
+            : entry.Archive.Hash == hash;
+
     /// <summary>
     ///     Claims every pending item whose hash matches, in queue order. A hash that matches nothing marks the
     ///     size siblings that were waiting on this file as WrongFile; a hash that matches only items already
@@ -834,7 +847,7 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
 
         lock (_gate)
         {
-            var matched = sized.Where(e => e.Archive.Hash == hash).ToList();
+            var matched = sized.Where(e => Matches(e, path, hash, requested)).ToList();
 
             if (matched.Count == 0)
             {
@@ -996,6 +1009,7 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         try
         {
             if (dest.Size() != size) return false;
+            if (hash == default) return true;
             return await _hashCache.FileHashCachedAsync(dest, token) == hash;
         }
         catch (OperationCanceledException)

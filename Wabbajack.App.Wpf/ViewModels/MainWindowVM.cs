@@ -150,6 +150,11 @@ public partial class MainWindowVM : ViewModel
             .Subscribe(HandleShowSteamLogin)
             .DisposeWith(CompositeDisposable);
 
+        MessageBus.Current.Listen<ShowTranslationDownloads>()
+            .ObserveOnGuiThread()
+            .Subscribe(HandleShowTranslationDownloads)
+            .DisposeWith(CompositeDisposable);
+
         MessageBus.Current.Listen<ShowNavigation>()
             .ObserveOnGuiThread()
             .Subscribe((_) => NavigationVisible = true)
@@ -411,6 +416,15 @@ public partial class MainWindowVM : ViewModel
         msg.ViewModel.Start();
 
         await msg.ViewModel.Result;
+
+        if (ReferenceEquals(ActiveFloatingPane, msg.ViewModel)) ActiveFloatingPane = null;
+    }
+
+    private async void HandleShowTranslationDownloads(ShowTranslationDownloads msg)
+    {
+        ActiveFloatingPane = msg.ViewModel;
+
+        await msg.ViewModel.Closed;
 
         if (ReferenceEquals(ActiveFloatingPane, msg.ViewModel)) ActiveFloatingPane = null;
     }

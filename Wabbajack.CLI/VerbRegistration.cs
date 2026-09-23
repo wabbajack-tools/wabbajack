@@ -63,6 +63,8 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<SteamLogin>();
         CommandLineBuilder.RegisterCommand<SteamLogout>(SteamLogout.Definition, c => ((SteamLogout)c).Run);
         services.AddSingleton<SteamLogout>();
+        CommandLineBuilder.RegisterCommand<TranslateInstall>(TranslateInstall.Definition, c => ((TranslateInstall)c).Run);
+        services.AddSingleton<TranslateInstall>();
         CommandLineBuilder.RegisterCommand<UploadToNexus>(UploadToNexus.Definition, c => ((UploadToNexus)c).Run);
         services.AddSingleton<UploadToNexus>();
         CommandLineBuilder.RegisterCommand<ValidateLists>(ValidateLists.Definition, c => ((ValidateLists)c).Run);

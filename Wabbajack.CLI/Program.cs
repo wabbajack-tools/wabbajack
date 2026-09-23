@@ -19,6 +19,7 @@ using Wabbajack.Networking.Steam;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.Lib;
 using Wabbajack.Services.OSIntegrated;
+using Wabbajack.Translation;
 using Wabbajack.VFS;
 using Client = Wabbajack.Networking.GitHub.Client;
 using Wabbajack.CLI.Builder;
@@ -59,6 +60,8 @@ internal class Program
                 // fetched with a ticket the running Steam client mints rather than with a Wabbajack login.
                 services.AddBethesdaCreations();
                 services.AddSteamAppTicket();
+
+                services.AddTranslation();
 
                 services.AddServerLib();
 

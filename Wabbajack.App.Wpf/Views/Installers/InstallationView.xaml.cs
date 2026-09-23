@@ -37,6 +37,25 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
             this.Bind(ViewModel, vm => vm.Installer.DownloadLocation, view => view.DownloadLocationPicker.PickerVM)
                 .DisposeWith(disposables);
 
+            this.OneWayBind(ViewModel, vm => vm.TranslationSupported, view => view.TranslationPanel.Visibility)
+                .DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.TranslateModlist, view => view.TranslateCheckBox.IsChecked)
+                .DisposeWith(disposables);
+            this.OneWayBind(ViewModel, vm => vm.TranslateModlist, view => view.TranslationOptionsPanel.Visibility)
+                .DisposeWith(disposables);
+            this.OneWayBind(ViewModel, vm => vm.TranslationLanguageOptions, view => view.TranslationLanguagePicker.ItemsSource)
+                .DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.TranslationLanguage, view => view.TranslationLanguagePicker.SelectedItem)
+                .DisposeWith(disposables);
+            this.OneWayBind(ViewModel, vm => vm.TranslationVoicesStatus, view => view.TranslationVoicesText.Text)
+                .DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.ChooseTranslationVoicesCommand, view => view.TranslationVoicesButton)
+                .DisposeWith(disposables);
+            ViewModel.WhenAnyValue(vm => vm.TranslationLanguage)
+                .Select(l => l is {HasVoices: true} ? Visibility.Visible : Visibility.Collapsed)
+                .BindToStrict(this, view => view.TranslationVoicesButton.Visibility)
+                .DisposeWith(disposables);
+
             InstallationLocationPicker.PickerVM.AdditionalError = ViewModel.WhenAnyValue(vm => vm.ValidationResult).Where(vr => vr is InstallPathValidationResult);
             DownloadLocationPicker.PickerVM.AdditionalError = ViewModel.WhenAnyValue(vm => vm.ValidationResult).Where(vr => vr is DownloadsPathValidationResult);
             ViewModel.WhenAnyValue(vm => vm.ValidationResult)
