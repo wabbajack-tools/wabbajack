@@ -8,7 +8,7 @@
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
         ...
-        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/DataGrid.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/DataGrid.axaml" />
     and after InputControls.axaml, whose ScrollBar style the grid's vertical bar takes.
 
     Every template here is replaced rather than restyled, so the Fluent theme's state rules, which reach into its

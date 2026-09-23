@@ -67,8 +67,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     private const string LastLoadedModlist = "last-loaded-modlist";
     private const string InstallSettingsPrefix = "install-settings-";
 
-    /// <summary>This app's log, named apart from the WPF app's in Program.AddLogging; WPF read its own here.</summary>
-    private const string CurrentLogFile = "Wabbajack.Avalonia.current.log";
+    /// <summary>The log Program.AddLogging writes, which the diagnosis reads.</summary>
+    private const string CurrentLogFile = "Wabbajack.current.log";
     private readonly Random _random = new();
 
     [Reactive] public partial ModList ModList { get; set; }

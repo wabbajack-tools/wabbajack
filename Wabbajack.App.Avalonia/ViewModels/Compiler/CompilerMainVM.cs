@@ -230,10 +230,10 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
 
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
-    /// <summary>This app's own log file; the WPF app opened its own, which is named differently.</summary>
+    /// <summary>The log Program.AddLogging writes.</summary>
     private static void OpenLog()
     {
-        var log = KnownFolders.LauncherAwarePath.Combine("logs").Combine("Wabbajack.Avalonia.current.log");
+        var log = KnownFolders.LauncherAwarePath.Combine("logs").Combine("Wabbajack.current.log");
         UIUtils.OpenFile(log);
     }
 

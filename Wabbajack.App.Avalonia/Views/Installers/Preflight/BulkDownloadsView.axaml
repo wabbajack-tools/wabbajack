@@ -7,7 +7,7 @@
                           x:TypeArguments="pvm:BulkDownloadsVM"
                           x:DataType="pvm:BulkDownloadsVM">
     <UserControl.Styles>
-        <StyleInclude Source="avares://Wabbajack.Avalonia/Views/Installers/Preflight/ArchiveRowResources.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Views/Installers/Preflight/ArchiveRowResources.axaml" />
     </UserControl.Styles>
     <!--
         The automated downloads: every archive in one virtualized list of band headers and rows, with the

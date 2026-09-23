@@ -17,7 +17,7 @@
         x:Class="Wabbajack.App.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowVM"
         Title="{Binding WindowTitle}"
-        Icon="avares://Wabbajack.Avalonia/Assets/wabbajack.ico"
+        Icon="avares://Wabbajack/Assets/wabbajack.ico"
         Width="1427" Height="688" MinWidth="1086" MinHeight="493"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="NoChrome"

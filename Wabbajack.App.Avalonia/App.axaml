@@ -5,10 +5,10 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://Wabbajack.Avalonia/Themes/Palette.axaml" />
-                <ResourceInclude Source="avares://Wabbajack.Avalonia/Themes/Logos.axaml" />
+                <ResourceInclude Source="avares://Wabbajack/Themes/Palette.axaml" />
+                <ResourceInclude Source="avares://Wabbajack/Themes/Logos.axaml" />
             </ResourceDictionary.MergedDictionaries>
-            <FontFamily x:Key="PrimaryFont">avares://Wabbajack.Avalonia/Assets/Fonts#Gabarito</FontFamily>
+            <FontFamily x:Key="PrimaryFont">avares://Wabbajack/Assets/Fonts#Gabarito</FontFamily>
 
             <!--
                 Resources Fluent's TextBox template reads, pinned to the WPF theme. Fluent changes a TextBox's
@@ -38,11 +38,11 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
-        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/Controls.axaml" />
-        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/InputControls.axaml" />
-        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/CommonControls.axaml" />
-        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/RangeSlider.axaml" />
-        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/MultiSelectComboBox.axaml" />
-        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/DataGrid.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/Controls.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/InputControls.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/CommonControls.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/RangeSlider.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/MultiSelectComboBox.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/DataGrid.axaml" />
     </Application.Styles>
 </Application>

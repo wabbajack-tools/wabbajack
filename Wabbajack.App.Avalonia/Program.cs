@@ -16,12 +16,14 @@ using Wabbajack.App.Avalonia.ViewModels.Compiler;
 using Wabbajack.App.Avalonia.ViewModels.Gallery;
 using Wabbajack.App.Avalonia.ViewModels.Installers;
 using Wabbajack.App.Avalonia.ViewModels.Settings;
+using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.Networking.Bethesda;
 using Wabbajack.Networking.Bethesda.Steam;
 using Wabbajack.Networking.NexusApi.OAuth;
 using Wabbajack.Networking.Steam;
+using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 
@@ -31,16 +33,50 @@ public static class Program
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
+    /// <summary>What the app was started with: a wabbajack:// link, a .wabbajack file, or nothing.</summary>
+    public static string[] StartupArgs { get; private set; } = [];
+
+    /// <summary>The WPF app's startup, in its order.</summary>
     [STAThread]
-    public static void Main(string[] args)
+    public static int Main(string[] args)
     {
+        using var timerResolution = new TimerResolution(1);
+        using var singleInstance = new SingleInstance();
+
+        if (!singleInstance.IsFirstInstance)
+        {
+            // The running instance takes a link from here; this one just leaves.
+            if (args.Length > 0) ProtocolPipe.Send(args);
+            return 0;
+        }
+
+        if (!StartupChecks.EnsureSafeWorkingDirectory())
+            return 1;
+
+        if (StartupChecks.IsAdmin())
+        {
+            NativeMessageBox.ShowError("Don't run Wabbajack as Admin!", "Error");
+            return 1;
+        }
+
         var host = Host.CreateDefaultBuilder(Array.Empty<string>())
             .ConfigureLogging(AddLogging)
             .ConfigureServices((_, services) => ConfigureServices(services))
             .Build();
         Services = host.Services;
 
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        // .wabbajack files and wabbajack:// links open this executable, wherever it now lives.
+        if (OperatingSystem.IsWindows())
+            Services.GetRequiredService<FileAssociationSelfHealService>().RegisterOrUpdate(enableProtocol: true);
+
+        var opensUi = args.Length == 0
+                      || StartupChecks.ProtocolPayload(args[0]) != null
+                      || (args.Length == 1 && StartupChecks.WabbajackFile(args[0]) != null);
+        if (!opensUi)
+            return StartupChecks.RunCli(args);
+
+        StartupArgs = args;
+        return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
     // Also what the previewer calls, so it has to stand on its own.
@@ -54,7 +90,7 @@ public static class Program
             .LogToTrace()
             .UseReactiveUI();
 
-    /// <summary>What the WPF app's App.ConfigureServices registers, for the screens ported so far.</summary>
+    /// <summary>What the WPF app's App.ConfigureServices registers.</summary>
     private static void ConfigureServices(IServiceCollection services)
     {
         services.AddOSIntegrated();
@@ -98,6 +134,8 @@ public static class Program
         services.AddSingleton<NexusCollectionDownloader>();
         services.AddSingleton<FilePicker>();
         services.AddSingleton<ResourceMonitor>();
+        if (OperatingSystem.IsWindows())
+            services.AddSingleton<FileAssociationSelfHealService>();
         services.AddSingleton<SystemParametersConstructor>();
         // One instance, held by MainWindowVM from the start: it listens for the modlist to load.
         services.AddTransient<InstallationVM>();
@@ -114,12 +152,11 @@ public static class Program
         if (!logFolder.DirectoryExists())
             logFolder.CreateDirectory();
 
-        // Named apart from the WPF app's log: while both exist they can share a logs folder, and each
-        // archives the other's file on startup otherwise.
+        // The same file the WPF app wrote, so support and the installer's "Open log file" find it where they always did.
         var fileTarget = new FileTarget("file")
         {
-            FileName = logFolder.Combine("Wabbajack.Avalonia.current.log").ToString(),
-            ArchiveFileName = logFolder.Combine("Wabbajack.Avalonia.{##}.log").ToString(),
+            FileName = logFolder.Combine("Wabbajack.current.log").ToString(),
+            ArchiveFileName = logFolder.Combine("Wabbajack.{##}.log").ToString(),
             ArchiveOldFileOnStartup = true,
             MaxArchiveFiles = 10,
             Layout = "${processtime} [${level:uppercase=true}] (${logger}) ${message:withexception=true}",

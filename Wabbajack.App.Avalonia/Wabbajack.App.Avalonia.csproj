@@ -10,7 +10,7 @@
         <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <AssemblyName>Wabbajack.Avalonia</AssemblyName>
+        <AssemblyName>Wabbajack</AssemblyName>
         <RootNamespace>Wabbajack.App.Avalonia</RootNamespace>
         <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
         <Version>$(VERSION)</Version>
