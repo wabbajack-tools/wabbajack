@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -9,9 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Web.WebView2.Wpf;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
@@ -51,24 +48,22 @@ public partial class ModListDetailsVM : BackNavigatingVM
     public ICommand OpenDiscordCommand { get; set; }
     public ICommand OpenReadmeCommand { get; set; }
 
-    public WebView2 Browser { get; set; }
-
-    public ModListDetailsVM(ILogger<ModListDetailsVM> logger, IServiceProvider serviceProvider, Client wjClient) : base(logger)
+    public ModListDetailsVM(ILogger<ModListDetailsVM> logger, Client wjClient) : base(logger)
     {
         _logger = logger;
         _wjClient = wjClient;
-
-        Browser = serviceProvider.GetRequiredService<WebView2>();
 
         MessageBus.Current.Listen<LoadModlistForDetails>()
             .Subscribe(msg => MetadataVM = msg.MetadataVM)
             .DisposeWith(CompositeDisposable);
 
-        OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.WebsiteURL) { UseShellExecute = true }),
+        // All three of these are free text out of the modlist repository, so they go through
+        // UIUtils.OpenWebsite for its scheme filter and its log line rather than straight to ShellExecute.
+        OpenWebsiteCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(MetadataVM.Metadata.Links.WebsiteURL),
             this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.WebsiteURL, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
-        OpenDiscordCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.DiscordURL) { UseShellExecute = true }),
+        OpenDiscordCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(MetadataVM.Metadata.Links.DiscordURL),
             this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.DiscordURL, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
-        OpenReadmeCommand = ReactiveCommand.Create(() => Process.Start(new ProcessStartInfo(MetadataVM.Metadata.Links.Readme) { UseShellExecute = true }),
+        OpenReadmeCommand = ReactiveCommand.Create(() => UIUtils.OpenWebsite(MetadataVM.Metadata.Links.Readme),
             this.WhenAnyValue(x => x.MetadataVM.Metadata.Links.Readme, x => !string.IsNullOrEmpty(x)).ObserveOnGuiThread());
 
         CloseCommand = ReactiveCommand.Create(() => ShowFloatingWindow.Send(FloatingScreenType.None));

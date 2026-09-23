@@ -509,6 +509,19 @@ public class Client
                Array.Empty<SteamManifest>();
     }
 
+    /// <summary>
+    ///     The content index shard a hash falls in: every game file anybody has indexed whose hash starts
+    ///     with the same byte. One file over HTTP per lookup, which is why the index is sharded at all.
+    /// </summary>
+    public async Task<IndexedGameFile[]> GetIndexedGameFiles(Game game, Hash hash,
+        CancellationToken token = default)
+    {
+        var url = "https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/" +
+                  $"{game}/{GameFileIndex.ShardPath(hash)}";
+        return await _client.GetFromJsonAsync<IndexedGameFile[]>(url, _dtos.Options, token) ??
+               Array.Empty<IndexedGameFile>();
+    }
+
     public async Task<bool> ProxyHas(Uri uri)
     {
         var newUri = new Uri($"{_configuration.BuildServerUrl}proxy?uri={HttpUtility.UrlEncode(uri.ToString())}");

@@ -16,7 +16,6 @@ using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Web.WebView2.Wpf;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using Octokit;
@@ -30,6 +29,7 @@ using Wabbajack.LoginManagers;
 using Wabbajack.Models;
 using Wabbajack.Networking.Bethesda;
 using Wabbajack.Networking.Bethesda.Steam;
+using Wabbajack.Networking.NexusApi.OAuth;
 using Wabbajack.Networking.Steam;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -95,16 +95,6 @@ public partial class App
         if (OperatingSystem.IsWindows())
         {
             assoc.RegisterOrUpdate(enableProtocol: true); // Enable protocol registration
-        }
-
-        var webview2 = _host.Services.GetRequiredService<WebView2>();
-        var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
-        var webViewDir = currentDir.Combine("WebView2");
-        if(webViewDir.DirectoryExists())
-        {
-            var logger = _host.Services.GetRequiredService<ILogger<App>>();
-            logger.LogInformation("Local WebView2 executable folder found. Using folder {0} instead of system binaries!", currentDir.Combine("WebView2"));
-            webview2.CreationProperties = new CoreWebView2CreationProperties() { BrowserExecutableFolder = currentDir.Combine("WebView2").ToString() };
         }
 
         var args = e.Args;
@@ -459,11 +449,6 @@ public partial class App
         services.AddSingleton<Networking.GitHub.Client>();
         services.AddSingleton(s => new GitHubClient(new ProductHeaderValue("wabbajack")));
 
-        var currentDir = (AbsolutePath)Directory.GetCurrentDirectory();
-        var webViewDir = currentDir.Combine("webview2");
-        services.AddSingleton<WebView2>();
-        services.AddSingleton<BrowserWindow>();
-
         // ViewModels
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowVM>();
@@ -481,7 +466,10 @@ public partial class App
         services.AddTransient<FileUploadVM>();
         services.AddTransient<AboutVM>();
 
-        // Login Handlers
+        // Login Handlers. NexusOAuthLogin is a singleton because it is what holds "one login at a time":
+        // the settings tile and preflight both ask for one, and a per-caller instance could not tell that
+        // the other was already waiting on a redirect.
+        services.AddSingleton<NexusOAuthLogin>();
         services.AddTransient<NexusLoginHandler>();
 
         // The Steam login pane, which both preflight and the Logins tile put in front of the user. Transient:

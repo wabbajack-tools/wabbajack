@@ -35,6 +35,8 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<HashUrlString>();
         CommandLineBuilder.RegisterCommand<IndexNexusMod>(IndexNexusMod.Definition, c => ((IndexNexusMod)c).Run);
         services.AddSingleton<IndexNexusMod>();
+        CommandLineBuilder.RegisterCommand<IndexSteamDepots>(IndexSteamDepots.Definition, c => ((IndexSteamDepots)c).Run);
+        services.AddSingleton<IndexSteamDepots>();
         CommandLineBuilder.RegisterCommand<Install>(Install.Definition, c => ((Install)c).Run);
         services.AddSingleton<Install>();
         CommandLineBuilder.RegisterCommand<InstallCompileInstallVerify>(InstallCompileInstallVerify.Definition, c => ((InstallCompileInstallVerify)c).Run);
