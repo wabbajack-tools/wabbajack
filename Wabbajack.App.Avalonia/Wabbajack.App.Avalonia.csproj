@@ -28,6 +28,8 @@
         <NoWarn>CS8600,CS8601,CS8618,CS8604,CS1998</NoWarn>
     </PropertyGroup>
 
+    <Import Project="..\SingleFile.targets" />
+
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" />
     </ItemGroup>

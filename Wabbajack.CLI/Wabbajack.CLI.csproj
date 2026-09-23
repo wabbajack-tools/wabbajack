@@ -17,6 +17,8 @@
         <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
     </PropertyGroup>
 
+    <Import Project="..\SingleFile.targets" />
+
     <ItemGroup>
         <InternalsVisibleTo Include="Wabbajack.CLI.Test" />
     </ItemGroup>
