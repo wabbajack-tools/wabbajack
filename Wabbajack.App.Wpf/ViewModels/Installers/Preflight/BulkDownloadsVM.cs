@@ -48,12 +48,15 @@ public partial class BulkDownloadsVM : ViewModel
 
     private readonly SourceCache<ArchiveStatus, string> _archives = new(s => s.Archive.Name);
 
-    /// <summary>The bands, in the order they are shown; the index into this is the index into everything else.</summary>
-    private readonly ArchiveGroupVM[] _groups =
+    /// <summary>
+    ///     The bands, in the order they are shown; the index into this is the index into everything else.
+    ///     The header knows only what it draws, so which rows fall in it is kept here beside it.
+    /// </summary>
+    private readonly (ArchiveGroup Kind, ArchiveGroupVM Band)[] _groups =
     {
-        new(ArchiveGroup.Done, "Done", false),
-        new(ArchiveGroup.Current, "Current", true),
-        new(ArchiveGroup.Remaining, "Remaining", false)
+        (ArchiveGroup.Done, new ArchiveGroupVM("Done", false)),
+        (ArchiveGroup.Current, new ArchiveGroupVM("Current", true)),
+        (ArchiveGroup.Remaining, new ArchiveGroupVM("Remaining", false))
     };
 
     private readonly ReadOnlyObservableCollection<ArchiveRowVM>[] _groupRows;
@@ -99,7 +102,7 @@ public partial class BulkDownloadsVM : ViewModel
         _groupRows = new ReadOnlyObservableCollection<ArchiveRowVM>[_groups.Length];
         for (var i = 0; i < _groups.Length; i++)
         {
-            var group = _groups[i].Group;
+            var group = _groups[i].Kind;
             rows.Filter(row => row.Group == group)
                 .SortAndBind(out var bound, BucketThenName, GranularSort)
                 .Subscribe()
@@ -126,7 +129,7 @@ public partial class BulkDownloadsVM : ViewModel
             // the band header's own command, so this is already on the UI thread; deferring the rebuild
             // would leave a window where the flag says one layout and the list holds another, and a batch
             // landing in that window splices rows at an offset the list does not have.
-            _groups[index].WhenAnyValue(x => x.IsExpanded)
+            _groups[index].Band.WhenAnyValue(x => x.IsExpanded)
                 .Skip(1)
                 .Subscribe(_ => Rebuild())
                 .DisposeWith(CompositeDisposable);
@@ -220,8 +223,8 @@ public partial class BulkDownloadsVM : ViewModel
         var flat = new List<object>();
         for (var i = 0; i < _groups.Length; i++)
         {
-            flat.Add(_groups[i]);
-            if (!_groups[i].IsExpanded)
+            flat.Add(_groups[i].Band);
+            if (!_groups[i].Band.IsExpanded)
             {
                 _spliced[i] = null;
                 continue;
@@ -295,10 +298,10 @@ public partial class BulkDownloadsVM : ViewModel
                 }
             }
 
-            _groups[i].Summarize(count, bytes);
+            _groups[i].Band.Summarize(count, bytes);
             total += count;
             totalBytes += bytes;
-            if (_groups[i].Group == ArchiveGroup.Done) done = count;
+            if (_groups[i].Kind == ArchiveGroup.Done) done = count;
         }
 
         IsDownloading = downloading;

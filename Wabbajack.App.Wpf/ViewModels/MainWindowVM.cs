@@ -38,7 +38,6 @@ namespace Wabbajack;
 /// </summary>
 public partial class MainWindowVM : ViewModel
 {
-    private Common.AsyncLock _browserLocker = new();
     public MainWindow MainWindow { get; }
 
     [Reactive]
@@ -138,11 +137,6 @@ public partial class MainWindowVM : ViewModel
 
         MessageBus.Current.Listen<NavigateTo>()
             .Subscribe(m => HandleNavigateTo(m.ViewModel))
-            .DisposeWith(CompositeDisposable);
-
-        MessageBus.Current.Listen<ShowBrowserWindow>()
-            .ObserveOnGuiThread()
-            .Subscribe(HandleShowBrowserWindow)
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<ShowSteamLogin>()
@@ -393,15 +387,6 @@ public partial class MainWindowVM : ViewModel
     private void HandleNavigateTo(ViewModel objViewModel)
     {
         ActivePane = objViewModel;
-    }
-
-    private async void HandleShowBrowserWindow(ShowBrowserWindow msg)
-    {
-        using var _ = await _browserLocker.WaitAsync();
-        var browserWindow = _serviceProvider.GetRequiredService<BrowserWindow>();
-        ActiveFloatingPane = browserWindow.ViewModel = msg.ViewModel;
-        browserWindow.DataContext = ActiveFloatingPane;
-        await browserWindow.ViewModel.RunBrowserOperation();
     }
 
     /// <summary>

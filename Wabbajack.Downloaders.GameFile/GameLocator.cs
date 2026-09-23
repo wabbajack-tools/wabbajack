@@ -239,6 +239,34 @@ public class GameLocator : IGameLocator
         path = default;
         return false;
     }
+    /// <summary>
+    ///     Read straight out of the local <c>appmanifest</c>, which records a manifest id per installed
+    ///     depot: exactly the build sitting on this disk, whatever Steam publishes now. Shared depots are
+    ///     left out - they belong to another app and carry no files of this game - and so is any depot whose
+    ///     manifest id is zero, which is what a depot Steam has listed but not installed looks like.
+    /// </summary>
+    public bool TryGetSteamManifests(Game game, out SteamManifest[] manifests)
+    {
+        foreach (var id in game.MetaData().SteamIDs)
+        {
+            if (!_steamGames.TryGetValue(AppId.From((uint) id), out var steamGame)) continue;
+
+            var found = steamGame.AppManifest.InstalledDepots.Values
+                .Where(d => d.ManifestId.Value != 0)
+                .Select(d => new SteamManifest {Depot = d.DepotId.Value, Manifest = d.ManifestId.Value})
+                .OrderBy(m => m.Depot)
+                .ToArray();
+
+            if (found.Length == 0) continue;
+
+            manifests = found;
+            return true;
+        }
+
+        manifests = Array.Empty<SteamManifest>();
+        return false;
+    }
+
     public bool TryGetSteamBuildId(Game game, out string buildId)
     {
         var metaData = game.MetaData();

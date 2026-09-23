@@ -13,7 +13,6 @@
     xmlns:lib1="clr-namespace:Wabbajack"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
     xmlns:math="http://hexinnovation.com/math" xmlns:controls="http://schemas.sdl.com/xaml"
-    xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
     d:DataContext="{d:DesignInstance local:InstallationVM}"
     d:DesignHeight="500"
     d:DesignWidth="800"
@@ -338,17 +337,15 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="8" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource ToggleButtonContainer}">
                         <StackPanel Orientation="Horizontal" Margin="4">
                             <ToggleButton
-                            x:Name="ReadmeToggleButton"
-                            IsChecked="True"
-                            MinWidth="80"
-                            Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/7}">Readme</ToggleButton>
-                            <ToggleButton
                             x:Name="LogToggleButton"
-                            MinWidth="80"
+                            IsChecked="True"
+                            MinWidth="100"
                             Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/7}">Log Viewer</ToggleButton>
                             <ToggleButton
                             x:Name="ErrorToggleButton"
@@ -356,34 +353,49 @@
                             Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/6.5}">Error summary</ToggleButton>
                         </StackPanel>
                     </Border>
-                    <local:WJButton x:Name="OpenReadmeButton" 
+                    <!-- WJButton sizes itself from its own ActualWidth, so it needs a width given to it
+                         rather than Auto, which measures to nothing outside a star-sized column. -->
+                    <local:WJButton x:Name="OpenReadmeButton"
                                     Grid.Column="2"
                                     ButtonStyle="Mono"
-                                    Text="Open in browser"
-                                    Icon="WindowNew"
+                                    Text="Readme"
+                                    Icon="Document"
                                     IconSize="20"
-                                    MinWidth="160"
-                                    Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/4.5}"
+                                    MinWidth="120"
+                                    Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/6.5}"
                                     HorizontalAlignment="Right" />
 
-                    <local:WJButton x:Name="OpenLogFolderButton" 
-                                    Grid.Column="2"
+                    <local:WJButton x:Name="OpenLogFolderButton"
+                                    Grid.Column="4"
                                     ButtonStyle="Mono"
                                     Text="Open log file"
                                     Icon="WindowNew"
                                     IconSize="20"
                                     MinWidth="160"
-                                    Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/4.5}"
+                                    Width="{Binding ActualWidth, ElementName=RightSideGrid, Converter={StaticResource MathConverter}, ConverterParameter=x/5.5}"
                                     HorizontalAlignment="Right" />
                 </Grid>
-                <Grid x:Name="ReadmeBrowserGrid" Grid.Row="1" Margin="0, 0, 0, 16"></Grid>
-                <local:LogView Grid.Row="1" x:Name="LogView" Margin="0, 0, 0, 16" Visibility="Collapsed" />
+                <local:LogView Grid.Row="1" x:Name="LogView" Margin="0, 0, 0, 16" />
                 <Grid x:Name="ErrorSummaryGrid" Grid.Row="1" Margin="0,0,0,16" Visibility="Collapsed">
-                    <Border CornerRadius="8" Background="{Binding Background, ElementName=StoppedBorder}">
-                        <wv2:WebView2 x:Name="ErrorMarkdownView"
-                                      DefaultBackgroundColor="Transparent"
-                                      HorizontalAlignment="Stretch"
-                                      VerticalAlignment="Stretch"/>
+                    <Border CornerRadius="8" Background="{StaticResource ComplementaryPrimary08Brush}" Padding="24">
+                        <Grid VerticalAlignment="Top">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="FailureDetailsTitleText" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <TextBlock x:Name="FailureDetailsDescriptionText" Grid.Row="1" Margin="0, 8, 0, 0" FontSize="14" LineHeight="20" TextWrapping="Wrap" />
+                            <local:WJButton x:Name="ReadFullArticleButton"
+                                            Grid.Row="2"
+                                            Margin="0, 16, 0, 0"
+                                            HorizontalAlignment="Left"
+                                            ButtonStyle="Mono"
+                                            Text="Read the full article"
+                                            Icon="WindowNew"
+                                            IconSize="20"
+                                            Width="220" />
+                        </Grid>
                     </Border>
                 </Grid>
                 <Grid Grid.Row="2">

@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,9 +48,19 @@ public partial class GameFilesVM : ViewModel
     private readonly Dictionary<string, ArchiveRowVM> _byName = new(StringComparer.OrdinalIgnoreCase);
     private readonly Func<string, string, CancellationToken, Task> _execute;
     private readonly ILogger _logger;
-    private readonly ObservableCollection<ArchiveRowVM> _rows = new();
+    private readonly List<ArchiveRowVM> _rows = new();
+
+    /// <summary>The band headers, and the rows of whichever bands are open, in one list.</summary>
+    private readonly ObservableCollection<object> _items = new();
+
     private readonly PreflightRunner _runner;
     private readonly IServiceProvider _services;
+
+    /// <summary>
+    ///     The bands, in the order they are shown, each with what falls in it. Asked in order and first
+    ///     match wins, so the last one is "everything else" - a file nobody has touched yet.
+    /// </summary>
+    private readonly Band[] _bands;
 
     /// <summary>1 while <see cref="Repair" /> is running, login and all. See the note on that method.</summary>
     private int _inProgress;
@@ -61,7 +73,29 @@ public partial class GameFilesVM : ViewModel
         _logger = logger;
         _execute = execute;
 
-        Rows = new ReadOnlyObservableCollection<ArchiveRowVM>(_rows);
+        Items = new ReadOnlyObservableCollection<object>(_items);
+
+        // Every band shut: a list that takes forty files from the game filled this card with forty rows
+        // nobody reads, and what the user wants at a glance is how many are done and how many are not. The
+        // download list's bands work the same way, and share the header template.
+        _bands = new[]
+        {
+            new Band(new ArchiveGroupVM("Downloaded", false), r => r.IsDone),
+            new Band(new ArchiveGroupVM("Downloading", false), r => r.State == ArchiveState.Downloading),
+
+            // Not "couldn't be fetched": this band is already occupied before anything is fetched, by the
+            // files whose copy on disk is from another build of the game.
+            new Band(new ArchiveGroupVM("Problems", false),
+                r => r.State is ArchiveState.Failed or ArchiveState.Unsupported),
+            new Band(new ArchiveGroupVM("Remaining", false), _ => true)
+        };
+
+        foreach (var band in _bands)
+            band.Header.WhenAnyValue(x => x.IsExpanded)
+                .Skip(1)
+                .Subscribe(_ => Refresh())
+                .DisposeWith(CompositeDisposable);
+
         HeaderText = "Game files";
         MessageText = string.Empty;
         ExplainText = string.Empty;
@@ -79,7 +113,11 @@ public partial class GameFilesVM : ViewModel
             this.WhenAnyValue(x => x.IsRepairing, repairing => !repairing));
     }
 
-    public ReadOnlyObservableCollection<ArchiveRowVM> Rows { get; }
+    /// <summary>
+    ///     What the card's list binds to: a header per band that has anything in it, with that band's rows
+    ///     after it while it is open. Bands with nothing in them are left out rather than shown empty.
+    /// </summary>
+    public ReadOnlyObservableCollection<object> Items { get; }
 
     [Reactive] public partial string HeaderText { get; set; }
 
@@ -287,6 +325,8 @@ public partial class GameFilesVM : ViewModel
         {
             var row = new ArchiveRowVM(item.Archive, null)
             {
+                // A file of a game that is not installed reads as one nobody has fetched yet rather than as
+                // a failure: nothing has gone wrong with it, and the repair has not been asked for.
                 State = item.Problem == GameFileProblem.Missing ? ArchiveState.Missing : ArchiveState.Failed,
                 Detail = item.Problem == GameFileProblem.Missing
                     ? "Not installed"
@@ -298,8 +338,44 @@ public partial class GameFilesVM : ViewModel
             _rows.Add(row);
             _byName[row.Key] = row;
         }
+
+        Refresh();
     }
 
+    /// <summary>
+    ///     Re-bands the rows and redraws the list. Cheap by design: a repair touches tens of files, not the
+    ///     thousands the download list handles, and each one reports twice - once when it starts and once
+    ///     when it is done - so this runs a few dozen times over a whole repair.
+    /// </summary>
+    private void Refresh()
+    {
+        var flat = new List<object>();
+
+        foreach (var band in _bands)
+        {
+            var rows = _rows.Where(r => BandOf(r) == band).ToList();
+            band.Header.Summarize(rows.Count, rows.Sum(r => r.Size));
+            if (rows.Count == 0) continue;
+
+            flat.Add(band.Header);
+            if (band.Header.IsExpanded) flat.AddRange(rows);
+        }
+
+        _items.Clear();
+        foreach (var item in flat) _items.Add(item);
+    }
+
+    private Band BandOf(ArchiveRowVM row)
+    {
+        return _bands.First(b => b.Holds(row));
+    }
+
+    /// <summary>
+    ///     One line for a whole repair. Failures are counted by their message rather than reported file by
+    ///     file, because they almost never differ: a list built against a game version nobody indexed fails
+    ///     every one of its files with the same sentence, and naming one of them made that read like a
+    ///     problem with that file. The most common reason is the one shown, with the rest counted.
+    /// </summary>
     private void Summarise(IReadOnlyList<GameFileRepairResult> results)
     {
         var fetched = results.Count(r => r.Status == GameFileRepairStatus.Repaired);
@@ -311,13 +387,24 @@ public partial class GameFilesVM : ViewModel
             return;
         }
 
-        // The first thing that did not work, in the repair's own words: it knows the difference between a
-        // version nobody wrote down and a file the depot does not carry, and the user can act on that.
-        var first = results.First(r => r.Status != GameFileRepairStatus.Repaired);
+        var failed = results.Where(r => r.Status != GameFileRepairStatus.Repaired).ToList();
+        var reasons = failed.GroupBy(r => r.Message, StringComparer.Ordinal)
+            .OrderByDescending(g => g.Count())
+            .ToList();
+        var commonest = reasons[0];
+
+        var what = fetched == 0
+            ? $"{Files(failed.Count)} could not be fetched."
+            : $"{fetched} of {results.Count} fetched; {Files(failed.Count)} could not be.";
+
+        // Whether the reason belongs to all of them, or to most: a user reading one sentence should know
+        // how much of the list it accounts for.
+        var scope = reasons.Count == 1
+            ? string.Empty
+            : $" ({commonest.Count()} of {failed.Count})";
+
         Tone = GameFilesTone.Problem;
-        StatusText = fetched == 0
-            ? first.Message
-            : $"{fetched} of {results.Count} fetched. {first.Archive.Name}: {first.Message}";
+        StatusText = $"{what}{scope} {commonest.Key}";
     }
 
     private static string Files(int count)
@@ -330,6 +417,9 @@ public partial class GameFilesVM : ViewModel
         Tone = GameFilesTone.Problem;
         StatusText = message;
     }
+
+    /// <summary>One band of the card's list: a header the user can open, and what falls in it.</summary>
+    private sealed record Band(ArchiveGroupVM Header, Func<ArchiveRowVM, bool> Holds);
 
     /// <summary>
     ///     Where the repair reports to. It runs outside a check, so there is no runner sink to forward to and
@@ -357,8 +447,13 @@ public partial class GameFilesVM : ViewModel
         {
             RxApp.MainThreadScheduler.Schedule(() =>
             {
-                if (_owner._byName.TryGetValue(archive.Name, out var row))
-                    row.Apply(new ArchiveStatus(archive, state, message, bytes, null));
+                if (!_owner._byName.TryGetValue(archive.Name, out var row)) return;
+
+                row.Apply(new ArchiveStatus(archive, state, message, bytes, null));
+
+                // The row has very likely moved band - that is what this report is - so the counts and the
+                // list follow it.
+                _owner.Refresh();
             });
         }
 
