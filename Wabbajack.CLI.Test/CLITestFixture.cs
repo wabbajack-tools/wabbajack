@@ -17,6 +17,7 @@ using Wabbajack.Networking.Steam;
 using Wabbajack.Paths.IO;
 using Wabbajack.Server.Lib;
 using Wabbajack.Services.OSIntegrated;
+using Wabbajack.Translation;
 using Wabbajack.VFS;
 using Xunit;
 using Client = Wabbajack.Networking.GitHub.Client;
@@ -57,6 +58,7 @@ public class CLITestFixture : IDisposable
                 services.AddSteam();
                 services.AddBethesdaCreations();
                 services.AddSteamAppTicket();
+                services.AddTranslation();
                 services.AddServerLib();
                 services.AddTransient<Context>();
                 services.AddSingleton<CommandLineBuilder>();

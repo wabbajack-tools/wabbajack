@@ -55,6 +55,17 @@ public static class RecordStrings
                 continue;
             }
 
+            if (type.IsGenericType && typeof(ITranslatedStringGetter).IsAssignableFrom(type.GetGenericArguments()[0]))
+            {
+                if (property.GetValue(obj) is IGenderedItemGetter<ITranslatedStringGetter?> gendered)
+                {
+                    if (gendered.Male != null) into.Add((prefix + property.Name + ".Male", gendered.Male));
+                    if (gendered.Female != null) into.Add((prefix + property.Name + ".Female", gendered.Female));
+                }
+
+                continue;
+            }
+
             if (type == typeof(string) || type.IsValueType || type.Name.StartsWith("IFormLink")) continue;
             if (type.IsGenericType && type.GetGenericArguments().Any(a => a.Name.StartsWith("IFormLink"))) continue;
             var ns = type.IsGenericType ? type.GetGenericArguments()[0].Namespace : type.Namespace;

@@ -133,7 +133,7 @@ public sealed class TranslationDownloader
         var process = new ProcessHelper
         {
             Path = sevenZip,
-            Arguments = new object[] {"x", "-y", "-bso0", "-bsp1", $"-o\"{folder}\"", archive, "-r"}
+            Arguments = new object[] {"x", "-y", "-bso0", "-bsp1", "-ssc-", $"-o\"{folder}\"", archive, "-r"}
                 .Concat(ExtractPatterns.Select(p => (object) $"-i!{p}"))
                 .Concat(SkippedPatterns.Select(p => (object) $"-xr!{p}"))
                 .ToArray()

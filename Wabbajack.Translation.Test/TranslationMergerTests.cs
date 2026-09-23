@@ -221,7 +221,7 @@ public class TranslationMergerTests : IDisposable
             .Merge([new TranslationCandidate("A.esp", translationFile, "test")], output, null, CancellationToken.None);
 
         Assert.True(Assert.Single(result.Plugins).Accepted);
-        Assert.True(output.Parent.Combine("Strings", "Patch_german.STRINGS").FileExists());
+        Assert.True(output.Parent.Combine("Strings", "Patch_German.STRINGS").FileExists());
         var patch = SkyrimMod.Create(SkyrimRelease.SkyrimSE).FromPath(new ModPath(output.ToString()))
             .WithKnownMasters(new KeyedMasterStyle(A, MasterStyle.Full), new KeyedMasterStyle(B, MasterStyle.Full))
             .WithDataFolder(output.Parent.ToString()).WithTargetLanguage(Language.German).Construct();
@@ -232,6 +232,45 @@ public class TranslationMergerTests : IDisposable
         Assert.Equal("Eisenschwert", patched.Name?.String);
         Assert.Equal("A plain blade", patched.Description?.String);
         Assert.Equal(20f, patched.BasicStats?.Weight);
+    }
+
+    [Fact]
+    public async Task TranslatesAndLocalizesGenderedRankTitles()
+    {
+        var modA = new SkyrimMod(A, SkyrimRelease.SkyrimSE);
+        var faction = modA.Factions.AddNew("College");
+        faction.Name = "College of Winterhold";
+        faction.Ranks.Add(new Mutagen.Bethesda.Skyrim.Rank {Number = 0, Title = new GenderedItem<TranslatedString?>("Apprentice", "Apprentice")});
+        faction.Ranks.Add(new Mutagen.Bethesda.Skyrim.Rank {Number = 1, Title = new GenderedItem<TranslatedString?>("Arch-Mage", null)});
+        await WriteSkyrim(modA, _root.Combine("mods", "A", "A.esp"));
+
+        var translation = new SkyrimMod(A, SkyrimRelease.SkyrimSE);
+        var copy = faction.DeepCopy();
+        copy.Name = "Akademie von Winterfeste";
+        copy.Ranks[0].Title = new GenderedItem<TranslatedString?>("Lehrling", "Apprentice");
+        copy.Ranks[1].Title = new GenderedItem<TranslatedString?>("Erzmagier", null);
+        translation.Factions.Add(copy);
+        var translationFile = _root.Combine("translations", "A.esp");
+        await WriteSkyrim(translation, translationFile);
+
+        await WriteProfile(["A"], ["A.esp"]);
+        var german = TranslationGames.SkyrimSpecialEdition.Find("german")!;
+        var instance = await Mo2Instance.Load(_root, Game.SkyrimSpecialEdition, _root.Combine("game"));
+        var analysis = LoadOrderAnalysis.Build(instance, NullLogger.Instance, CancellationToken.None);
+        var output = _root.Combine("mods", "Patch", "Patch.esp");
+        var result = new TranslationMerger(analysis, german, true, NullLogger.Instance)
+            .Merge([new TranslationCandidate("A.esp", translationFile, "test")], output, null, CancellationToken.None);
+
+        Assert.True(Assert.Single(result.Plugins).Accepted);
+        Assert.False(output.Parent.Combine("Strings", "Patch_English.STRINGS").FileExists());
+        var patch = SkyrimMod.Create(SkyrimRelease.SkyrimSE).FromPath(new ModPath(output.ToString()))
+            .WithKnownMasters(new KeyedMasterStyle(A, MasterStyle.Full))
+            .WithDataFolder(output.Parent.ToString()).WithTargetLanguage(Language.German).Construct();
+        var patched = Assert.Single(patch.Factions);
+        Assert.Equal("Akademie von Winterfeste", patched.Name?.String);
+        Assert.Equal("Lehrling", patched.Ranks[0].Title?.Male?.String);
+        Assert.Equal("Apprentice", patched.Ranks[0].Title?.Female?.String);
+        Assert.Equal("Erzmagier", patched.Ranks[1].Title?.Male?.String);
     }
 
     [Fact]
