@@ -391,6 +391,10 @@
     <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
         <Setter Property="Margin" Value="4,0,0,0" />
     </Style>
+    <!-- WPF's text view sits 2px in from the padding on each side, measured on the compiler form and the pickers. -->
+    <Style Selector="TextBox /template/ TextPresenter#PART_TextPresenter">
+        <Setter Property="Margin" Value="2,0,2,0" />
+    </Style>
 
     <!--
         AttentionBorder (Controls/AttentionBorder.cs), from CustomControls.xaml: a 1px border that swings

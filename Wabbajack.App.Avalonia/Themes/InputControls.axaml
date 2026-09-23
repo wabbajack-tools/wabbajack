@@ -116,6 +116,11 @@
     <Style Selector="ComboBox:pointerover /template/ Border#PopUpButton">
         <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
     </Style>
+    <!-- WPF counts the pointer over the open list as over the combo box (the list is its logical child), so the
+         button stays lit while the list is open and pointed at. Avalonia's list is another window. -->
+    <Style Selector="ComboBox:dropdownopen /template/ Border#PopUpButton">
+        <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
+    </Style>
     <Style Selector="ComboBox:disabled">
         <Setter Property="Foreground" Value="{StaticResource TextBoxDisabledForeground}" />
         <Setter Property="Background" Value="{StaticResource TextBoxDisabledBackground}" />
@@ -173,7 +178,11 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto" Background="{TemplateBinding Background}">
+                    <!-- The presenter scrolls on the wheel, so it has the background too: over an empty part of the
+                         content the pointer would otherwise hit the grid beside it and the wheel would do nothing.
+                         WPF's ScrollViewer took the wheel wherever it was. -->
                     <ScrollContentPresenter Name="PART_ContentPresenter" Grid.Row="0" Grid.Column="0"
+                                            Background="{TemplateBinding Background}"
                                             Content="{TemplateBinding Content}"
                                             ContentTemplate="{TemplateBinding ContentTemplate}"
                                             Padding="{TemplateBinding Padding}" />

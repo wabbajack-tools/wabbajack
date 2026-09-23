@@ -214,4 +214,138 @@
     <SolidColorBrush x:Key="MultiSelectComboBox.SelectedItemsPanel.Border" Color="Transparent" />
     <SolidColorBrush x:Key="MultiSelectComboBox.Text.Disabled.Foreground" Color="{StaticResource DisabledForegroundColor}" />
     <SolidColorBrush x:Key="MultiSelectComboBox.Text.Foreground" Color="{StaticResource ForegroundColor}" />
+
+    <!--
+        The stripe brushes the compiler's file tree marks a folder with when something inside it has a compiler
+        state: one set of lines per state, in a 10px tile, each line the primary colour at 35%. WPF drew them as
+        VisualBrushes over a Canvas of Paths with Opacity 0.35; a drawing of the same lines in a 35% colour is
+        the same picture, and the combinations overlap where their lines cross exactly as the Paths did.
+    -->
+    <SolidColorBrush x:Key="StripePenBrush" Color="#59D8BAF8" />
+    <StreamGeometry x:Key="StripeDiagonal">M 0 0 l 10 10</StreamGeometry>
+    <StreamGeometry x:Key="StripeInverseDiagonal">M 0 10 l 10 -10</StreamGeometry>
+    <StreamGeometry x:Key="StripeVertical">M 0 0 l 0 10</StreamGeometry>
+    <StreamGeometry x:Key="StripeHorizontal">M 0 0 l 10 0</StreamGeometry>
+    <DrawingBrush x:Key="DiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="InverseDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeInverseDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="VerticalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeVertical}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="HorizontalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeHorizontal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="VerticalHorizontalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeVertical}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeHorizontal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="VerticalDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeVertical}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="VerticalInverseDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeVertical}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeInverseDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="HorizontalDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeHorizontal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="HorizontalInverseDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeHorizontal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeInverseDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="DiagonalInverseDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeInverseDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="HorizontalDiagonalInverseDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeHorizontal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeInverseDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="VerticalDiagonalInverseDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeVertical}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeInverseDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="VerticalHorizontalInverseDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeVertical}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeHorizontal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeInverseDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="VerticalHorizontalDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeVertical}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeHorizontal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <DrawingBrush x:Key="VerticalHorizontalDiagonalInverseDiagonalStripeBrush" TileMode="Tile" DestinationRect="0,0,10,10" SourceRect="0,0,10,10">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Geometry="{StaticResource StripeVertical}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeHorizontal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+                <GeometryDrawing Geometry="{StaticResource StripeInverseDiagonal}"><GeometryDrawing.Pen><Pen Brush="{StaticResource StripePenBrush}" Thickness="1" /></GeometryDrawing.Pen></GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
 </ResourceDictionary>

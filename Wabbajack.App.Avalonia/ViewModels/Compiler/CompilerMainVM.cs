@@ -1,0 +1,825 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Net.Http;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using ReactiveUI;
+using ReactiveUI.SourceGenerators;
+using Wabbajack.App.Avalonia.Interfaces;
+using Wabbajack.App.Avalonia.LoginManagers;
+using Wabbajack.App.Avalonia.Messages;
+using Wabbajack.App.Avalonia.Util;
+using Wabbajack.App.Avalonia.ViewModels.Common;
+using Wabbajack.Common;
+using Wabbajack.Compiler;
+using Wabbajack.Downloaders;
+using Wabbajack.Downloaders.GameFile;
+using Wabbajack.Installer;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.DTOs.Logins;
+using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Networking.WabbajackClientApi;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
+using Wabbajack.Services.OSIntegrated;
+using FileMode = System.IO.FileMode;
+
+namespace Wabbajack.App.Avalonia.ViewModels.Compiler;
+
+/// <summary>
+/// The compiler screen, as the WPF CompilerMainVM: the details form and file tree while configuring, the
+/// compile itself with its log and CPU view, and once it has compiled, the checks that decide whether the list
+/// can be published, publishing to the Wabbajack CDN, and the optional Nexus Mods collection page.
+/// </summary>
+public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusVM
+{
+    public enum PublishResult { None, Success, Failed }
+
+    public enum PublishCollectionResult
+    {
+        None = 0,
+        Success = 1,
+        Failed = 2
+    }
+
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ResourceMonitor _resourceMonitor;
+    private readonly IEnumerable<INeedsLogin> _logins;
+    private readonly DownloadDispatcher _downloadDispatcher;
+    private readonly ITokenProvider<NexusOAuthState> _nexusTokenProvider;
+    private readonly HttpClient _httpClient;
+
+    public CompilerMainVM(
+        ILogger<CompilerMainVM> logger,
+        DTOSerializer dtos,
+        SettingsManager settingsManager,
+        LogStream loggerProvider,
+        Client wjClient,
+        IServiceProvider serviceProvider,
+        ResourceMonitor resourceMonitor,
+        CompilerDetailsVM compilerDetailsVM,
+        CompilerFileManagerVM compilerFileManagerVM,
+        IEnumerable<INeedsLogin> logins,
+        DownloadDispatcher downloadDispatcher,
+        ITokenProvider<NexusOAuthState> nexusTokenProvider,
+        HttpClient httpClient) : base(dtos, settingsManager, logger, wjClient)
+    {
+        _serviceProvider = serviceProvider;
+        _resourceMonitor = resourceMonitor;
+        _logins = logins;
+        _downloadDispatcher = downloadDispatcher;
+        _nexusTokenProvider = nexusTokenProvider;
+        _httpClient = httpClient;
+
+        LoggerProvider = loggerProvider;
+        CompilerDetailsVM = compilerDetailsVM;
+        CompilerFileManagerVM = compilerFileManagerVM;
+
+        GetHelpCommand = ReactiveCommand.Create(() =>
+            UIUtils.OpenWebsite("https://wiki.wabbajack.org/modlist_author_documentation/Compilation.html"));
+
+        // Started and not awaited, as WPF's Create over a Task-returning method was.
+        StartCommand = ReactiveCommand.Create(StartCompilation,
+            this.WhenAnyValue(vm => vm.Settings.ModListName,
+                vm => vm.Settings.ModListAuthor,
+                vm => vm.Settings.ModListDescription,
+                vm => vm.Settings.ModListImage,
+                vm => vm.Settings.Downloads,
+                vm => vm.Settings.OutputFile,
+                vm => vm.Settings.Version,
+                (name, author, desc, img, downloads, output, version) =>
+                    !string.IsNullOrWhiteSpace(name) &&
+                    !string.IsNullOrWhiteSpace(author) &&
+                    !string.IsNullOrWhiteSpace(desc) &&
+                    img.FileExists() &&
+                    !string.IsNullOrEmpty(downloads.ToString()) &&
+                    !string.IsNullOrEmpty(output.ToString()) && output.Extension == Ext.Wabbajack &&
+                    System.Version.TryParse(version, out _)));
+
+        CancelCommand = ReactiveCommand.Create(CancelCompilation);
+        OpenLogCommand = ReactiveCommand.Create(OpenLog);
+        OpenFolderCommand = ReactiveCommand.Create(() => UIUtils.OpenFolderAndSelectFile(Settings.OutputFile));
+
+        PublishCommand = ReactiveCommand.Create(Publish,
+            this.WhenAnyValue(vm => vm.State,
+                vm => vm.IsPublishing,
+                vm => vm.IsPublishingCollection,
+                vm => vm.PreflightChecksPassed,
+                (state, isPublishing, isPublishingCollection, preflightPassed) =>
+                    !isPublishing && !isPublishingCollection &&
+                    state == CompilerState.Completed &&
+                    preflightPassed == true));
+
+        PublishCollectionCommand = ReactiveCommand.CreateFromTask(PublishCollection,
+            this.WhenAnyValue(vm => vm.State,
+                vm => vm.IsPublishing,
+                vm => vm.IsPublishingCollection,
+                vm => vm.PreflightChecksPassed,
+                (state, isPublishing, isPublishingCollection, preflightPassed) =>
+                    !isPublishing && !isPublishingCollection &&
+                    state == CompilerState.Completed &&
+                    preflightPassed == true));
+
+        RefreshPreflightChecksCommand = ReactiveCommand.CreateFromTask(async () => await RunPreflightChecksAsync());
+
+        ProgressPercent = Percent.Zero;
+
+        this.WhenActivated(disposables =>
+        {
+            if (State != CompilerState.Compiling)
+            {
+                ShowNavigation.Send();
+                ConfigurationText = "Modlist Details";
+                ProgressText = "Compilation";
+                ProgressPercent = Percent.Zero;
+                CurrentStep = Step.Configuration;
+                State = CompilerState.Configuration;
+                ProgressState = ProgressState.Normal;
+                CollectionPublishingPercentage = Percent.One;
+                CollectionPublishingStage = "";
+                PublishCollectionLastResult = PublishCollectionResult.None;
+                PublishLastResult = PublishResult.None;
+            }
+
+            this.WhenAnyValue(x => x.CompilerDetailsVM.Settings)
+                .BindTo(this, x => x.Settings)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.CompilerFileManagerVM.Settings.Include)
+                .BindTo(this, x => x.Settings.Include)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.CompilerFileManagerVM.Settings.Ignore)
+                .BindTo(this, x => x.Settings.Ignore)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.CompilerFileManagerVM.Settings.NoMatchInclude)
+                .BindTo(this, x => x.Settings.NoMatchInclude)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.CompilerFileManagerVM.Settings.AlwaysEnabled)
+                .BindTo(this, x => x.Settings.AlwaysEnabled)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.State)
+                .Where(s => s == CompilerState.Completed)
+                .Subscribe(async _ =>
+                {
+                    await RunPreflightChecksAsync();
+                    await CheckExistingCollectionStatus();
+                    // Collection publishing starts over whenever a compile completes.
+                    CollectionPublishingPercentage = Percent.One;
+                    CollectionPublishingStage = "";
+                    PublishCollectionLastResult = PublishCollectionResult.None;
+                })
+                .DisposeWith(disposables);
+        });
+    }
+
+    public CompilerDetailsVM CompilerDetailsVM { get; set; }
+    public CompilerFileManagerVM CompilerFileManagerVM { get; set; }
+
+    public LogStream LoggerProvider { get; }
+    public CancellationTokenSource CancellationTokenSource { get; private set; }
+    public ICommand GetHelpCommand { get; }
+    public ICommand StartCommand { get; }
+    public ICommand CancelCommand { get; }
+    public ICommand OpenLogCommand { get; }
+    public ICommand OpenFolderCommand { get; }
+    public ICommand PublishCommand { get; }
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> PublishCollectionCommand { get; }
+    public ICommand RefreshPreflightChecksCommand { get; }
+
+    [Reactive] public partial PublishResult PublishLastResult { get; set; } = PublishResult.None;
+    [Reactive] public partial bool IsPublishing { get; set; }
+    [Reactive] public partial bool IsPublishingCollection { get; set; }
+    [Reactive] public partial Percent PublishingPercentage { get; set; } = Percent.One;
+    [Reactive] public partial CompilerState State { get; set; }
+    [Reactive] public partial string BusyStatusText { get; set; } = "";
+
+    [Reactive] public partial bool? PreflightChecksPassed { get; set; } = null;
+    [Reactive] public partial string PreflightCheckMessage { get; set; } = "";
+
+    [Reactive] public partial int? ExistingCollectionRevisionNumber { get; set; }
+    [Reactive] public partial string? ExistingCollectionSlug { get; set; }
+    [Reactive] public partial bool ExistingCollectionIsDraft { get; set; }
+    [Reactive] public partial bool IsCheckingCollectionStatus { get; set; }
+
+    [Reactive] public partial Percent CollectionPublishingPercentage { get; set; } = Percent.One;
+    [Reactive] public partial string CollectionPublishingStage { get; set; } = "";
+
+    [Reactive] public partial PublishCollectionResult PublishCollectionLastResult { get; set; } = PublishCollectionResult.None;
+
+    // Not raised on change, as in WPF: the view watches the two flags it is made of.
+    public bool IsBusy => IsPublishing || IsPublishingCollection;
+
+    public bool Cancelling { get; private set; }
+
+    public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
+
+    /// <summary>This app's own log file; the WPF app opened its own, which is named differently.</summary>
+    private static void OpenLog()
+    {
+        var log = KnownFolders.LauncherAwarePath.Combine("logs").Combine("Wabbajack.Avalonia.current.log");
+        UIUtils.OpenFile(log);
+    }
+
+    private async Task Publish()
+    {
+        try
+        {
+            BusyStatusText = "Publishing modlist...";
+            PublishLastResult = PublishResult.None;
+            IsPublishing = true;
+            PublishingPercentage = Percent.Zero;
+
+            var downloadMetadata = _dtos.Deserialize<DownloadMetadata>(
+                await Settings.OutputFile.WithExtension(Ext.Meta).WithExtension(Ext.Json).ReadAllTextAsync())!;
+            var (progress, publishTask) = await _wjClient.PublishModlist(
+                Settings.MachineUrl,
+                System.Version.Parse(Settings.Version),
+                Settings.OutputFile,
+                downloadMetadata);
+
+            using var progressSubscription = progress.Subscribe(p => PublishingPercentage = p.PercentDone);
+            await publishTask;
+            PublishLastResult = PublishResult.Success;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("While publishing: {ex}", ex);
+            PublishLastResult = PublishResult.Failed;
+        }
+        finally
+        {
+            IsPublishing = false;
+            PublishingPercentage = Percent.One;
+            BusyStatusText = "";
+        }
+    }
+
+    private async Task StartCompilation()
+    {
+        var tsk = Task.Run(async () =>
+        {
+            try
+            {
+                HideNavigation.Send();
+                await SaveSettings();
+
+                await EnsureLoggedIntoNexus();
+
+                RxApp.MainThreadScheduler.Schedule(() =>
+                {
+                    ProgressText = "Compiling...";
+                    State = CompilerState.Compiling;
+                    CurrentStep = Step.Busy;
+                    ProgressState = ProgressState.Normal;
+                });
+
+                Settings.UseGamePaths = true;
+
+                var compiler = MO2Compiler.Create(_serviceProvider, Settings.ToCompilerSettings());
+
+                var events = Observable.FromEventPattern<StatusUpdate>(h => compiler.OnStatusUpdate += h,
+                        h => compiler.OnStatusUpdate -= h)
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Subscribe(update =>
+                    {
+                        var s = update.EventArgs;
+                        ProgressText = $"{s.StatusText}";
+                        ProgressPercent = s.StepsProgress;
+                    });
+
+                try
+                {
+                    CancellationTokenSource = new CancellationTokenSource();
+                    var result = await compiler.Begin(CancellationTokenSource.Token);
+                    if (!result)
+                        throw new Exception("Compilation Failed");
+                }
+                finally
+                {
+                    events.Dispose();
+                    CancellationTokenSource.Dispose();
+                }
+
+                _logger.LogInformation("Compiler Finished");
+
+                RxApp.MainThreadScheduler.Schedule(() =>
+                {
+                    ShowNavigation.Send();
+                    ProgressText = "Compiled";
+                    ProgressPercent = Percent.One;
+                    State = CompilerState.Completed;
+                    CurrentStep = Step.Done;
+                    ProgressState = ProgressState.Success;
+
+                    CollectionPublishingPercentage = Percent.One;
+                    CollectionPublishingStage = "";
+                    PublishCollectionLastResult = PublishCollectionResult.None;
+                });
+            }
+            catch (Exception ex)
+            {
+                RxApp.MainThreadScheduler.Schedule(() =>
+                {
+                    ShowNavigation.Send();
+                    if (Cancelling)
+                    {
+                        ProgressText = "Compilation Cancelled";
+                        ProgressPercent = Percent.One;
+                        State = CompilerState.Configuration;
+                        _logger.LogInformation(ex, "Cancelled compilation: {Message}", ex.Message);
+                        Cancelling = false;
+                    }
+                    else
+                    {
+                        ProgressText = "Compilation Failed";
+                        ProgressPercent = Percent.Zero;
+                        State = CompilerState.Errored;
+                        _logger.LogError(ex, "Failed compilation: {Message}", ex.Message);
+                    }
+
+                    CollectionPublishingPercentage = Percent.One;
+                    CollectionPublishingStage = "";
+                    PublishCollectionLastResult = PublishCollectionResult.None;
+                });
+            }
+        });
+
+        await tsk;
+    }
+
+    private async Task RunPreflightChecksAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Running preflight checks...");
+            PreflightCheckMessage = "Running checks...";
+            PreflightChecksPassed = null;
+
+            var passed = await RunPreflightChecks(CancellationToken.None);
+
+            PreflightChecksPassed = passed;
+            PreflightCheckMessage = passed
+                ? "Ready to publish"
+                : $"Checks failed: List '{Settings.MachineUrl}' not found in repository or invalid version";
+
+            _logger.LogInformation("Preflight checks {status}", passed ? "passed" : "failed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error running preflight checks");
+            PreflightChecksPassed = false;
+            PreflightCheckMessage = "Checks failed: " + ex.Message;
+        }
+    }
+
+    private async Task PublishCollection()
+    {
+        try
+        {
+            BusyStatusText = "Preparing collection upload...";
+            PublishCollectionLastResult = PublishCollectionResult.None;
+            IsPublishingCollection = true;
+            CollectionPublishingPercentage = Percent.One;
+            CollectionPublishingStage = "Reading modlist...";
+
+            ModList modList;
+
+            await using (var fs = Settings.OutputFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var za = new ZipArchive(fs, ZipArchiveMode.Read))
+            {
+                var entry = za.GetEntry("modlist");
+                if (entry == null)
+                {
+                    _logger.LogError("Cannot publish collection: 'modlist' entry not found in {output}", Settings.OutputFile);
+                    PublishCollectionLastResult = PublishCollectionResult.Failed;
+                    return;
+                }
+
+                using var es = entry.Open();
+                using var sr = new StreamReader(es);
+                var modListJson = await sr.ReadToEndAsync();
+                modList = _dtos.Deserialize<ModList>(modListJson)!;
+            }
+
+            CollectionPublishingPercentage = new Percent(0.05);
+
+            // The game's version, if the game is installed.
+            string? gameVersion = null;
+            try
+            {
+                CollectionPublishingStage = "Detecting game version...";
+                var gameLocator = _serviceProvider.GetRequiredService<IGameLocator>();
+                if (gameLocator.TryFindLocation(modList.GameType, out var gamePath))
+                {
+                    var mainFile = modList.GameType.MetaData().MainExecutable!.Value.RelativeTo(gamePath);
+                    if (mainFile.FileExists())
+                    {
+                        var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(mainFile.ToString());
+                        _logger.LogInformation("Game version info: FileVersion={fv} ProductVersion={pv}",
+                            versionInfo.FileVersion, versionInfo.ProductVersion);
+
+                        var pv = versionInfo.ProductVersion?.Trim();
+                        var fv = versionInfo.FileVersion?.Trim();
+
+                        static bool IsMeaningful(string? v) =>
+                            !string.IsNullOrWhiteSpace(v) &&
+                            v != "0.0.0.0" &&
+                            v != "1.0.0.0" &&
+                            v != "0, 0, 0, 0" &&
+                            v != "1, 0, 0, 0" &&
+                            !v.StartsWith("0.0.0") &&
+                            !v.StartsWith("1.0.0.0");
+
+                        // ProductVersion first, FileVersion only if ProductVersion says nothing.
+                        gameVersion = IsMeaningful(pv) ? pv : IsMeaningful(fv) ? fv : null;
+
+                        _logger.LogInformation("Detected game version: {version} for {game}", gameVersion ?? "none", modList.GameType);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not detect game version, collection will be created without game version requirement");
+            }
+
+            CollectionPublishingPercentage = new Percent(0.1);
+            CollectionPublishingStage = "Converting to collection format...";
+            _logger.LogInformation("Building Vortex collection from {count} archives...", modList.Archives?.Count() ?? 0);
+
+            var vortexJson = WabbajackToVortexCollection.Serialize(modList, gameVersion);
+            var collectionJsonPath = Settings.OutputFile.WithExtension(new Extension(".collection.json"));
+            await collectionJsonPath.WriteAllTextAsync(vortexJson);
+
+            var uploader = new NexusCollectionUploader(_logger, _nexusTokenProvider, _httpClient, _dtos.Options);
+
+            uploader.OnProgress += (stage, progress) =>
+            {
+                RxApp.MainThreadScheduler.Schedule(() =>
+                {
+                    switch (stage)
+                    {
+                        case "requesting_url":
+                            CollectionPublishingStage = "Requesting upload URL...";
+                            CollectionPublishingPercentage = new Percent(0.15);
+                            break;
+                        case "upload":
+                            // Upload progress maps onto 0.15 to 0.70 of the whole.
+                            var uploadPercent = 0.15 + progress * 0.55;
+                            CollectionPublishingStage = $"Uploading file ({progress:P0})...";
+                            CollectionPublishingPercentage = new Percent(uploadPercent);
+                            BusyStatusText = $"Uploading to Nexus Mods ({progress:P0})...";
+                            break;
+                        case "finalising_upload":
+                            CollectionPublishingStage = "Finalising upload...";
+                            CollectionPublishingPercentage = new Percent(0.72);
+                            BusyStatusText = "Finalising upload...";
+                            break;
+                        case "building_manifest":
+                            CollectionPublishingStage = "Building manifest...";
+                            CollectionPublishingPercentage = new Percent(0.76);
+                            BusyStatusText = "Building collection manifest...";
+                            break;
+                        case "validating_mods":
+                            CollectionPublishingStage = "Validating mod references...";
+                            CollectionPublishingPercentage = new Percent(0.80);
+                            BusyStatusText = "Checking mod availability on Nexus Mods...";
+                            break;
+                        case "sending_manifest":
+                            CollectionPublishingStage = "Sending to Nexus Mods...";
+                            CollectionPublishingPercentage = new Percent(0.90);
+                            BusyStatusText = "Sending manifest to Nexus Mods (this may take several minutes)...";
+                            break;
+                        case "complete":
+                            CollectionPublishingStage = "Complete!";
+                            CollectionPublishingPercentage = Percent.One;
+                            break;
+                    }
+                });
+            };
+
+            var listDomain = WabbajackToVortexCollection.GetDomain(modList.GameType.ToString());
+            // The mapping stored in the author's modlists.json.
+            string? existingCollectionId = null;
+            string? existingSlug = null;
+            string? existingDomain = null;
+
+            try
+            {
+                var mapping = await _wjClient.GetNexusCollectionMapping(Settings.MachineUrl, CancellationToken.None);
+                if (mapping != null && !string.IsNullOrWhiteSpace(mapping.CollectionId))
+                {
+                    existingCollectionId = mapping.CollectionId;
+                    existingSlug = mapping.Slug;
+                    existingDomain = mapping.DomainName;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to read Nexus collection mapping from modlists.json; will create a new collection instead.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(existingCollectionId) &&
+                !string.IsNullOrWhiteSpace(existingDomain) &&
+                !existingDomain.Equals(listDomain, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(
+                    "Stored Nexus mapping domain '{stored}' does not match current list domain '{current}'. Ignoring stored collectionId={id}.",
+                    existingDomain, listDomain, existingCollectionId);
+                existingCollectionId = null;
+                existingSlug = null;
+                existingDomain = null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(existingCollectionId))
+                _logger.LogInformation("Using stored Nexus collection mapping: collectionId={id} slug={slug} domain={domain}",
+                    existingCollectionId, existingSlug, existingDomain);
+            else
+                _logger.LogInformation("No stored Nexus collection mapping found; creating new collection.");
+
+            var expectedNewRevisionNumber = (ExistingCollectionRevisionNumber ?? 0) + 1;
+
+            var result = await uploader.UploadCollection(
+                modList,
+                collectionJsonPath,
+                Settings.OutputFile,
+                existingCollectionId: existingCollectionId,
+                existingSlug: existingSlug,
+                gameVersion: gameVersion,
+                confirmFallbackToCreate: null,
+                token: CancellationToken.None);
+
+            if (result != null && result.Success)
+            {
+                PublishCollectionLastResult = PublishCollectionResult.Success;
+
+                // Put the mapping back into the author's modlists.json.
+                try
+                {
+                    var slugToPersist = !string.IsNullOrWhiteSpace(result.Slug) ? result.Slug : existingSlug ?? "";
+
+                    await _wjClient.SetNexusCollectionMapping(
+                        Settings.MachineUrl,
+                        result.CollectionId,
+                        slugToPersist,
+                        listDomain,
+                        expectedNewRevisionNumber,
+                        CancellationToken.None);
+
+                    _logger.LogInformation("Persisted Nexus mapping to modlists.json: collectionId={id} slug={slug} domain={domain} rev={rev}",
+                        result.CollectionId, slugToPersist, listDomain, result.RevisionNumber);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Collection created/updated, but failed to persist Nexus mapping into modlists.json");
+                }
+
+                if (!string.IsNullOrWhiteSpace(result.Slug))
+                {
+                    try
+                    {
+                        var revisionForUrl = expectedNewRevisionNumber > 0 ? expectedNewRevisionNumber : result.RevisionNumber;
+                        UIUtils.OpenWebsite($"https://www.nexusmods.com/games/{listDomain}/collections/{result.Slug}/revisions/{revisionForUrl}");
+                    }
+                    catch (Exception openEx)
+                    {
+                        _logger.LogWarning(openEx, "Failed to open browser for uploaded collection");
+                    }
+                }
+            }
+            else
+            {
+                PublishCollectionLastResult = PublishCollectionResult.Failed;
+                _logger.LogWarning("Collection upload failed.");
+            }
+        }
+        catch (Exception ex)
+        {
+            PublishCollectionLastResult = PublishCollectionResult.Failed;
+            _logger.LogWarning(ex, "Failed to upload collection to Nexus Mods, this is optional and won't affect your Wabbajack modlist");
+        }
+        finally
+        {
+            IsPublishingCollection = false;
+            CollectionPublishingPercentage = Percent.One;
+            BusyStatusText = "";
+        }
+    }
+
+    private async Task CheckExistingCollectionStatus()
+    {
+        try
+        {
+            IsCheckingCollectionStatus = true;
+            ExistingCollectionRevisionNumber = null;
+            ExistingCollectionSlug = null;
+            ExistingCollectionIsDraft = false;
+
+            _logger.LogInformation("CheckExistingCollectionStatus: MachineUrl='{url}'", Settings.MachineUrl);
+            var mapping = await _wjClient.GetNexusCollectionMapping(Settings.MachineUrl, CancellationToken.None);
+
+            _logger.LogInformation("CheckExistingCollectionStatus: mapping={m}",
+                mapping == null ? "null" : $"id={mapping.CollectionId} slug={mapping.Slug} domain={mapping.DomainName}");
+
+            if (mapping == null || string.IsNullOrWhiteSpace(mapping.CollectionId) || string.IsNullOrWhiteSpace(mapping.Slug))
+            {
+                _logger.LogInformation("No existing Nexus collection mapping found");
+                return;
+            }
+
+            ExistingCollectionSlug = mapping.Slug;
+
+            var listDomain = WabbajackToVortexCollection.GetDomain(Settings.Game.ToString());
+
+            // The latest *published* revision; null means the collection is still a draft.
+            var latestRevisionFromApi = await GetLatestCollectionRevision(
+                mapping.Slug,
+                mapping.DomainName ?? listDomain,
+                CancellationToken.None);
+
+            var isDraft = !latestRevisionFromApi.HasValue;
+            var latestRevision = latestRevisionFromApi;
+
+            if (!latestRevision.HasValue && mapping.LastRevisionNumber.HasValue)
+            {
+                latestRevision = mapping.LastRevisionNumber;
+                _logger.LogInformation("Using stored revision number {rev} for slug={slug} (collection is unpublished draft)",
+                    latestRevision.Value, mapping.Slug);
+            }
+
+            if (latestRevision.HasValue)
+            {
+                ExistingCollectionRevisionNumber = latestRevision.Value;
+                ExistingCollectionIsDraft = isDraft;
+                _logger.LogInformation("Found existing collection '{slug}' at revision {rev} (isDraft={draft})",
+                    mapping.Slug, latestRevision.Value, isDraft);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to check existing collection status");
+            ExistingCollectionRevisionNumber = null;
+            ExistingCollectionSlug = null;
+        }
+        finally
+        {
+            IsCheckingCollectionStatus = false;
+        }
+    }
+
+    private async Task<int?> GetLatestCollectionRevision(string slug, string domainName, CancellationToken token)
+    {
+        if (!_nexusTokenProvider.HaveToken())
+            return null;
+
+        var authState = await _nexusTokenProvider.Get();
+        if (authState?.OAuth?.IsExpired ?? true)
+            return null;
+
+        var query = @"
+            query collectionRevision($slug: String!, $domainName: String!) {
+              collectionRevision(slug: $slug, domainName: $domainName) {
+                revisionNumber
+              }
+            }";
+
+        var variables = new { slug, domainName };
+        var graphqlRequest = new { query, variables };
+
+        using var content = new StringContent(
+            System.Text.Json.JsonSerializer.Serialize(graphqlRequest, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            }),
+            System.Text.Encoding.UTF8,
+            "application/json");
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.nexusmods.com/v2/graphql")
+        {
+            Content = content
+        };
+
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authState.OAuth.AccessToken);
+        request.Headers.TryAddWithoutValidation("Application-Name", "Wabbajack");
+        request.Headers.TryAddWithoutValidation("Application-Version", "0.0.0");
+        request.Headers.TryAddWithoutValidation("Protocol-Version", "1.5.0");
+
+        try
+        {
+            var response = await _httpClient.SendAsync(request, token);
+            var responseBody = await response.Content.ReadAsStringAsync(token);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to fetch collection revision: {status}", response.StatusCode);
+                return null;
+            }
+
+            var root = System.Text.Json.Nodes.JsonNode.Parse(responseBody) as System.Text.Json.Nodes.JsonObject;
+            return root?["data"]?["collectionRevision"]?["revisionNumber"]?.GetValue<int>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error fetching collection revision from Nexus");
+            return null;
+        }
+    }
+
+    /// <summary>
+    ///     Compiling reads Nexus metadata, so a missing Nexus login is asked for first, and the compile waits
+    ///     until the downloader can be prepared.
+    /// </summary>
+    private async Task EnsureLoggedIntoNexus()
+    {
+        var nexusDownloadState = new Nexus();
+        foreach (var downloader in await _downloadDispatcher.AllDownloaders([nexusDownloadState]))
+        {
+            _logger.LogInformation("Preparing {Name}", downloader.GetType().Name);
+            if (await downloader.Prepare())
+                continue;
+
+            var manager = _logins.FirstOrDefault(l => l.LoginFor() == downloader.GetType());
+            if (manager == null)
+            {
+                _logger.LogError("Cannot install, could not prepare {Name} for downloading", downloader.GetType().Name);
+                throw new Exception($"No way to prepare {downloader}");
+            }
+
+            RxApp.MainThreadScheduler.Schedule(() => manager.TriggerLogin.Execute(null));
+
+            while (true)
+            {
+                if (await downloader.Prepare())
+                    break;
+                await Task.Delay(1000);
+            }
+        }
+    }
+
+    private async Task CancelCompilation()
+    {
+        if (State != CompilerState.Compiling) return;
+        Cancelling = true;
+        _logger.LogInformation("Cancel pressed, cancelling compilation...");
+        try
+        {
+            await CancellationTokenSource.CancelAsync();
+        }
+        catch (ObjectDisposedException ex)
+        {
+            _logger.LogError("Could not cancel compilation, cancellation token was disposed! Exception: {ex}", ex.ToString());
+        }
+    }
+
+    private async Task<bool> RunPreflightChecks(CancellationToken token)
+    {
+        IReadOnlyList<string> lists;
+        try
+        {
+            lists = await _wjClient.GetMyModlists(token);
+            _logger.LogInformation("Preflight: Retrieved {Count} modlists from server", lists.Count);
+            foreach (var list in lists)
+                _logger.LogInformation("Preflight: Found list: '{List}'", list);
+            _logger.LogInformation("Preflight: Looking for MachineUrl: '{MachineUrl}'", Settings.MachineUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Publish failed; failed to get modlists! Exception: {ex}", ex.ToString());
+            return false;
+        }
+
+        var found = lists.Any(x => x.Equals(Settings.MachineUrl, StringComparison.InvariantCultureIgnoreCase));
+        _logger.LogInformation("Preflight: Match found: {Found}", found);
+
+        if (!found)
+        {
+            _logger.LogError("Preflight Check failed, list {MachineUrl} not found in any repository", Settings.MachineUrl);
+            return false;
+        }
+
+        if (!System.Version.TryParse(Settings.Version, out _))
+        {
+            _logger.LogError("Preflight Check failed, version {Version} was not valid", Settings.Version);
+            return false;
+        }
+
+        return true;
+    }
+}

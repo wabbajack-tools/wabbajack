@@ -86,6 +86,12 @@ public static class Program
         services.AddTransient<HomeVM>();
         services.AddTransient<SettingsVM>();
         services.AddTransient<CompilerHomeVM>();
+        // Transient, as in WPF; MainWindowVM holds the one CompilerMainVM, which holds its own details and file tree.
+        services.AddTransient<CompilerDetailsVM>();
+        services.AddTransient<CompilerFileManagerVM>();
+        services.AddTransient<CompilerMainVM>();
+        services.AddTransient<InfoVM>();
+        services.AddTransient<FileUploadVM>();
         services.AddTransient<ModListGalleryVM>();
         services.AddSingleton<ModListDetailsVM>();
         services.AddSingleton<GameIconCache>();

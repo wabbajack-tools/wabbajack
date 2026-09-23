@@ -90,8 +90,7 @@ public partial class CompilerHomeVM : ViewModel
 
     [Reactive] public partial ObservableCollection<CompiledModListTileVM> CompiledModLists { get; set; } = new();
 
-    // The compiler screen is not ported yet: this goes to its placeholder, and the settings are sent for
-    // whoever listens once it is.
+    // As in WPF: the screen first, then the settings, which the compiler view models are already listening for.
     private void OpenCompiler(CompilerSettings settings)
     {
         _navigator.NavigateTo(ScreenType.CompilerMain);

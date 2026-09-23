@@ -19,3 +19,20 @@ public class LoadLastLoadedModlist
 {
     public static void Send() => MessageBus.Current.SendMessage(new LoadLastLoadedModlist());
 }
+
+/// <summary>
+///     Shows the info screen with a message and where its Back button returns to. Nothing in the WPF app sends
+///     this, so the screen is only reachable through it.
+/// </summary>
+public class LoadInfoScreen(string info, Wabbajack.App.Avalonia.ViewModels.ViewModel navigateBackTarget)
+{
+    public string Info { get; } = info;
+    public Wabbajack.App.Avalonia.ViewModels.ViewModel NavigateBackTarget { get; } = navigateBackTarget;
+
+    public static void Send(Wabbajack.App.Avalonia.Services.Navigator navigator, string info,
+        Wabbajack.App.Avalonia.ViewModels.ViewModel navigateBackTarget)
+    {
+        navigator.NavigateTo(Wabbajack.App.Avalonia.Services.ScreenType.Info);
+        MessageBus.Current.SendMessage(new LoadInfoScreen(info, navigateBackTarget));
+    }
+}

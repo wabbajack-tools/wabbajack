@@ -23,6 +23,20 @@ public static class NativeMessageBox
         MessageBoxW(owner, message, title, MbOk | MbIconError);
     }
 
+    /// <summary>MessageBox.Show with YesNo and the information icon; true when the answer is Yes.</summary>
+    public static bool AskYesNo(string message, string title)
+    {
+        if (!OperatingSystem.IsWindows()) return false;
+
+        var owner = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+            ?.MainWindow?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+        return MessageBoxW(owner, message, title, MbYesNo | MbIconInformation) == IdYes;
+    }
+
+    private const uint MbYesNo = 0x4;
+    private const uint MbIconInformation = 0x40;
+    private const int IdYes = 6;
+
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
 }

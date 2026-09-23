@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.App.Avalonia.LoginManagers;
+using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.Services;
 using Wabbajack.App.Avalonia.Util;
 using Wabbajack.DTOs.Logins;
@@ -70,8 +71,7 @@ public partial class SettingsVM : ViewModel
     /// <summary>The Wabbajack CDN card is only for list authors, who are the ones holding an author key.</summary>
     [Reactive] public partial bool IsAuthor { get; private set; }
 
-    // The file upload pane has not been ported yet; the button is in place and does nothing until it is.
-    private void OpenFileUpload() => _logger.LogInformation("The file upload pane has not been ported yet");
+    private static void OpenFileUpload() => ShowFloatingWindow.Send(FloatingScreenType.FileUpload);
 
     /// <summary>The CLI ships in a "cli" folder beside the app when installed, and beside it in a build.</summary>
     private static string CliFolder()

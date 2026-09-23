@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -33,7 +34,9 @@ public partial class MainWindowVM : ViewModel
     private SettingsVM? _settings;
     private ModListGalleryVM? _gallery;
     private CompilerHomeVM? _compilerHome;
-    private readonly PlaceholderVM _compiler = new("Compiler");
+    private readonly CompilerMainVM _compiler;
+    private readonly InfoVM _info;
+    private readonly FileUploadVM _fileUpload;
 
     private readonly ModListDetailsVM _modListDetails;
     private readonly InstallationVM _installer;
@@ -49,6 +52,11 @@ public partial class MainWindowVM : ViewModel
         _modListDetails = modListDetails;
         // Also up front, as in WPF: it listens for the modlist to load, which arrives before the screen is shown.
         _installer = services.GetRequiredService<InstallationVM>();
+        // The compiler and the info screen listen for what to show before they are navigated to; the upload
+        // pane reads the author's token as it is made, so it is ready when the Settings button opens it.
+        _compiler = services.GetRequiredService<CompilerMainVM>();
+        _info = services.GetRequiredService<InfoVM>();
+        _fileUpload = services.GetRequiredService<FileUploadVM>();
 
         NavigateCommand = ReactiveCommand.Create<ScreenType>(NavigateTo);
         GetHelpCommand = ReactiveCommand.Create(() =>
@@ -63,6 +71,11 @@ public partial class MainWindowVM : ViewModel
         navigator.Requests
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(NavigateTo)
+            .DisposeWith(CompositeDisposable);
+
+        navigator.PaneRequests
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(pane => ActivePane = pane)
             .DisposeWith(CompositeDisposable);
 
         MessageBus.Current.Listen<ShowFloatingWindow>()
@@ -133,31 +146,9 @@ public partial class MainWindowVM : ViewModel
             _logger.LogInformation("General information:");
             _logger.LogInformation("    Windows version: {Version}", Environment.OSVersion.VersionString);
 
-            var p = systemParams.Create();
-
-            _logger.LogInformation("System information: ");
-            _logger.LogInformation("    GPU: {GpuName} ({VRAM})", p.GpuName, p.VideoMemorySize.ToFileSizeString());
-            _logger.LogInformation("    RAM: {MemorySize}", p.SystemMemorySize.ToFileSizeString());
-            _logger.LogInformation("    Primary display resolution: {ScreenWidth}x{ScreenHeight}", p.ScreenWidth, p.ScreenHeight);
-            _logger.LogInformation("    Pagefile: {PageSize}", p.SystemPageSize.ToFileSizeString());
-            _logger.LogInformation("    VideoMemorySizeMb (ENB): {EnbLEVRAMSize}", p.EnbLEVRAMSize.ToString());
-
-            try
-            {
-                _logger.LogInformation("System partitions: ");
-                var partitions = DriveHelper.Partitions;
-                foreach (var drive in DriveHelper.Drives)
-                {
-                    if (!drive.IsReady || drive.DriveType != DriveType.Fixed) continue;
-                    var driveType = partitions[drive.RootDirectory.Name[0]].MediaType.ToString();
-                    _logger.LogInformation("    {RootDir} ({DriveType}): {FreeSpace} free", drive.RootDirectory.ToString(),
-                        driveType, drive.AvailableFreeSpace.ToFileSizeString());
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning("Failed to retrieve drive information: {ex}", ex.ToString());
-            }
+            // The machine and drive queries are Windows APIs, as they were in the WPF app.
+            if (OperatingSystem.IsWindows())
+                LogWindowsSystem(systemParams);
 
             Task.Run(async () =>
             {
@@ -172,9 +163,6 @@ public partial class MainWindowVM : ViewModel
                 }
             });
 
-            if (p.SystemPageSize == 0)
-                _logger.LogWarning("Pagefile is disabled! This will cause issues such as crashing with Wabbajack and other applications!");
-
             Task.Run(() => wjClient.SendMetric("started_wabbajack", fileVersion)).FireAndForget();
             Task.Run(() => wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha)).FireAndForget();
         }
@@ -182,6 +170,39 @@ public partial class MainWindowVM : ViewModel
         {
             _logger.LogError(ex, "During App configuration");
         }
+    }
+
+    [SupportedOSPlatform("windows")]
+    private void LogWindowsSystem(SystemParametersConstructor systemParams)
+    {
+        var p = systemParams.Create();
+
+        _logger.LogInformation("System information: ");
+        _logger.LogInformation("    GPU: {GpuName} ({VRAM})", p.GpuName, p.VideoMemorySize.ToFileSizeString());
+        _logger.LogInformation("    RAM: {MemorySize}", p.SystemMemorySize.ToFileSizeString());
+        _logger.LogInformation("    Primary display resolution: {ScreenWidth}x{ScreenHeight}", p.ScreenWidth, p.ScreenHeight);
+        _logger.LogInformation("    Pagefile: {PageSize}", p.SystemPageSize.ToFileSizeString());
+        _logger.LogInformation("    VideoMemorySizeMb (ENB): {EnbLEVRAMSize}", p.EnbLEVRAMSize.ToString());
+
+        try
+        {
+            _logger.LogInformation("System partitions: ");
+            var partitions = DriveHelper.Partitions;
+            foreach (var drive in DriveHelper.Drives)
+            {
+                if (!drive.IsReady || drive.DriveType != DriveType.Fixed) continue;
+                var driveType = partitions[drive.RootDirectory.Name[0]].MediaType.ToString();
+                _logger.LogInformation("    {RootDir} ({DriveType}): {FreeSpace} free", drive.RootDirectory.ToString(),
+                    driveType, drive.AvailableFreeSpace.ToFileSizeString());
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Failed to retrieve drive information: {ex}", ex.ToString());
+        }
+
+        if (p.SystemPageSize == 0)
+            _logger.LogWarning("Pagefile is disabled! This will cause issues such as crashing with Wabbajack and other applications!");
     }
 
     public string WindowTitle => "Wabbajack";
@@ -230,7 +251,7 @@ public partial class MainWindowVM : ViewModel
         {
             FloatingScreenType.None => null,
             FloatingScreenType.ModListDetails => _modListDetails,
-            // The file upload pane is not ported yet.
+            FloatingScreenType.FileUpload => _fileUpload,
             _ => ActiveFloatingPane
         };
     }
@@ -279,8 +300,8 @@ public partial class MainWindowVM : ViewModel
             ScreenType.CompilerMain => _compiler,
             ScreenType.Settings => _settings ??= _services.GetRequiredService<SettingsVM>(),
             ScreenType.Installer => _installer,
-            // Not ported yet.
-            _ => new PlaceholderVM(screen.ToString())
+            ScreenType.Info => _info,
+            _ => ActivePane
         };
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Reactive.Subjects;
+using Wabbajack.App.Avalonia.ViewModels;
 
 namespace Wabbajack.App.Avalonia.Services;
 
@@ -23,10 +24,16 @@ public enum ScreenType
 public class Navigator
 {
     private readonly Subject<ScreenType> _requests = new();
+    private readonly Subject<ViewModel> _paneRequests = new();
 
     public IObservable<ScreenType> Requests => _requests;
 
+    /// <summary>The WPF app's NavigateTo message: show this pane, leaving the nav rail's highlight where it is.</summary>
+    public IObservable<ViewModel> PaneRequests => _paneRequests;
+
     public void NavigateTo(ScreenType screen) => _requests.OnNext(screen);
+
+    public void NavigateTo(ViewModel pane) => _paneRequests.OnNext(pane);
 
     /// <summary>
     /// The nav rail item a screen belongs to, as NavigationView's button map had it: the installer lights
