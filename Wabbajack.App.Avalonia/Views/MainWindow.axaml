@@ -1,10 +1,12 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels"
         xmlns:v="using:Wabbajack.App.Avalonia.Views"
         xmlns:settings="using:Wabbajack.App.Avalonia.ViewModels.Settings"
         xmlns:sv="using:Wabbajack.App.Avalonia.Views.Settings"
         xmlns:compiler="using:Wabbajack.App.Avalonia.ViewModels.Compiler"
+        xmlns:gallery="using:Wabbajack.App.Avalonia.ViewModels.Gallery"
+        xmlns:gv="using:Wabbajack.App.Avalonia.Views.Gallery"
         xmlns:cv="using:Wabbajack.App.Avalonia.Views.Compiler"
         xmlns:svc="using:Wabbajack.App.Avalonia.Services"
         xmlns:conv="using:Wabbajack.App.Avalonia.Converters"
@@ -123,6 +125,9 @@
                                 </DataTemplate>
                                 <DataTemplate DataType="vm:PlaceholderVM">
                                     <v:PlaceholderView />
+                                </DataTemplate>
+                                <DataTemplate DataType="gallery:ModListGalleryVM">
+                                    <gv:ModListGalleryView />
                                 </DataTemplate>
                                 <DataTemplate DataType="compiler:CompilerHomeVM">
                                     <cv:CompilerHomeView />

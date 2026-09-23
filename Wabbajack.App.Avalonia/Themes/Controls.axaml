@@ -36,6 +36,14 @@
     </Style>
 
     <!--
+        Fluent clips a ContentControl and every UserControl to its bounds; WPF's clipped neither. The gallery
+        relies on that: its tile list has a -16 bottom margin so it runs into the pane's padding.
+    -->
+    <Style Selector="ContentControl, :is(UserControl)">
+        <Setter Property="ClipToBounds" Value="False" />
+    </Style>
+
+    <!--
         WPF's LineHeight="20" on 13px text. WPF puts a line's extra height below the text; Avalonia's
         LineHeight centres it, which draws the text 2px lower. LineSpacing adds the extra below instead:
         a 13px line is 16px (set above), and 16 + 4 is WPF's 20.
@@ -363,6 +371,10 @@
         <Setter Property="CornerRadius" Value="4" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    </Style>
+    <!-- WPF's template put the watermark 4px further in than the text box's padding. -->
+    <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
+        <Setter Property="Margin" Value="4,0,0,0" />
     </Style>
 
     <!--

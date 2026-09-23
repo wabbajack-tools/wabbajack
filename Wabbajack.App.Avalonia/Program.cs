@@ -12,6 +12,7 @@ using Wabbajack.App.Avalonia.Services;
 using Wabbajack.App.Avalonia.Util;
 using Wabbajack.App.Avalonia.ViewModels;
 using Wabbajack.App.Avalonia.ViewModels.Compiler;
+using Wabbajack.App.Avalonia.ViewModels.Gallery;
 using Wabbajack.App.Avalonia.ViewModels.Settings;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Interventions;
@@ -83,6 +84,9 @@ public static class Program
         services.AddTransient<HomeVM>();
         services.AddTransient<SettingsVM>();
         services.AddTransient<CompilerHomeVM>();
+        services.AddTransient<ModListGalleryVM>();
+        services.AddSingleton<GameIconCache>();
+        services.AddSingleton<NexusCollectionDownloader>();
         services.AddSingleton<FilePicker>();
         services.AddTransient<AboutVM>();
         // Transient: each one drives a single login attempt and is thrown away with it.

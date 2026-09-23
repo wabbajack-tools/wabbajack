@@ -70,6 +70,25 @@ public static class UIUtils
         return null;
     }
 
+    /// <summary>Bytes in the largest unit that keeps the number at least one, to two places or rounded up.</summary>
+    public static string FormatBytes(long bytes, bool round = false)
+    {
+        string[] suffix = { "B", "KB", "MB", "GB", "TB" };
+        int i;
+        double dblSByte = bytes;
+        for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+            dblSByte = bytes / 1024.0;
+
+        return string.Format("{0:0.##} {1}", round ? Math.Ceiling(dblSByte) : dblSByte, suffix[i]);
+    }
+
+    /// <summary>The gallery's image for a modlist, from the mod-lists repository's reports.</summary>
+    public static string GetLargeImageUri(Wabbajack.DTOs.ModlistMetadata metadata)
+    {
+        var fileName = metadata.Links.MachineURL + "_large.webp";
+        return $"https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/reports/{metadata.RepositoryName}/{fileName}";
+    }
+
     public static void OpenFolder(AbsolutePath path)
     {
         var folderPath = path.ToString();

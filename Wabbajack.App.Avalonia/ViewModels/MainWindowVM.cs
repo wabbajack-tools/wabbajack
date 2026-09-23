@@ -11,6 +11,7 @@ using Wabbajack.App.Avalonia.Interfaces;
 using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.Services;
 using Wabbajack.App.Avalonia.ViewModels.Compiler;
+using Wabbajack.App.Avalonia.ViewModels.Gallery;
 using Wabbajack.App.Avalonia.ViewModels.Settings;
 
 namespace Wabbajack.App.Avalonia.ViewModels;
@@ -20,7 +21,7 @@ public partial class MainWindowVM : ViewModel
     private readonly IServiceProvider _services;
     private HomeVM? _home;
     private SettingsVM? _settings;
-    private readonly PlaceholderVM _gallery = new("Browse lists");
+    private ModListGalleryVM? _gallery;
     private CompilerHomeVM? _compilerHome;
     private readonly PlaceholderVM _compiler = new("Compiler");
 
@@ -115,7 +116,7 @@ public partial class MainWindowVM : ViewModel
         ActivePane = screen switch
         {
             ScreenType.Home => _home ??= _services.GetRequiredService<HomeVM>(),
-            ScreenType.ModListGallery => _gallery,
+            ScreenType.ModListGallery => _gallery ??= _services.GetRequiredService<ModListGalleryVM>(),
             ScreenType.CompilerHome => _compilerHome ??= _services.GetRequiredService<CompilerHomeVM>(),
             ScreenType.CompilerMain => _compiler,
             ScreenType.Settings => _settings ??= _services.GetRequiredService<SettingsVM>(),

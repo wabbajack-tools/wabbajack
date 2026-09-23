@@ -1,0 +1,380 @@
+<!--
+    The WPF app's restyle of Sdl's MultiSelectComboBox (Styles.xaml, the MultiSelectComboBox.* styles and the
+    implicit sdl:MultiSelectComboBox style), for Controls/MultiSelectComboBox.cs. Each block names the WPF
+    style it stands for.
+
+    The closed control is a 36px box with a 4px radius: the selected items wrap along the left in the control's
+    Background, and a 32px button on the right shows a pencil until the control is in edit mode and a chevron
+    after. The "chips" are the item's text and a 12px cross; the restyle gave their 8px-radius border no fill
+    and no border, so nothing is drawn behind them. The cross only shows in edit mode.
+
+    Parts that are Button or ListBox get their own template rather than Fluent's, and their presenters are not
+    called PART_ContentPresenter, so Fluent's hover and pressed rules (which target that name) stay out.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ic="using:FluentIcons.Avalonia"
+        xmlns:c="using:Wabbajack.App.Avalonia.Controls">
+
+    <!--
+        The implicit sdl:MultiSelectComboBox style and its template. The outer border's 4px radius clips
+        everything inside it, the button included. SelectedItemsPanelBackground was bound to Background, so
+        the items side takes Background; the button has its own brush.
+    -->
+    <Style Selector="c|MultiSelectComboBox">
+        <Setter Property="Height" Value="36" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="IsEditable" Value="False" />
+        <!-- A WPF Control takes focus from Tab; this one did, and showed the system focus rectangle. -->
+        <Setter Property="Focusable" Value="True" />
+        <Setter Property="FocusAdorner">
+            <FocusAdornerTemplate>
+                <!-- SystemParameters.FocusVisualStyleKey: a dotted 1px rectangle in ControlText (black), 2px in. -->
+                <Rectangle Margin="2" Stroke="Black" StrokeThickness="1" StrokeDashArray="1,2" />
+            </FocusAdornerTemplate>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="PART_Root" CornerRadius="4" ClipToBounds="True">
+                    <Grid ColumnDefinitions="*,32">
+
+                        <!-- MultiSelectComboBox.SelectedItemsPanel.WrapableItemsSource.Style: a wrap panel in a
+                             scroll viewer that scrolls vertically without a bar. -->
+                        <Border Name="PART_SelectedItemsHost" Grid.Column="0" CornerRadius="4"
+                                Background="{TemplateBinding Background}">
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl Name="PART_SelectedItemsPanel" Background="{TemplateBinding Background}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.DataTemplates>
+                                        <!-- MultiSelectComboBox.SelectedItems.Searchable.ItemTemplate: the filter box. -->
+                                        <DataTemplate DataType="c:MultiSelectComboBoxFilterSlot">
+                                            <TextBox Name="PART_FilterTextBox" Classes="msFilter"
+                                                     Text="{Binding $parent[c:MultiSelectComboBox].FilterText, Mode=TwoWay}"
+                                                     IsEnabled="{Binding $parent[c:MultiSelectComboBox].IsEditMode}"
+                                                     IsVisible="{Binding $parent[c:MultiSelectComboBox].IsFilterBoxInLayout}"
+                                                     Classes.hidden="{Binding !$parent[c:MultiSelectComboBox].IsEditMode}" />
+                                        </DataTemplate>
+                                        <!-- MultiSelectComboBox.SelectedItems.ItemContainer.Style with
+                                             MultiSelectComboBox.SelectedItems.ItemTemplate: a chip. -->
+                                        <DataTemplate DataType="c:MultiSelectComboBoxItem">
+                                            <Border Classes="msChip">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Classes="msText" Text="{Binding Text}" />
+                                                    <Button Name="PART_RemoveItemButton" Classes="msRemove" Margin="0,0,8,0"
+                                                            ToolTip.Tip="{Binding $parent[c:MultiSelectComboBox].RemoveToolTipString}"
+                                                            IsVisible="{Binding $parent[c:MultiSelectComboBox].CanRemoveItems}">
+                                                        <Path Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                                              Fill="{StaticResource MultiSelectComboBox.SelectedItem.Button.Light.Foreground}"
+                                                              Data="F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z " />
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.DataTemplates>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+
+                        <!-- PART_MultiSelectComboBox_Dropdown_Button: the pencil
+                             (MultiSelectComboBox.SelectedItemsPanel.Readonly.Glyph.Template), or the chevron in edit
+                             mode (MultiSelectComboBox.SelectedItemsPanel.EditMode.Glyph.Template). -->
+                        <Button Name="PART_DropDownButton" Grid.Column="1" Classes="msDropDown">
+                            <Panel>
+                                <Path Name="PencilGlyph" Width="13" Stretch="Uniform"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Fill="{StaticResource MultiSelectComboBox.SelectedItem.Button.Foreground}"
+                                      Data="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                                <ic:SymbolIcon Name="ChevronGlyph" Symbol="ChevronDown" FontSize="13" IconVariant="Filled"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Foreground="{StaticResource ForegroundBrush}" />
+                            </Panel>
+                        </Button>
+
+                        <!-- PART_MultiSelectComboBox_Dropdown: directly below, exactly as wide as the control
+                             (MinWidth and MaxWidth were both the control's width), at most MaxDropDownHeight tall. -->
+                        <Popup Name="PART_Popup" Grid.ColumnSpan="2"
+                               IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"
+                               PlacementTarget="PART_Root" Placement="BottomEdgeAlignedLeft"
+                               IsLightDismissEnabled="False" WindowManagerAddShadowHint="False">
+                            <Panel Width="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                                   MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                <ListBox Name="PART_DropDownList" Classes="msDropDown">
+                                    <ListBox.ItemTemplate>
+                                        <!-- MultiSelectComboBox.Dropdown.ListBox.ItemTemplate: a check (when
+                                             checked) and the item's text. -->
+                                        <DataTemplate DataType="c:MultiSelectComboBoxItem">
+                                            <Border Classes="msRow" Classes.checked="{Binding IsChecked}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <ic:SymbolIcon Symbol="Checkmark" FontSize="13" Width="13" Height="13"
+                                                                   Margin="4,0,2,0" VerticalAlignment="Center"
+                                                                   Foreground="{StaticResource PrimaryBrush}"
+                                                                   IsVisible="{Binding IsChecked}" />
+                                                    <TextBlock Classes="msText" Text="{Binding Text}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <!-- The ListBox style's Items.Count = 0 template. -->
+                                <Border Name="PART_NoResults" Padding="8" BorderThickness="0" CornerRadius="0,0,4,4"
+                                        Background="{StaticResource BackgroundBrush}" IsVisible="False">
+                                    <!-- It inherited the ListBox's Foreground, which only the system ListBox
+                                         style set: SystemColors.ControlTextBrush, black. -->
+                                    <TextBlock Text="No results found." Foreground="Black" />
+                                </Border>
+                            </Panel>
+                        </Popup>
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="c|MultiSelectComboBox /template/ ic|SymbolIcon#ChevronGlyph">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="c|MultiSelectComboBox:editmode /template/ ic|SymbolIcon#ChevronGlyph">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="c|MultiSelectComboBox:editmode /template/ Path#PencilGlyph">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector="c|MultiSelectComboBox:noresults /template/ ListBox#PART_DropDownList">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="c|MultiSelectComboBox:noresults /template/ Border#PART_NoResults">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!--
+        MultiSelectComboBox.DefaultTextBlock.Style: 13px, one line, ellipsis, 4,8 padding. The disabled colour
+        came from a disabled ancestor, and the primary colour from a checked row; the checked rule was the
+        later trigger, so it wins.
+    -->
+    <Style Selector="TextBlock.msText">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="Padding" Value="4,8,4,8" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource MultiSelectComboBox.Text.Foreground}" />
+        <Setter Property="TextAlignment" Value="Left" />
+    </Style>
+    <Style Selector="TextBlock.msText:disabled">
+        <Setter Property="Foreground" Value="{StaticResource MultiSelectComboBox.Text.Disabled.Foreground}" />
+    </Style>
+    <Style Selector="Border.msRow.checked TextBlock.msText">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <!-- MultiSelectComboBox.SelectedItems.ItemContainer.Style: no fill, no border, 8px radius. -->
+    <Style Selector="Border.msChip">
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="{StaticResource MultiSelectComboBox.SelectedItem.Border}" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <!--
+        MultiSelectComboBox.SelectedItemsPanel.RemoveItem.Button.Style: 12x12, a hand cursor, a transparent
+        1,0,1,1 border around the cross (so the cross is 10px square). Hover changed nothing visible.
+    -->
+    <Style Selector="Button.msRemove">
+        <Setter Property="Foreground" Value="{StaticResource MultiSelectComboBox.SelectedItem.Button.Light.Foreground}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border BorderThickness="1,0,1,1" BorderBrush="Transparent" Background="Transparent">
+                    <ContentPresenter Name="Presenter" Margin="0"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Content="{TemplateBinding Content}"
+                                      Foreground="{TemplateBinding Foreground}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!--
+        The filter box. It took the app's MainTextBoxStyle (36px tall, 3px padding, 13px) with its background
+        and border turned off, but that style's content host kept its own TextBoxBackground fill, so the box
+        reads as TextBoxBackground in every state. Fluent's hover and focus states are pinned to match.
+        Before the first edit it is collapsed; after edit mode ends it is only hidden, and keeps its place.
+    -->
+    <Style Selector="TextBox.msFilter">
+        <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+        <Setter Property="IsTabStop" Value="False" />
+    </Style>
+    <Style Selector="TextBox.msFilter /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="TextBox.msFilter:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="TextBox.msFilter:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="TextBox.msFilter.hidden">
+        <Setter Property="Opacity" Value="0" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+
+    <!--
+        MultiSelectComboBox.DropDown.Button.Style: the 08 tone, the dark hover colour on hover, the 16 tone
+        while pressed. Disabled kept the 08 tone and the normal text colour.
+    -->
+    <Style Selector="Button.msDropDown">
+        <Setter Property="Background" Value="{StaticResource MultiSelectComboBox.DropDown.Button.Background}" />
+        <Setter Property="BorderBrush" Value="{StaticResource MultiSelectComboBox.DropDown.Button.Border}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="border"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <ContentPresenter Name="Presenter"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Content="{TemplateBinding Content}"
+                                      Foreground="{TemplateBinding Foreground}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.msDropDown:pointerover /template/ Border#border">
+        <Setter Property="Background" Value="{StaticResource MultiSelectComboBox.DropDown.Button.MouseOver.Background}" />
+        <Setter Property="BorderBrush" Value="{StaticResource MultiSelectComboBox.DropDown.Button.MouseOver.Border}" />
+    </Style>
+    <Style Selector="Button.msDropDown:pressed /template/ Border#border">
+        <Setter Property="Background" Value="{StaticResource MultiSelectComboBox.DropDown.Button.Pressed.Background}" />
+        <Setter Property="BorderBrush" Value="{StaticResource MultiSelectComboBox.DropDown.Button.Pressed.Border}" />
+    </Style>
+    <Style Selector="Button.msDropDown:disabled /template/ Border#border">
+        <Setter Property="Background" Value="{StaticResource MultiSelectComboBox.DropDown.Button.Disabled.Background}" />
+        <Setter Property="BorderBrush" Value="{StaticResource MultiSelectComboBox.DropDown.Button.Disabled.Border}" />
+    </Style>
+    <Style Selector="Button.msDropDown:disabled /template/ ContentPresenter#Presenter">
+        <Setter Property="Foreground" Value="{StaticResource MultiSelectComboBox.DropDown.Button.Disabled.Foreground}" />
+    </Style>
+
+    <!--
+        MultiSelectComboBox.Dropdown.ListBox.Style. It set no template, so the list kept WPF's system (Aero2)
+        ListBox template: a 1px ListBox.Static.Border (#FFABADB3) border with 1px of padding inside it, and
+        scroll bars on Auto both ways, so a long name scrolls sideways rather than being cut short.
+    -->
+    <Style Selector="ListBox.msDropDown">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        <Setter Property="BorderBrush" Value="#FFABADB3" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <!-- The list's Stretch/Center content alignment is set on the rows below; an Avalonia ListBox has none. -->
+        <Setter Property="IsTextSearchEnabled" Value="True" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <VirtualizingStackPanel Background="{StaticResource MultiSelectComboBox.DropDown.Button.Background}" />
+            </ItemsPanelTemplate>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Bd" Padding="1"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <ScrollViewer Name="PART_ScrollViewer" Padding="{TemplateBinding Padding}"
+                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                    </ScrollViewer>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!--
+        MultiSelectComboBox.Dropdown.ListBox.ItemContainerStyle. A row is the 08 tone, and the 16 tone when
+        hovered or checked (hover lit an inner border that filled the row, checked lit the row itself; both
+        are the same colour). Which row the keyboard is on had no look of its own beyond the system's dotted
+        focus rectangle, 2px in, when it has keyboard focus.
+    -->
+    <Style Selector="ListBox.msDropDown ListBoxItem">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FocusAdorner">
+            <FocusAdornerTemplate>
+                <Rectangle Margin="2" Stroke="Black" StrokeThickness="1" StrokeDashArray="1,2" />
+            </FocusAdornerTemplate>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Name="Presenter"
+                                      HorizontalContentAlignment="Stretch"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="ListBox.msDropDown ListBoxItem:pointerover /template/ Border#Bd">
+        <Setter Property="Background" Value="{StaticResource MultiSelectComboBox.DropDown.ListBoxItem.Selected.Background}" />
+    </Style>
+    <Style Selector="Border.msRow">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.msRow.checked">
+        <Setter Property="Background" Value="{StaticResource MultiSelectComboBox.DropDown.ListBoxItem.Selected.Background}" />
+    </Style>
+</Styles>

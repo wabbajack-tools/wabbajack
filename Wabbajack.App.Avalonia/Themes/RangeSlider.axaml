@@ -1,0 +1,118 @@
+<!--
+    The WPF gallery's size filter: MahApps' RangeSlider under the app's restyle in Wabbajack.App.Wpf/Themes/
+    Styles.xaml ("MahApps.Styles.Thumb.Slider", "MahApps.Styles.RepeatButton.Slider.HorizontalTrack" and the
+    implicit mahapps:RangeSlider style), with the SliderHelper brushes ModListGalleryView set on it, and
+    MahApps' own "MahApps.Styles.MetroThumb.RangeSlider.Horizontal.Middle" for the bar between the thumbs.
+
+    The WPF template read every colour from SliderHelper attached properties. The gallery is the only
+    RangeSlider in the app, so its values are written in here rather than carried as properties. The
+    MahApps.* keys it fell back on are not in Palette.axaml; they are resolved below to what they were in the
+    WPF app, which merged MahApps' Dark.Purple theme and then overrode the accent in Styles.xaml.
+
+    The drag tooltip is WPF's implicit ToolTip style (Styles.xaml, TargetType="ToolTip"), which is what
+    MahApps' auto tooltip picked up.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:Wabbajack.App.Avalonia.Controls">
+
+    <Style Selector="c|RangeSlider">
+        <Setter Property="Background" Value="Transparent" />
+        <!-- WPF set a hand cursor while the pointer was over the control; the thumbs set their own. -->
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Name="PART_Container" Background="{TemplateBinding Background}">
+                    <!-- The code sets the widths of the two track pieces and the bar from the values. -->
+                    <StackPanel Name="PART_RangeSliderContainer" Orientation="Horizontal" Background="Transparent">
+
+                        <!-- The track: a 5px bar, whole height of the row to click on. WPF's CornerRadius 4 on a
+                             5px Border clamps each axis on its own, to 4 across and 2.5 down, which a Border
+                             here would round to a circle instead. -->
+                        <Panel Name="PART_LeftEdge" Background="Transparent">
+                            <Rectangle Height="5" RadiusX="4" RadiusY="2.5" Fill="{StaticResource DarkBackgroundBrush}" />
+                        </Panel>
+
+                        <!-- The thumbs are MahApps.Sizes.Slider.HorizontalThumb (12x16, set in Styles.xaml). WPF gave
+                             the lower one BorderThickness 4,0,0,0 with no border brush, which draws nothing
+                             but still insets the fill: an 8px bar against the range, a 4px gap in the track
+                             outside it, square on the gap side and 2px round on the other. -->
+                        <Thumb Name="PART_LeftThumb" Width="12" Height="16" Cursor="Hand" Focusable="False">
+                            <Thumb.Template>
+                                <ControlTemplate>
+                                    <Border Margin="4,0,0,0" CornerRadius="0,2,2,0" Background="{TemplateBinding Background}" />
+                                </ControlTemplate>
+                            </Thumb.Template>
+                        </Thumb>
+
+                        <Thumb Name="PART_MiddleThumb" MinWidth="{TemplateBinding MinRangeWidth}" Cursor="SizeAll"
+                               Focusable="False">
+                            <Thumb.Template>
+                                <ControlTemplate>
+                                    <Grid Background="Transparent">
+                                        <Rectangle Height="5" Fill="{TemplateBinding Foreground}" />
+                                    </Grid>
+                                </ControlTemplate>
+                            </Thumb.Template>
+                        </Thumb>
+
+                        <Thumb Name="PART_RightThumb" Width="12" Height="16" Cursor="Hand" Focusable="False">
+                            <Thumb.Template>
+                                <ControlTemplate>
+                                    <Border Margin="0,0,4,0" CornerRadius="2,0,0,2" Background="{TemplateBinding Background}" />
+                                </ControlTemplate>
+                            </Thumb.Template>
+                        </Thumb>
+
+                        <Panel Name="PART_RightEdge" Background="Transparent">
+                            <Rectangle Height="5" RadiusX="4" RadiusY="2.5" Fill="{StaticResource DarkBackgroundBrush}" />
+                        </Panel>
+                    </StackPanel>
+
+                    <!-- The value being dragged, centred over the thumb. The code places it and fades it in. -->
+                    <Popup Name="PART_AutoToolTip" IsLightDismissEnabled="False">
+                        <Border MaxWidth="500"
+                                Background="{StaticResource ComplementaryPrimary08Brush}"
+                                BorderBrush="{StaticResource PrimaryBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                IsHitTestVisible="False">
+                            <TextBlock Name="PART_AutoToolTipText" Margin="5" FontSize="13" Foreground="White"
+                                       TextWrapping="Wrap" />
+                        </Border>
+                    </Popup>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- SliderHelper.ThumbFillBrush, ThumbFillHoverBrush and ThumbFillPressedBrush were all PrimaryBrush in the
+         gallery, so the thumbs do not change on hover or press. -->
+    <Style Selector="c|RangeSlider /template/ Thumb#PART_LeftThumb, c|RangeSlider /template/ Thumb#PART_RightThumb">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <!-- SliderHelper.TrackValueFillBrush was PrimaryBrush. -->
+    <Style Selector="c|RangeSlider /template/ Thumb#PART_MiddleThumb">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <!-- Hover, a held track and a drag all took TrackValueFillHoverBrush / TrackValueFillPressedBrush, which
+         the gallery left at MahApps.Brushes.Accent: #CCD8BAF8 in the WPF app, Primary at 80%, a shade dimmer
+         than PrimaryBrush against the dark background. -->
+    <Style Selector="c|RangeSlider:pointerover /template/ Thumb#PART_MiddleThumb, c|RangeSlider:active /template/ Thumb#PART_MiddleThumb">
+        <Setter Property="Foreground" Value="#CCD8BAF8" />
+    </Style>
+
+    <!-- The track pieces have no states: WPF's triggers recoloured the RepeatButtons' Foreground, which the
+         app's restyle of them never draws with. -->
+
+    <!-- Disabled: ThumbFillDisabledBrush and TrackValueFillDisabledBrush, MahApps.Brushes.Gray6 (#FFCCCCCC in
+         Dark.Purple). The track stays DarkBackgroundBrush for the reason above. -->
+    <Style Selector="c|RangeSlider:disabled /template/ Thumb#PART_LeftThumb, c|RangeSlider:disabled /template/ Thumb#PART_RightThumb">
+        <Setter Property="Background" Value="#FFCCCCCC" />
+    </Style>
+    <Style Selector="c|RangeSlider:disabled /template/ Thumb#PART_MiddleThumb">
+        <Setter Property="Foreground" Value="#FFCCCCCC" />
+    </Style>
+</Styles>

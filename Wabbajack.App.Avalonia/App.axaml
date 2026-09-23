@@ -29,10 +29,17 @@
             <StaticResource x:Key="TextControlForegroundDisabled" ResourceKey="TextBoxDisabledForeground" />
             <Thickness x:Key="TextControlBorderThemeThickness">1</Thickness>
             <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+            <!-- WPF drew the watermark in the text colour at half opacity; Fluent's watermark is already half. -->
+            <StaticResource x:Key="TextControlPlaceholderForeground" ResourceKey="ForegroundBrush" />
+            <StaticResource x:Key="TextControlPlaceholderForegroundPointerOver" ResourceKey="ForegroundBrush" />
+            <StaticResource x:Key="TextControlPlaceholderForegroundFocused" ResourceKey="ForegroundBrush" />
         </ResourceDictionary>
     </Application.Resources>
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/Controls.axaml" />
+        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/InputControls.axaml" />
+        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/RangeSlider.axaml" />
+        <StyleInclude Source="avares://Wabbajack.Avalonia/Themes/MultiSelectComboBox.axaml" />
     </Application.Styles>
 </Application>
