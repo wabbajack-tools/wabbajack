@@ -19,14 +19,18 @@
         <Style Selector="Button.hyperlink.url">
             <Setter Property="FontSize" Value="13" />
         </Style>
+        <!--
+            WPF's storyboard on SpinTransform.Angle. Avalonia animates a transform's angle, not the whole
+            RenderTransform, so the icon carries a RotateTransform for this to turn.
+        -->
         <Style Selector="ic|SymbolIcon#LoadingIcon">
             <Style.Animations>
                 <Animation Duration="0:0:2" IterationCount="Infinite">
                     <KeyFrame Cue="0%">
-                        <Setter Property="RenderTransform" Value="rotate(0deg)" />
+                        <Setter Property="RotateTransform.Angle" Value="0" />
                     </KeyFrame>
                     <KeyFrame Cue="100%">
-                        <Setter Property="RenderTransform" Value="rotate(360deg)" />
+                        <Setter Property="RotateTransform.Angle" Value="360" />
                     </KeyFrame>
                 </Animation>
             </Style.Animations>
@@ -65,7 +69,11 @@
             <Grid x:Name="UploadingGrid" Grid.Row="2" VerticalAlignment="Center" IsVisible="False"
                   RowDefinitions="Auto,24,Auto,8,Auto">
                 <ic:SymbolIcon x:Name="LoadingIcon" Grid.Row="0" Foreground="{StaticResource PrimaryBrush}" FontSize="108"
-                               Symbol="ArrowClockwise" RenderTransformOrigin="50%,50%" />
+                               Symbol="ArrowClockwise" RenderTransformOrigin="50%,50%">
+                    <ic:SymbolIcon.RenderTransform>
+                        <RotateTransform />
+                    </ic:SymbolIcon.RenderTransform>
+                </ic:SymbolIcon>
 
                 <!-- WPF put a space between the runs for the line breaks between them. -->
                 <TextBlock x:Name="UploadingTextBlock" Grid.Row="2" HorizontalAlignment="Center" FontSize="36">
