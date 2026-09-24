@@ -294,7 +294,7 @@ public class GameFilesCheckTests : IDisposable
 
         Assert.Equal(PreflightState.Failed, withSteam.State);
         Assert.Equal(new[] {PreflightAction.RepairGameFiles}, withSteam.Actions);
-        Assert.Contains("Steam can fetch 1 file", withSteam.Detail);
+        Assert.Contains("Wabbajack can download 1 file from Steam", withSteam.Detail);
     }
 
     /// <summary>
