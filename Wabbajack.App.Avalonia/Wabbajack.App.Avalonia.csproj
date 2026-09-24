@@ -12,6 +12,8 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <AssemblyName>Wabbajack</AssemblyName>
         <RootNamespace>Wabbajack.App.Avalonia</RootNamespace>
+        <!-- The exe's own icon, for Explorer, the taskbar and shortcuts; the window sets its icon separately. -->
+        <ApplicationIcon>Assets\wabbajack.ico</ApplicationIcon>
         <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
         <Version>$(VERSION)</Version>
         <!-- Stated outright, as the WPF app does, so GitInfo does not stamp a version from the git tags. -->
