@@ -30,7 +30,37 @@ public partial class MainWindow : Window
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             Logger.LogError((Exception)e.ExceptionObject, "Uncaught error");
         DataContextChanged += (_, _) => WatchViewModel();
+#if DEBUG
+        StartSnapshots();
+#endif
     }
+
+#if DEBUG
+    /// <summary>
+    ///     Debug builds only: with WJ_SNAPSHOT set to a file path, the window renders itself to that PNG once a
+    ///     second. Comparing against the WPF app from screen captures needs the window unobscured and the desktop
+    ///     awake; this works whatever else is on screen.
+    /// </summary>
+    private void StartSnapshots()
+    {
+        var target = Environment.GetEnvironmentVariable("WJ_SNAPSHOT");
+        if (string.IsNullOrWhiteSpace(target)) return;
+
+        var timer = new global::Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        timer.Tick += (_, _) =>
+        {
+            var scale = RenderScaling;
+            var size = new PixelSize((int) (Bounds.Width * scale), (int) (Bounds.Height * scale));
+            if (size.Width <= 0 || size.Height <= 0) return;
+            using var bitmap = new global::Avalonia.Media.Imaging.RenderTargetBitmap(size, new Vector(96 * scale, 96 * scale));
+            bitmap.Render(this);
+            var temp = target + ".tmp";
+            bitmap.Save(temp);
+            File.Move(temp, target, true);
+        };
+        timer.Start();
+    }
+#endif
 
     private MainWindowVM? VM => DataContext as MainWindowVM;
 

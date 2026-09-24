@@ -10,6 +10,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Wabbajack.App.Avalonia.Controls;
 using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.Services;
 using Wabbajack.App.Avalonia.ViewModels;
@@ -25,6 +26,8 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+
+        IconClipFix.Register();
 
         // WPF's combo box list highlights one row: the selected one when it opens, then whichever the pointer
         // is on, because keyboard focus follows the pointer there. The highlight style keys off focus.
