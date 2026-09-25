@@ -865,6 +865,22 @@ public static class GameRegistry
             }
         },
         {
+            Game.DuneAwakening, new GameMetaData
+            {
+                Game = Game.DuneAwakening,
+                MO2Name = "Dune: Awakening",
+                NexusName = "duneawakening",
+                NexusGameId = 7828,
+                MO2ArchiveName = "duneawakening",
+                SteamIDs = [1172710],
+                RequiredFiles = new []
+                {
+                    @"DuneSandbox\Binaries\Win64\DuneSandbox-Win64-Shipping.exe".ToRelativePath(),
+                },
+                MainExecutable = @"DuneSandbox\Binaries\Win64\DuneSandbox-Win64-Shipping.exe".ToRelativePath(),
+            }
+        },
+        {
             Game.ModdingTools, new GameMetaData
             {
                 Game = Game.ModdingTools,
