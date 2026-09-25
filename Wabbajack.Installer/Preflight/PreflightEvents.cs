@@ -9,7 +9,8 @@ namespace Wabbajack.Installer.Preflight;
 ///     Immutable snapshot of one check as the runner sees it.
 /// </summary>
 public record CheckStatus(string Id, string Title, PreflightState State, string Message, string? Detail,
-    IReadOnlyList<PreflightAction> Actions, Percent Progress, string? ProgressText, bool Acknowledged)
+    IReadOnlyList<PreflightAction> Actions, Percent Progress, string? ProgressText, bool Acknowledged,
+    long ProgressCurrent = 0, long ProgressTotal = 0)
 {
     /// <summary>
     ///     True when this check no longer stands in the way of installing: it Passed, or it ended in a Warning

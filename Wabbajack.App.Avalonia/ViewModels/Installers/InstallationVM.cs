@@ -1,0 +1,944 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using DynamicData;
+using Humanizer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using ReactiveUI;
+using ReactiveUI.SourceGenerators;
+using Wabbajack.App.Avalonia.LoginManagers;
+using Wabbajack.App.Avalonia.Messages;
+using Wabbajack.App.Avalonia.Services;
+using Wabbajack.App.Avalonia.Util;
+using Wabbajack.App.Avalonia.ViewModels.Common;
+using Wabbajack.App.Avalonia.ViewModels.Installers.Preflight;
+using Wabbajack.Common;
+using Wabbajack.Downloaders.GameFile;
+using Wabbajack.DTOs;
+using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Installer;
+using Wabbajack.Installer.Preflight;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
+using Wabbajack.Reporting;
+using Wabbajack.Services.OSIntegrated;
+using OSConfiguration = Wabbajack.Services.OSIntegrated.Configuration;
+
+namespace Wabbajack.App.Avalonia.ViewModels.Installers;
+
+public enum InstallState
+{
+    Configuration,
+    Preflight,
+    Installing,
+    Success,
+    Failure
+}
+
+/// <summary>
+///     The installer screen, as the WPF app's InstallationVM: the folder pickers, then the preflight page, then
+///     the install with its log and job list, and the success or failure screen at the end. Its progress goes to
+///     the title bar through <see cref="ProgressViewModel" />.
+///     <para>
+///         WPF's unused Verify path is left out: nothing ever bound its command, and it ran a Wabbajack.CLI verb,
+///         which this project cannot reference.
+///     </para>
+/// </summary>
+public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
+{
+    private const string LastLoadedModlist = "last-loaded-modlist";
+    private const string InstallSettingsPrefix = "install-settings-";
+
+    /// <summary>The log Program.AddLogging writes, which the diagnosis reads.</summary>
+    private const string CurrentLogFile = "Wabbajack.current.log";
+    private readonly Random _random = new();
+
+    [Reactive] public partial ModList ModList { get; set; }
+    [Reactive] public partial ModlistMetadata ModlistMetadata { get; set; }
+    [Reactive] public partial FilePickerVM WabbajackFileLocation { get; set; }
+    [Reactive] public partial MO2InstallerVM Installer { get; set; }
+    [Reactive] public partial StandardInstaller StandardInstaller { get; set; }
+    [Reactive] public partial Bitmap? ModListImage { get; set; }
+    [Reactive] public partial InstallState InstallState { get; set; }
+
+    /// <summary>The page between the folder picker and the install; null outside <see cref="InstallState.Preflight" />.</summary>
+    [Reactive] public partial PreflightVM? Preflight { get; set; }
+
+    [Reactive] public partial string FailureDetailsTitle { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     What the failure screen says inline: the opening of a matched article, or the whole of one of the
+    ///     three short messages that are not articles at all. It starts as the reason the panel is empty,
+    ///     since the Error summary tab can be opened before anything has been diagnosed.
+    /// </summary>
+    [Reactive] public partial string FailureDetailsDescription { get; set; } =
+        "Nothing has been diagnosed yet. If the install stops, choose \"How do I fix this?\" to check your log against known issues.";
+
+    /// <summary>
+    ///     The matched article's markdown, empty when the diagnosis produced no article. It is rendered by
+    ///     <see cref="DiagnosticsArticle" /> and read in the user's browser: <see cref="OpenFailureArticleCommand" />
+    ///     writes the page to a temp file and opens it.
+    /// </summary>
+    [Reactive] public partial string FailureArticleMarkdown { get; set; } = string.Empty;
+
+    /// <summary>The screenshot a matched article may carry beside its text; null for most of them.</summary>
+    [Reactive] public partial string? FailureArticleImage { get; set; }
+
+    /// <summary>
+    ///     Not a [Reactive] property: in WPF a generated nullable enum property broke resolving this view model
+    ///     through DI, so it is raised by hand there and here.
+    /// </summary>
+    private InstallResult? _installResult;
+
+    public InstallResult? InstallResult
+    {
+        get => _installResult;
+        set => RaiseAndSetIfChanged(ref _installResult, value);
+    }
+
+    // Slideshow data. WPF's slideshow is switched off (its loop is commented out), so nothing fills these.
+    [Reactive] public partial Bitmap? SlideShowImage { get; set; }
+    [Reactive] public partial string SlideShowTitle { get; set; }
+    [Reactive] public partial string SlideShowAuthor { get; set; }
+    [Reactive] public partial string SlideShowDescription { get; set; }
+    [Reactive] public partial string SuggestedInstallFolder { get; set; }
+    [Reactive] public partial string SuggestedDownloadFolder { get; set; }
+
+    private readonly DTOSerializer _dtos;
+    private readonly ILogger<InstallationVM> _logger;
+    private readonly SettingsManager _settingsManager;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly SystemParametersConstructor _parametersConstructor;
+    private readonly IGameLocator _gameLocator;
+    private readonly ResourceMonitor _resourceMonitor;
+    private readonly OSConfiguration _configuration;
+    private readonly HttpClient _client;
+    private readonly NexusLoginManager _nexusLoginManager;
+    private readonly Navigator _navigator;
+    private CancellationTokenSource _cancellationTokenSource;
+
+    /// <summary>How long a shutdown gives the preflight download watcher to stop before it gives up on it.</summary>
+    private static readonly TimeSpan PreflightShutdownTimeout = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    ///     The shutdown started by the handoff into the installer, kept so a window closing in that moment
+    ///     still has something to wait on after <see cref="Preflight" /> has been cleared.
+    /// </summary>
+    private Task? _preflightShutdown;
+
+    public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
+
+    [Reactive] public partial bool Installing { get; set; }
+
+    [Reactive] public partial ValidationResult ValidationResult { get; set; }
+
+    [Reactive] public partial bool ShowNSFWSlides { get; set; }
+
+    [Reactive] public partial bool DiagnosticsVisible { get; set; } = false;
+
+    public LogStream LoggerProvider { get; }
+
+    [Reactive] public partial string HashingSpeed { get; set; }
+
+    /// <summary>Bytes hashed per second, for preflight's running panel, which says nothing when this is zero.</summary>
+    [Reactive] public partial long HashingThroughput { get; set; }
+    [Reactive] public partial string ExtractingSpeed { get; set; }
+    [Reactive] public partial string DownloadingSpeed { get; set; }
+
+    public ICommand OpenManifestCommand { get; }
+    public ICommand OpenReadmeCommand { get; }
+    public ICommand OpenWikiCommand { get; }
+    public ICommand OpenCommunityCommand { get; }
+    public ICommand OpenWebsiteCommand { get; }
+    public ICommand BackToGalleryCommand { get; }
+    public ICommand DiagnoseFailureCommand { get; }
+    public ICommand OpenFailureArticleCommand { get; }
+    public ICommand OpenLogFolderCommand { get; }
+    public ICommand OpenInstallFolderCommand { get; }
+    public ICommand InstallCommand { get; }
+    public ICommand CancelCommand { get; }
+    public ICommand EditInstallDetailsCommand { get; }
+    public ICommand CreateShortcutCommand { get; }
+
+    public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
+        IServiceProvider serviceProvider, SystemParametersConstructor parametersConstructor, IGameLocator gameLocator,
+        LogStream loggerProvider, ResourceMonitor resourceMonitor, OSConfiguration configuration, HttpClient client,
+        NexusLoginManager nexusLoginManager, Navigator navigator)
+    {
+        _logger = logger;
+        _configuration = configuration;
+        LoggerProvider = loggerProvider;
+        _settingsManager = settingsManager;
+        _dtos = dtos;
+        _serviceProvider = serviceProvider;
+        _parametersConstructor = parametersConstructor;
+        _gameLocator = gameLocator;
+        _resourceMonitor = resourceMonitor;
+        _client = client;
+        _nexusLoginManager = nexusLoginManager;
+        _navigator = navigator;
+
+        ConfigurationText = "Loading... Please wait";
+        ProgressText = "Installation";
+
+        Installer = new MO2InstallerVM(this);
+
+        CancelCommand = ReactiveCommand.Create(CancelInstall, this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading));
+        EditInstallDetailsCommand = ReactiveCommand.Create(() =>
+        {
+            ConfigurationText = "Preparation";
+            ProgressText = "Installation";
+            CurrentStep = Step.Configuration;
+            InstallState = InstallState.Configuration;
+            ProgressState = ProgressState.Normal;
+            Activator.Activate();
+        });
+        InstallCommand = ReactiveCommand.Create(() => BeginPreflight().FireAndForget(),
+            this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ValidationResult,
+                (notLoading, validationResult) => notLoading && (validationResult?.Succeeded ?? false)));
+
+        OpenReadmeCommand = ReactiveCommand.Create(() => { UIUtils.OpenWebsite(ModList.Readme); },
+            this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Readme,
+                (isNotLoading, readme) => isNotLoading && !string.IsNullOrWhiteSpace(readme)));
+
+        OpenWebsiteCommand = ReactiveCommand.Create(() => { UIUtils.OpenWebsite(ModList.Website); },
+            this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModList.Website,
+                (isNotLoading, website) => isNotLoading && !string.IsNullOrWhiteSpace(website)));
+
+        WabbajackFileLocation = new FilePickerVM
+        {
+            ExistCheckOption = FilePickerVM.CheckOptions.On,
+            PathType = FilePickerVM.PathTypeOptions.File,
+            PromptTitle = "Select a modlist to install"
+        };
+        WabbajackFileLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack modlist", "*.wabbajack"));
+
+        OpenLogFolderCommand = ReactiveCommand.Create(() =>
+        {
+            UIUtils.OpenFolderAndSelectFile(_configuration.LogLocation.Combine(CurrentLogFile));
+        });
+
+        OpenCommunityCommand = ReactiveCommand.Create(() => { UIUtils.OpenWebsite(new Uri(ModList.Community)); },
+            this.WhenAnyValue(vm => vm.LoadingLock.IsNotLoading, vm => vm.ModlistMetadata,
+                (isNotLoading, metadata) => isNotLoading && !string.IsNullOrEmpty(metadata?.Links?.DiscordURL)));
+
+        // WPF's Archives button: the list's page on the Wabbajack site. It carries a TODO to open the archives
+        // in a pane instead, which WPF never did.
+        OpenManifestCommand = ReactiveCommand.Create(() =>
+            {
+                UIUtils.OpenWebsite(new Uri("https://www.wabbajack.org/search/" + ModlistMetadata.NamespacedName));
+            },
+            this.WhenAnyValue(x => x.LoadingLock.IsNotLoading, vm => vm.ModlistMetadata,
+                (isNotLoading, metadata) => isNotLoading && !string.IsNullOrEmpty(metadata?.NamespacedName)));
+
+        OpenInstallFolderCommand = ReactiveCommand.Create(() =>
+        {
+            UIUtils.OpenFolderAndSelectFile(Installer.Location.TargetPath.Combine("ModOrganizer.exe"));
+        });
+
+        BackToGalleryCommand = ReactiveCommand.Create(() => _navigator.NavigateTo(ScreenType.ModListGallery));
+
+        DiagnoseFailureCommand = ReactiveCommand.Create(LaunchDiagnostics);
+
+        OpenFailureArticleCommand = ReactiveCommand.Create(OpenFailureArticle,
+            this.WhenAnyValue(vm => vm.FailureArticleMarkdown, markdown => !string.IsNullOrWhiteSpace(markdown)));
+
+        CreateShortcutCommand = ReactiveCommand.Create(CreateDesktopShortcut);
+
+        MessageBus.Current.Listen<LoadModlistForInstalling>()
+            .Subscribe(msg => LoadModlistFromGallery(msg.Path, msg.Metadata).FireAndForget())
+            .DisposeWith(CompositeDisposable);
+
+        MessageBus.Current.Listen<LoadLastLoadedModlist>()
+            .Subscribe(_ => LoadLastModlist().FireAndForget())
+            .DisposeWith(CompositeDisposable);
+
+        this.WhenActivated(disposables =>
+        {
+            WabbajackFileLocation.WhenAnyValue(l => l.TargetPath)
+                .Subscribe(p => LoadModlist(p, null).FireAndForget())
+                .DisposeWith(disposables);
+
+            _resourceMonitor.Updates
+                .Subscribe(updates =>
+                {
+                    foreach (var update in updates)
+                    {
+                        switch (update.Name)
+                        {
+                            case "Downloads":
+                                DownloadingSpeed = $"{update.Throughput.ToFileSizeString()}/s";
+                                break;
+                            case "File Hashing":
+                                HashingSpeed = $"{update.Throughput.ToFileSizeString()}/s";
+                                HashingThroughput = update.Throughput;
+                                break;
+                            case "File Extractor":
+                                ExtractingSpeed = $"{update.Throughput.ToFileSizeString()}/s";
+                                break;
+                        }
+                    }
+                })
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(vm => vm.WabbajackFileLocation.ValidationResult,
+                    vm => vm.Installer.DownloadLocation.ValidationResult,
+                    vm => vm.Installer.Location.ValidationResult,
+                    vm => vm.WabbajackFileLocation.TargetPath,
+                    vm => vm.Installer.Location.TargetPath,
+                    vm => vm.Installer.DownloadLocation.TargetPath)
+                .Select(t =>
+                {
+                    var (wjVr, dlVr, instVr, _, _, _) = t;
+
+                    var errors = new[] { wjVr, dlVr, instVr }
+                        .Where(v => v != null && v.Failed)
+                        .Concat(Validate())
+                        .ToArray();
+
+                    if (!errors.Any()) return ValidationResult.Success;
+
+                    var reasons = errors.Select(e => e.Reason)
+                        .Where(r => !string.IsNullOrWhiteSpace(r))
+                        .ToArray();
+
+                    foreach (var e in errors)
+                    {
+                        if (e.Failed && string.IsNullOrWhiteSpace(e.Reason))
+                            _logger.LogWarning("ValidationResult failed but had no reason. Type={Type}", e.GetType().FullName);
+                    }
+
+                    return reasons.Length == 0
+                        ? ValidationResult.Fail("Validation failed (no reason provided).")
+                        : ValidationResult.Fail(string.Join("\n", reasons));
+                })
+                .BindTo(this, vm => vm.ValidationResult)
+                .DisposeWith(disposables);
+
+            this.WhenAny(vm => vm.InstallState)
+                .ObserveOnGuiThread()
+                .Subscribe(state =>
+                {
+                    CurrentStep = state switch
+                    {
+                        InstallState.Configuration => Step.Configuration,
+                        InstallState.Preflight => Step.Busy,
+                        InstallState.Installing => Step.Busy,
+                        InstallState.Failure => Step.Configuration,
+                        InstallState.Success => Step.Done,
+                        _ => Step.Configuration
+                    };
+                    ProgressState = state switch
+                    {
+                        InstallState.Success => ProgressState.Success,
+                        InstallState.Failure => ProgressState.Error,
+                        _ => ProgressState.Normal
+                    };
+                })
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(vm => vm.Installer.Location.TargetPath)
+                .Select(x => x.PathParts.Any() ? x.Combine("downloads") : x)
+                .Subscribe(x => Installer.DownloadLocation.TargetPath = x)
+                .DisposeWith(disposables);
+        });
+    }
+
+    private void CreateDesktopShortcut()
+    {
+        var deskDir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+
+        using var writer = new StreamWriter(deskDir + "\\" + ModList.Name + ".url");
+
+        var path = Installer.Location.TargetPath.Combine("ModOrganizer.exe").ToString();
+        writer.WriteLine("[InternetShortcut]");
+        writer.WriteLine("URL=file:///" + path);
+        writer.WriteLine("IconIndex=0");
+        var icon = path.Replace('\\', '/');
+        writer.WriteLine("IconFile=" + icon);
+    }
+
+    private void LaunchDiagnostics()
+    {
+        try
+        {
+            // Remote tags
+            const string YamlUrl = "https://raw.githubusercontent.com/JanuarySnow/WJ-Bot/main/tags.yaml";
+            const string RawBase = "https://raw.githubusercontent.com/JanuarySnow/WJ-Bot/main/";
+
+            // Read the live log without getting in the way of the logger still writing it.
+            var liveLog = _configuration.LogLocation.Combine(CurrentLogFile).ToString();
+
+            var logText = SafeReadAllText(liveLog) ?? string.Empty;
+
+            var result = DiagnosticsFacade.AnalyzeText(
+                logText: logText,
+                yamlUrl: YamlUrl,
+                rawBase: RawBase
+            );
+
+            if (result.HasValue)
+            {
+                FailureDetailsTitle = $"Possible issue: {result.Title}";
+                FailureArticleMarkdown = result.Body;
+                FailureArticleImage = result.ImagePathOrUrl;
+
+                var lead = DiagnosticsArticle.Lead(result.Body);
+                FailureDetailsDescription = string.IsNullOrEmpty(lead)
+                    ? "A community troubleshooting article matches your log."
+                    : lead;
+            }
+            else
+            {
+                ClearFailureArticle();
+                FailureDetailsTitle = "No common issues detected";
+                FailureDetailsDescription = "Couldn't match a known issue in your log. You can open the log file to investigate further, or join the Wabbajack Discord to ask for help.";
+            }
+
+            InstallState = InstallState.Failure;
+            DiagnosticsVisible = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Diagnostics failed");
+            ClearFailureArticle();
+            FailureDetailsTitle = "Diagnostics failed";
+            FailureDetailsDescription = $"An error occurred while analyzing your log.\n{ex.GetType().Name}: {ex.Message}";
+            InstallState = InstallState.Failure;
+            DiagnosticsVisible = true;
+        }
+    }
+
+    private void ClearFailureArticle()
+    {
+        FailureArticleMarkdown = string.Empty;
+        FailureArticleImage = null;
+    }
+
+    /// <summary>
+    ///     Renders the matched article and hands it to the user's browser, through a file from
+    ///     <see cref="TemporaryFileManager" /> so it is cleaned up with everything else the run left behind.
+    /// </summary>
+    private void OpenFailureArticle()
+    {
+        try
+        {
+            var html = DiagnosticsArticle.BuildHtml(FailureDetailsTitle, FailureArticleMarkdown,
+                FailureArticleImage, CurrentArticleTheme());
+
+            var manager = _serviceProvider.GetRequiredService<TemporaryFileManager>();
+            var file = manager.CreateFolder().Path.Combine(DiagnosticsArticle.FileName(FailureDetailsTitle));
+
+            file.WriteAllText(html);
+            UIUtils.OpenFile(file);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not open the diagnostics article");
+        }
+    }
+
+    /// <summary>
+    ///     The app's own colours, so the article does not arrive as black-on-white in the middle of a dark
+    ///     theme. Falls back to the renderer's defaults when a brush is missing.
+    /// </summary>
+    private static ArticleTheme CurrentArticleTheme()
+    {
+        static string ToCss(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+
+        static Color? Brush(string key) =>
+            Application.Current is { } app && app.TryGetResource(key, app.ActualThemeVariant, out var value) &&
+            value is ISolidColorBrush brush
+                ? brush.Color
+                : null;
+
+        var fallback = ArticleTheme.Default;
+
+        return new ArticleTheme(
+            Brush("ForegroundBrush") is { } fg ? ToCss(fg) : fallback.Foreground,
+            Brush("CardBackgroundBrush") is { } bg ? ToCss(bg) : fallback.Background,
+            Brush("PrimaryBrush") is { } accent ? ToCss(accent) : fallback.Accent);
+    }
+
+    private static string? SafeReadAllText(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return null;
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var sr = new StreamReader(fs);
+            return sr.ReadToEnd();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string GetSuggestedInstallFolder(ModlistMetadata x)
+    {
+        var folderName = x.Title;
+        // Ignore everything after a dash
+        folderName = folderName.Split('-')[0];
+        // Remove all special characters
+        folderName = Regex.Replace(folderName, "[^a-zA-Z0-9_ .]+", "");
+        // Get preferred installation drive (SSD with enough space). The drive's media type comes from WMI.
+        var preferredPartition = OperatingSystem.IsWindows()
+            ? DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata!.SizeOfInstalledFiles)
+            : null;
+        var words = folderName.Split(' ');
+        // Abbreviate the list name if it's too long, otherwise convert it to PascalCase
+        folderName = words.Length >= 3 ? string.Join("", words.Select(w => w[0])).ToUpper() : folderName.Pascalize();
+
+        return $"{preferredPartition!.Name}Modlists\\{folderName.Trim()}\\";
+    }
+
+    private async void CancelInstall()
+    {
+        switch (InstallState)
+        {
+            case InstallState.Configuration:
+                _navigator.NavigateTo(ScreenType.ModListGallery);
+                break;
+
+            case InstallState.Preflight:
+                CancelPreflight();
+                break;
+
+            case InstallState.Installing:
+                if (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Cancellation was requested, cancelling installation of modlist!");
+                    try
+                    {
+                        await _cancellationTokenSource.CancelAsync();
+                    }
+                    catch (ObjectDisposedException ex)
+                    {
+                        _logger.LogError("Token source was already disposed while attempting cancellation! Exception: {ex}", ex.ToString());
+                    }
+                }
+
+                break;
+        }
+    }
+
+    private IEnumerable<ValidationResult> Validate()
+    {
+        if (!WabbajackFileLocation.TargetPath.FileExists())
+            yield return ValidationResult.Fail("Wabbajack modlist file does not exist");
+
+        var downloadPath = Installer.DownloadLocation.TargetPath;
+        if (downloadPath.Depth <= 1)
+            yield return DownloadsPathValidationResult.Fail("Please specify a download location");
+
+        var installPath = Installer.Location.TargetPath;
+        if (installPath.Depth <= 1)
+            yield return InstallPathValidationResult.Fail("Please specify an installation location");
+        if (installPath.InFolder(KnownFolders.Windows))
+            yield return InstallPathValidationResult.Fail("Can't install modlist to Windows folder");
+
+        if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && installPath == downloadPath)
+        {
+            yield return DownloadsPathValidationResult.Fail("Installation and download locations cannot be identical");
+        }
+
+        if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 &&
+            KnownFolders.IsSubDirectoryOf(installPath.ToString(), downloadPath.ToString()))
+        {
+            yield return InstallPathValidationResult.Fail("Can't install to folder within downloads folder");
+        }
+
+        foreach (var game in GameRegistry.Games)
+        {
+            if (!_gameLocator.TryFindLocation(game.Key, out var location))
+                continue;
+
+            if (installPath.InFolder(location))
+                yield return InstallPathValidationResult.Fail("Can't install modlist into a game folder");
+
+            if (location.ThisAndAllParents().Any(path => installPath == path))
+            {
+                yield return InstallPathValidationResult.Fail(
+                    "Can't install to path, installed files may overwrite game files");
+            }
+        }
+
+        if (installPath.InFolder(KnownFolders.EntryPoint))
+            yield return InstallPathValidationResult.Fail("Can't install a modlist into the Wabbajack folder");
+        if (downloadPath.InFolder(KnownFolders.EntryPoint))
+            yield return DownloadsPathValidationResult.Fail("Can't download a modlist into the Wabbajack folder");
+        if (KnownFolders.EntryPoint.ThisAndAllParents().Any(path => installPath == path))
+        {
+            yield return InstallPathValidationResult.Fail("Can't install into the Wabbajack folder");
+        }
+
+        if (KnownFolders.IsInSpecialFolder(installPath, out var specialFolder))
+        {
+            yield return InstallPathValidationResult.Fail($"Can't install into special folder ({specialFolder})");
+        }
+
+        if (KnownFolders.IsInSpecialFolder(downloadPath, out var specialDownloadsFolder))
+        {
+            yield return DownloadsPathValidationResult.Fail($"Can't download into special folder ({specialDownloadsFolder})");
+        }
+    }
+
+    private async Task LoadLastModlist()
+    {
+        var lst = await _settingsManager.Load<AbsolutePath>(LastLoadedModlist);
+        if (lst.FileExists())
+        {
+            WabbajackFileLocation.TargetPath = lst;
+        }
+    }
+
+    private async Task LoadModlistFromGallery(AbsolutePath path, ModlistMetadata? metadata)
+    {
+        WabbajackFileLocation.TargetPath = path;
+        ModlistMetadata = metadata!;
+    }
+
+    private async Task LoadModlist(AbsolutePath path, ModlistMetadata? metadata)
+    {
+        using var ll = LoadingLock.WithLoading();
+        // A load from the gallery or the protocol handler can arrive while a preflight is running.
+        DisposePreflight();
+        InstallState = InstallState.Configuration;
+        WabbajackFileLocation.TargetPath = path;
+        try
+        {
+            ModList = await StandardInstaller.LoadFromFile(_dtos, path);
+            var stream = await StandardInstaller.ModListImageStream(path);
+            if (stream != null) ModListImage = UIUtils.BitmapFromStream(stream);
+
+            ConfigurationText = $"Preparing to install {metadata?.Title ?? ModList.Name}";
+            ProgressText = "Installation";
+
+            var hex = (await WabbajackFileLocation.TargetPath.FileName.ToString().Hash()).ToHex();
+            var prevSettings = await _settingsManager.Load<SavedInstallSettings>(InstallSettingsPrefix + hex);
+            var hasPrevModListInstallation = !string.IsNullOrEmpty(prevSettings?.ModListLocation.ToString()) &&
+                                             prevSettings!.ModListLocation.FileName == path.FileName;
+
+            if (!hasPrevModListInstallation)
+            {
+                // Wabbajack combined this with path before 4.0, now only file name is considered
+                hex = (await WabbajackFileLocation.TargetPath.ToString().Hash()).ToHex();
+                prevSettings = await _settingsManager.Load<SavedInstallSettings>(InstallSettingsPrefix + hex);
+                hasPrevModListInstallation = !string.IsNullOrEmpty(prevSettings?.ModListLocation.ToString()) &&
+                                             prevSettings!.ModListLocation.FileName == path.FileName;
+            }
+
+            if (path.WithExtension(Ext.MetaData).FileExists())
+            {
+                try
+                {
+                    metadata = JsonSerializer.Deserialize<ModlistMetadata>(await path.WithExtension(Ext.MetaData)
+                        .ReadAllTextAsync());
+                    ModlistMetadata = metadata!;
+                    if (!hasPrevModListInstallation)
+                    {
+                        SuggestedInstallFolder = GetSuggestedInstallFolder(metadata!);
+                        SuggestedDownloadFolder = SuggestedInstallFolder + "\\downloads";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInformation(ex, "Can't load metadata next to file");
+                }
+            }
+            else
+            {
+                _logger.LogDebug("Modlist metadata not loaded, possibly using local install without metadata file");
+            }
+
+            if (hasPrevModListInstallation)
+            {
+                Installer.Location.TargetPath = prevSettings!.InstallLocation;
+                Installer.DownloadLocation.TargetPath = prevSettings.DownloadLocation;
+            }
+
+            ll.Succeed();
+            await _settingsManager.Save(LastLoadedModlist, path);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "While loading modlist");
+            ll.Fail();
+            ProgressText = "Failed to load modlist";
+        }
+    }
+
+    /// <summary>
+    ///     Install from the folder page opens the preflight page. The runner gets everything the installer
+    ///     will, and the installer only starts once every check is satisfied.
+    /// </summary>
+    private async Task BeginPreflight()
+    {
+        DisposePreflight();
+
+        ConfigurationText = "Preparation";
+        ProgressText = "Preflight";
+        ProgressPercent = Percent.Zero;
+        CurrentStep = Step.Busy;
+        InstallState = InstallState.Preflight;
+        ProgressState = ProgressState.Normal;
+
+        try
+        {
+            var postfix = (await WabbajackFileLocation.TargetPath.FileName.ToString().Hash()).ToHex();
+            await _settingsManager.Save(InstallSettingsPrefix + postfix, new SavedInstallSettings
+            {
+                ModListLocation = WabbajackFileLocation.TargetPath,
+                InstallLocation = Installer.Location.TargetPath,
+                DownloadLocation = Installer.DownloadLocation.TargetPath,
+                Metadata = ModlistMetadata
+            });
+            await _settingsManager.Save(LastLoadedModlist, WabbajackFileLocation.TargetPath);
+
+            // Always reload the modlist, incase of retrying , so it gets fresh directives and archives
+            var freshModList = await StandardInstaller.LoadFromFile(_dtos, WabbajackFileLocation.TargetPath);
+
+            var canSource = GameRegistry.Games[freshModList.GameType].CanSourceFrom ?? Array.Empty<Game>();
+            var namedgames = freshModList.OtherGames;
+            var validgames = new List<Game>();
+            foreach (var g in namedgames)
+            {
+                if (canSource.Contains(g) && GameRegistry.Games.ContainsKey(g))
+                    validgames.Add(g);
+            }
+
+            var cfg = new InstallerConfiguration
+            {
+                Game = ModList.GameType,
+                OtherGames = validgames.ToArray(),
+                Downloads = Installer.DownloadLocation.TargetPath,
+                Install = Installer.Location.TargetPath,
+                ModList = freshModList,
+                ModlistArchive = WabbajackFileLocation.TargetPath,
+                // Screen size and video memory, for the MO2 and ENB settings the installer writes.
+                SystemParameters = OperatingSystem.IsWindows() ? _parametersConstructor.Create() : new SystemParameters(),
+                // A game that cannot be found is the game-installed check's finding, not an exception here.
+                GameFolder = _gameLocator.TryFindLocation(freshModList.GameType, out var gameFolder) ? gameFolder : default,
+                Metadata = ModlistMetadata
+            };
+
+            var runner = PreflightRunner.Create(_serviceProvider, cfg);
+            var preflight = new PreflightVM(runner, _nexusLoginManager, this, _logger, _serviceProvider,
+                this.WhenAnyValue(x => x.DownloadingSpeed), this.WhenAnyValue(x => x.HashingThroughput),
+                OpenReadmeCommand, OpenWebsiteCommand,
+                OpenCommunityCommand, OpenManifestCommand);
+            preflight.InstallCommand
+                .Subscribe(_ => RunInstaller(cfg).FireAndForget())
+                .DisposeWith(preflight.CompositeDisposable);
+            preflight.BackCommand
+                .Subscribe(_ => CancelPreflight())
+                .DisposeWith(preflight.CompositeDisposable);
+
+            Preflight = preflight;
+            preflight.Start();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "While preparing to install {Modlist}", ModList.Name);
+            InstallState = InstallState.Failure;
+            ProgressText = $"Error during installation of {ModList.Name}";
+            ProgressPercent = Percent.Zero;
+            ProgressState = ProgressState.Error;
+            InstallResult = Wabbajack.Installer.InstallResult.Errored;
+            LaunchDiagnostics();
+        }
+    }
+
+    /// <summary>Back from the preflight page. The pickers were never touched, so it is the edit-details path.</summary>
+    private void CancelPreflight()
+    {
+        DisposePreflight();
+        EditInstallDetailsCommand.Execute(null);
+    }
+
+    private void DisposePreflight()
+    {
+        var preflight = Preflight;
+        if (preflight == null) return;
+        Preflight = null;
+        preflight.Dispose();
+    }
+
+    /// <summary>
+    ///     Stops a preflight in progress so the application can shut down. The state stays at Preflight until
+    ///     the watcher has stopped or the wait runs out, so a caller watching for the install to end gives a
+    ///     copy in progress time to unwind instead of leaving a partial file behind. The state is cleared from
+    ///     whatever thread finishes the wait: the caller is blocking this one, so nothing posted to it would
+    ///     ever run.
+    /// </summary>
+    public void CancelPreflightForShutdown()
+    {
+        if (InstallState != InstallState.Preflight) return;
+
+        var preflight = Preflight;
+        Preflight = null;
+
+        // Preflight is cleared before the handoff into the installer awaits its shutdown, so a window
+        // closing in that moment finds nothing here and has to wait on that shutdown instead.
+        var stopping = preflight?.StopWatcherAsync() ?? _preflightShutdown;
+        if (stopping == null || stopping.IsCompleted)
+        {
+            InstallState = InstallState.Configuration;
+            return;
+        }
+
+        stopping
+            .WaitAsync(PreflightShutdownTimeout)
+            .ContinueWith(_ => InstallState = InstallState.Configuration, TaskScheduler.Default);
+    }
+
+    private async Task RunInstaller(InstallerConfiguration cfg)
+    {
+        // The watcher must be done moving files before the installer hashes the downloads folder.
+        var preflight = Preflight;
+        if (preflight != null)
+        {
+            Preflight = null;
+            _preflightShutdown = preflight.ShutdownAsync();
+            await _preflightShutdown;
+        }
+
+        await Task.Run(async () =>
+        {
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                ConfigurationText = "Preparation";
+                ProgressText = $"Installing {ModList.Name}";
+                CurrentStep = Step.Busy;
+                InstallState = InstallState.Installing;
+                ProgressState = ProgressState.Normal;
+            });
+
+            try
+            {
+                StandardInstaller = StandardInstaller.Create(_serviceProvider, cfg);
+
+                StandardInstaller.OnStatusUpdate = update =>
+                {
+                    RxApp.MainThreadScheduler.Schedule(() =>
+                    {
+                        ProgressText = update.StatusText;
+                        ProgressPercent = update.StepsProgress;
+                    });
+                };
+
+                StandardInstaller.OnConfirmAction = async (title, message) =>
+                {
+                    var tcs = new TaskCompletionSource<bool>();
+                    RxApp.MainThreadScheduler.Schedule(async () =>
+                    {
+                        var mainWindowVM = _serviceProvider.GetRequiredService<MainWindowVM>();
+                        var result = await mainWindowVM.ShowConfirmationDialog(title, message);
+                        tcs.TrySetResult(result);
+                    });
+                    return await tcs.Task;
+                };
+
+                _logger.LogInformation("Starting installation of {modlist} {version}:", cfg.ModList.Name, cfg.ModList.Version?.ToString() ?? "");
+                _logger.LogInformation("    Installation folder: {installFolder}", cfg.Install.ToString());
+                _logger.LogInformation("    Downloads folder: {downloadsFolder}", cfg.Downloads.ToString());
+                _logger.LogInformation("    Modlist file location: {wjFileLocation}", cfg.ModlistArchive.ToString());
+                _logger.LogInformation("    Game: {game}", cfg.Game.ToString());
+                _logger.LogInformation("    Game folder: {gameFolder}", cfg.GameFolder);
+                _logger.LogInformation("    Other games that can be sourced from: {otherGames}", string.Join(", ", cfg.OtherGames.Select(g => g.ToString())));
+
+                InstallResult result;
+                using (_cancellationTokenSource = new CancellationTokenSource())
+                {
+                    result = await StandardInstaller.Begin(_cancellationTokenSource.Token);
+                }
+
+                if (result == Wabbajack.Installer.InstallResult.Succeeded)
+                {
+                    RxApp.MainThreadScheduler.Schedule(() =>
+                    {
+                        InstallResult = result;
+                        ProgressText = $"Finished installing {ModList.Name}";
+                        InstallState = InstallState.Success;
+                    });
+                }
+                else
+                {
+                    RxApp.MainThreadScheduler.Schedule(() =>
+                    {
+                        InstallResult = result;
+                        InstallState = InstallState.Failure;
+                        ProgressText = $"Error during installation of {ModList.Name}";
+                        ProgressPercent = Percent.Zero;
+                        ProgressState = ProgressState.Error;
+                        LaunchDiagnostics();
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                RxApp.MainThreadScheduler.Schedule(() =>
+                {
+                    InstallState = InstallState.Failure;
+                    ProgressText = $"Error during installation of {ModList.Name}";
+                    ProgressPercent = Percent.Zero;
+                    ProgressState = ProgressState.Error;
+                    InstallResult = Wabbajack.Installer.InstallResult.Errored;
+                    LaunchDiagnostics();
+                });
+            }
+        });
+    }
+
+    private class SavedInstallSettings
+    {
+        public AbsolutePath ModListLocation { get; set; }
+        public AbsolutePath InstallLocation { get; set; }
+        public AbsolutePath DownloadLocation { get; set; }
+
+        public ModlistMetadata Metadata { get; set; }
+    }
+
+    private async Task PopulateNextModSlide(ModList modList)
+    {
+        try
+        {
+            var mods = modList.Archives.Select(a => a.State)
+                .OfType<IMetaState>()
+                .Where(t => ShowNSFWSlides || !t.IsNSFW)
+                .Where(t => t.ImageURL != null)
+                .ToArray();
+            var thisMod = mods[_random.Next(0, mods.Length)];
+            var data = await _client.GetByteArrayAsync(thisMod.ImageURL!);
+            var image = new Bitmap(new MemoryStream(data));
+            SlideShowTitle = thisMod.Name;
+            SlideShowAuthor = thisMod.Author;
+            SlideShowDescription = thisMod.Description;
+            SlideShowImage = image;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogTrace(ex, "While loading slide");
+        }
+    }
+}

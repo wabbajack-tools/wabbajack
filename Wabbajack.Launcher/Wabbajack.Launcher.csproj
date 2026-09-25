@@ -12,6 +12,38 @@
     <PropertyGroup>
         <NoWarn>CS8600,CS8601,CS8618,CS8604,CS1998</NoWarn>
     </PropertyGroup>
+
+    <!--
+        The launcher is what people download, so it is kept small: bundled, compressed, English resources only,
+        and trimmed (121MB as it was, 32MB like this). TrimMode partial trims only the framework and libraries
+        that declare themselves trimmable, so Wabbajack's own assemblies, and the types they serialize, are
+        left whole. The trimmer turns reflection-based System.Text.Json off by default, and the launcher reads
+        both the Nexus and the GitHub release lists that way; with it off, every update check failed and the
+        launcher quietly started whatever it already had, so it is turned back on. Only under dotnet publish.
+    -->
+    <PropertyGroup Condition=" '$(_IsPublishing)' == 'true' ">
+        <PublishSingleFile>true</PublishSingleFile>
+        <SelfContained>true</SelfContained>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TrimMode>partial</TrimMode>
+        <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+        <!-- The trimmer's warnings are about reflection it cannot follow; the update path is what was tested. -->
+        <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    </PropertyGroup>
+
+    <!--
+        7-Zip, innoextract and texconv come in with the shared libraries, but the launcher never runs them: it
+        reads the release zip itself. Left in, they are packed into the exe or sit loose beside it.
+    -->
+    <Target Name="DropExternalTools" AfterTargets="ComputeResolvedFilesToPublishList">
+        <ItemGroup>
+            <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                                   Condition="$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').StartsWith('Extractors')) Or $([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').StartsWith('Tools'))" />
+        </ItemGroup>
+    </Target>
     
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" />

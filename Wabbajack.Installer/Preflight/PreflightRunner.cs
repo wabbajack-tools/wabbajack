@@ -380,6 +380,8 @@ public sealed class PreflightRunner
                 Actions = Array.Empty<PreflightAction>(),
                 Progress = Percent.Zero,
                 ProgressText = null,
+                ProgressCurrent = 0,
+                ProgressTotal = 0,
                 Acknowledged = false
             };
             entry.LastProgressEmit = 0;
@@ -504,7 +506,10 @@ public sealed class PreflightRunner
         lock (_sync)
         {
             if (entry.Status.State != PreflightState.Running) return;
-            entry.Status = entry.Status with {Progress = percent, ProgressText = text};
+            entry.Status = entry.Status with
+            {
+                Progress = percent, ProgressText = text, ProgressCurrent = current, ProgressTotal = total
+            };
             var now = Environment.TickCount64;
             if (now - entry.LastProgressEmit < ProgressThrottleMs) return;
             entry.LastProgressEmit = now;

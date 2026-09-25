@@ -1,0 +1,102 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          xmlns:pvm="using:Wabbajack.App.Avalonia.ViewModels.Installers.Preflight"
+                          x:Class="Wabbajack.App.Avalonia.Views.Installers.Preflight.ManualDownloadView"
+                          x:TypeArguments="pvm:ManualDownloadsVM"
+                          x:DataType="pvm:ManualDownloadsVM">
+    <UserControl.Styles>
+        <StyleInclude Source="avares://Wabbajack/Views/Installers/Preflight/ArchiveRowResources.axaml" />
+        <!-- StepText. An explicit style in WPF, but one that sets 13px itself. -->
+        <Style Selector="TextBlock.step">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,0,0,3" />
+        </Style>
+        <!--
+            Transparent66ForegroundBrush on the card. WPF blends translucent text in gamma space; #CA is the plain
+            blend that lands on its colour over the card's resting fill.
+        -->
+        <Style Selector="TextBlock.dim">
+            <Setter Property="Foreground" Value="#CAE5E5E8" />
+        </Style>
+    </UserControl.Styles>
+
+    <!--
+        The guided walk through the manual downloads: one card for the file to fetch next, and the whole queue
+        under it when "Show all" is open. The card scrolls inside its row rather than clipping on a window
+        shorter than the supported minimum; the list keeps its own scrolling.
+    -->
+    <Grid x:Name="RootGrid" RowDefinitions="*,0">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <c:AttentionBorder x:Name="Card" ClipToBounds="True" VerticalAlignment="Top">
+                <Grid Margin="16,10,16,10" RowDefinitions="Auto,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <TextBlock x:Name="HeaderText" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        <TextBlock x:Name="SizeText" Grid.Column="1" FontSize="12" Foreground="{StaticResource ComplementaryWhite25Brush}"
+                                   VerticalAlignment="Center" Margin="12,0,0,0" />
+                    </Grid>
+
+                    <Grid x:Name="CardBody" Grid.Row="1" Margin="0,8,0,0" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock x:Name="FileNameText" Grid.Row="0" FontSize="14" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,8">
+                            <TextBlock Classes="dim" Text="from" FontSize="12" VerticalAlignment="Center" />
+                            <Border CornerRadius="4" Background="{StaticResource ComplementaryPrimary16Brush}" Padding="6,2"
+                                    Margin="8,0,0,0" VerticalAlignment="Center">
+                                <TextBlock x:Name="SiteNameText" FontSize="11" Foreground="{StaticResource ForegroundBrush}" />
+                            </Border>
+                            <TextBlock x:Name="InstructionsText" Classes="dim" FontSize="12" VerticalAlignment="Center"
+                                       Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+
+                        <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="step" Text="Start the download in your browser; the file is picked up here automatically." />
+                            <c:WJButton x:Name="OpenPageButton" Grid.Column="1" ButtonStyle="Color" Text="Open page" Icon="Open"
+                                        IconSize="16" Width="150" Height="32" VerticalAlignment="Top" Margin="16,0,0,0" />
+                        </Grid>
+
+                        <Grid Grid.Row="3" Margin="0,6,0,0" ColumnDefinitions="Auto,*">
+                            <Grid Width="18" Height="18" VerticalAlignment="Top" Margin="0,1,0,0">
+                                <c:ProgressRing x:Name="WatchRing" Width="18" Height="18" Foreground="{StaticResource PrimaryBrush}" IsActive="True" />
+                                <ic:SymbolIcon x:Name="WatchIcon" FontSize="18" IconVariant="Filled" Symbol="CheckmarkCircle"
+                                               Foreground="{StaticResource SuccessBrush}" IsVisible="False" />
+                            </Grid>
+                            <TextBlock x:Name="WatchStatusText" Grid.Column="1" FontSize="13" Margin="10,0,0,0"
+                                       VerticalAlignment="Center" TextWrapping="Wrap" />
+                        </Grid>
+
+                        <TextBlock x:Name="NoticeText" Grid.Row="4" Classes="dim" FontSize="12" Margin="28,4,0,0"
+                                   TextWrapping="Wrap" IsVisible="False" />
+
+                        <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="28,4,0,0">
+                            <TextBlock x:Name="WatchFolderText" FontSize="12" Foreground="{StaticResource ComplementaryWhite25Brush}"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="360" />
+                            <c:WJButton x:Name="ChangeFolderButton" ButtonStyle="Transparent" Text="Change folder" Icon="FolderOpen"
+                                        IconSize="14" Width="140" Height="24" Margin="4,0,0,0" />
+                        </StackPanel>
+
+                        <Grid Grid.Row="6" Margin="0,10,0,0" ColumnDefinitions="*,Auto,Auto,Auto">
+                            <c:WJButton x:Name="RetryButton" Grid.Column="1" ButtonStyle="Mono" Text="Try again" Icon="ArrowCounterclockwise"
+                                        IconSize="16" Width="130" Height="32" Margin="0,0,8,0" IsVisible="False" />
+                            <c:WJButton x:Name="SkipButton" Grid.Column="2" ButtonStyle="Mono" Text="Skip for now" Icon="ArrowForward"
+                                        IconSize="16" Width="150" Height="32" Margin="0,0,8,0" />
+                            <c:WJButton x:Name="PickFileButton" Grid.Column="3" ButtonStyle="Mono" Text="I downloaded it elsewhere"
+                                        Icon="DocumentSearch" IconSize="16" Width="230" Height="32" />
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </c:AttentionBorder>
+        </ScrollViewer>
+
+        <!-- The whole queue, masked to a rounded rectangle inside a -1 margin as in WPF. -->
+        <Border x:Name="ListBorder" Grid.Row="1" Margin="0,8,0,0" IsVisible="False">
+            <Border Margin="-1" CornerRadius="8" ClipToBounds="True" RenderOptions.TextRenderingMode="Antialias">
+                <ListBox x:Name="RowsList" Classes="archives" ItemTemplate="{StaticResource ArchiveRowTemplate}" />
+            </Border>
+        </Border>
+    </Grid>
+</rxui:ReactiveUserControl>

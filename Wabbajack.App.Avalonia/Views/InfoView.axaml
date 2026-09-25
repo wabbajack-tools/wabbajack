@@ -1,0 +1,27 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels"
+                          x:Class="Wabbajack.App.Avalonia.Views.InfoView"
+                          x:TypeArguments="vm:InfoVM"
+                          x:DataType="vm:InfoVM">
+    <!-- A heading, the message centred under it, and a Back button in the bottom-left corner. -->
+    <Grid RowDefinitions="*,6*,*" ColumnDefinitions="*,3*,*">
+        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+            <ic:SymbolIcon Symbol="Info" FontSize="36" IconVariant="Filled" HorizontalAlignment="Center"
+                           VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBlock Text="Info" FontSize="36" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"
+                       Margin="8,0,0,0" />
+        </StackPanel>
+        <TextBlock Text="{Binding Info}" FontSize="24" Grid.Column="1" Grid.Row="1" TextWrapping="Wrap" TextAlignment="Center" />
+        <!-- A plain Button in WJButtonStyle, so sized to its content rather than a WJButton's 200x38. -->
+        <Button Grid.Column="0" Grid.Row="2" x:Name="PrevButton" Classes="wj" ToolTip.Tip="Back to previous pane"
+                HorizontalAlignment="Left" Margin="0,16,0,0">
+            <StackPanel>
+                <ic:SymbolIcon Symbol="ChevronLeft" FontSize="28" />
+                <TextBlock Text="Back" />
+            </StackPanel>
+        </Button>
+    </Grid>
+</rxui:ReactiveUserControl>

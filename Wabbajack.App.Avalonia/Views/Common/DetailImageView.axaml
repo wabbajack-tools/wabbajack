@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Wabbajack.App.Avalonia.Views.Common.DetailImageView"
+             ClipToBounds="True">
+    <!--
+        A modlist's image, darkened towards the bottom, with its title and "version X by Y" over it. WPF rounded
+        the corners with an opacity mask over a white 8px-radius border; a clipping border in front of the same
+        white fill gives the same edge, including the faint light fringe the white leaves in the anti-aliasing.
+        WPF's ComplementaryPrimary08 rectangle under the image is left out: the black one on top of it always
+        covered it completely.
+    -->
+    <Border CornerRadius="8" Background="White" ClipToBounds="True">
+        <Grid RowDefinitions="Auto,*,Auto,Auto">
+            <Rectangle Grid.RowSpan="4" Fill="Black" />
+            <!-- The mask is relative to the whole image, not the part the Viewbox leaves in view, so the image
+                 stays inside a Viewbox rather than filling itself. -->
+            <Viewbox Grid.RowSpan="4" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="UniformToFill">
+                <Image x:Name="ModlistImage" IsVisible="False">
+                    <Image.OpacityMask>
+                        <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
+                            <GradientStop Offset="0.5" Color="Black" />
+                            <GradientStop Offset="1.0" Color="Transparent" />
+                        </LinearGradientBrush>
+                    </Image.OpacityMask>
+                </Image>
+            </Viewbox>
+            <TextBlock x:Name="TitleTextBlock" Grid.Row="2" Margin="16,0,0,0"
+                       HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                       FontWeight="Bold" TextWrapping="WrapWithOverflow" IsVisible="False" />
+            <StackPanel Grid.Row="3" Margin="16,0,0,16" Orientation="Horizontal">
+                <StackPanel.Styles>
+                    <Style Selector="TextBlock">
+                        <Setter Property="Margin" Value="0,0,8,0" />
+                    </Style>
+                </StackPanel.Styles>
+                <TextBlock x:Name="VersionPrefixText" Text="version" Foreground="{StaticResource Transparent66ForegroundBrush}" IsVisible="False" />
+                <TextBlock x:Name="VersionText" IsVisible="False" />
+                <TextBlock x:Name="AuthorPrefixText" Text="by" Foreground="{StaticResource Transparent66ForegroundBrush}" IsVisible="False" />
+                <TextBlock x:Name="AuthorText" IsVisible="False" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

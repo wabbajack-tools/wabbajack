@@ -1,0 +1,69 @@
+<!--
+    Styles for the shared controls the installer and compiler screens use (Views/Common), and the toggle
+    buttons those screens put in a ToggleButtonContainer.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:common="using:Wabbajack.App.Avalonia.Views.Common">
+
+    <!-- MainFilePickerStyle. The UserControl draws this background square-cornered across its whole box. -->
+    <Style Selector="common|FilePicker">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+    </Style>
+
+    <!-- ToggleButtonContainer: the dark rounded strip the toggle buttons sit in. -->
+    <Style Selector="Border.toggleContainer">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="Background" Value="{StaticResource ToggleButtonBackground}" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
+    <!--
+        The implicit WPF ToggleButton style, kept to toggle buttons in a container so it does not reach the
+        ones inside Fluent's own templates. What it left unset came from the system (Aero2) style: 1px of
+        padding and a 1px border, here transparent. WPF's string content went through the app's TextBlock
+        style, so 13px. Its template triggers ran hover, then disabled, then checked, so checked wins; the
+        states below are declared in that order for the same result. No hand cursor.
+    -->
+    <Style Selector="Border.toggleContainer ToggleButton">
+        <Setter Property="Background" Value="{StaticResource ToggleButtonBackground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ToggleButtonBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+        <Setter Property="Padding" Value="1" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="4">
+                    <ContentPresenter Name="Presenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Border.toggleContainer ToggleButton:pointerover">
+        <Setter Property="Background" Value="{StaticResource MouseOverToggleButtonBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource MouseOverToggleButtonForeground}" />
+    </Style>
+    <Style Selector="Border.toggleContainer ToggleButton:disabled">
+        <Setter Property="Background" Value="{StaticResource DisabledToggleButtonBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource DisabledToggleButtonForeground}" />
+    </Style>
+    <Style Selector="Border.toggleContainer ToggleButton:checked">
+        <Setter Property="Background" Value="{StaticResource PressedToggleButtonBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource PressedToggleButtonForeground}" />
+    </Style>
+</Styles>

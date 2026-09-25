@@ -1,0 +1,26 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Settings"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          x:Class="Wabbajack.App.Avalonia.Views.Settings.LoginItemView"
+                          x:TypeArguments="vm:LoginTargetVM"
+                          x:DataType="vm:LoginTargetVM">
+    <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+        <!--
+            A site with no logo among this app's resources draws a glyph instead. Approximating somebody
+            else's mark by hand is worse than not drawing it.
+        -->
+        <Grid Grid.Column="0" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+            <Image Height="24" Source="{Binding Login.Icon}" IsVisible="{Binding Login.Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <ic:SymbolIcon Symbol="Games" FontSize="22" IconVariant="Filled"
+                           Foreground="{StaticResource Transparent66ForegroundBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           IsVisible="{Binding Login.Icon, Converter={x:Static ObjectConverters.IsNull}}" />
+        </Grid>
+        <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0" Text="{Binding Login.SiteName}" />
+        <c:WJButton x:Name="LoginButton" Grid.Column="3" Text="Login" Icon="PersonArrowRight"
+                    Command="{Binding Login.ToggleLogin}" />
+    </Grid>
+</rxui:ReactiveUserControl>
