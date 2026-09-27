@@ -1,0 +1,21 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Common"
+                          xmlns:common="using:Wabbajack.App.Avalonia.Views.Common"
+                          x:Class="Wabbajack.App.Avalonia.Views.Common.CpuView"
+                          x:TypeArguments="vm:ICpuStatusVM"
+                          x:DataType="vm:ICpuStatusVM">
+    <!-- The running jobs, one CpuLineView each, 8px apart, scrolling when they outgrow the space. -->
+    <Grid Background="Transparent">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="CpuListControl" Background="Transparent">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CPUDisplayVM">
+                        <common:CpuLineView Margin="0,0,0,8" ViewModel="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</rxui:ReactiveUserControl>

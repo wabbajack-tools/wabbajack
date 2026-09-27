@@ -1,0 +1,216 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels"
+        xmlns:v="using:Wabbajack.App.Avalonia.Views"
+        xmlns:settings="using:Wabbajack.App.Avalonia.ViewModels.Settings"
+        xmlns:sv="using:Wabbajack.App.Avalonia.Views.Settings"
+        xmlns:compiler="using:Wabbajack.App.Avalonia.ViewModels.Compiler"
+        xmlns:gallery="using:Wabbajack.App.Avalonia.ViewModels.Gallery"
+        xmlns:gv="using:Wabbajack.App.Avalonia.Views.Gallery"
+        xmlns:cv="using:Wabbajack.App.Avalonia.Views.Compiler"
+        xmlns:installers="using:Wabbajack.App.Avalonia.ViewModels.Installers"
+        xmlns:iv="using:Wabbajack.App.Avalonia.Views.Installers"
+        xmlns:svc="using:Wabbajack.App.Avalonia.Services"
+        xmlns:conv="using:Wabbajack.App.Avalonia.Converters"
+        xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+        xmlns:ic="using:FluentIcons.Avalonia"
+        x:Class="Wabbajack.App.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowVM"
+        Title="{Binding WindowTitle}"
+        Icon="avares://Wabbajack/Assets/wabbajack.ico"
+        Width="1427" Height="688" MinWidth="1086" MinHeight="493"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        Background="{StaticResource WindowBackgroundBrush}"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
+    <!--
+        The WPF window let MahApps draw the chrome and then hid every part of it. Here the OS title bar
+        is switched off outright and the window draws its own, as it did: logo and name on the left, Get
+        Help, then minimise / maximise / close. Pressing the bar drags the window (code-behind).
+
+        A maximised window is sized past the screen edge by the resize border it no longer draws;
+        OffScreenMargin is that overhang, and is zero otherwise.
+
+        The WPF window asked for 1441x695 (minimum 1100x500), but those sizes included Windows' invisible
+        7px resize frame on the left, right and bottom, which this window does not have. What WPF put on
+        screen was 1427x688, so that is the size asked for here, and the minimums are cut by the same frame.
+    -->
+    <!-- MahApps drew a 1px window border in the background colour, which insets everything by a pixel. -->
+    <Border Margin="{Binding $parent[Window].OffScreenMargin}"
+            BorderThickness="1" BorderBrush="{StaticResource WindowBackgroundBrush}">
+        <Grid RowDefinitions="54,*">
+            <Grid x:Name="TitleBar" Grid.Row="0" Background="{StaticResource BackgroundBrush}"
+                  ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto">
+                <Image Grid.Column="0" Width="18" Height="18" Margin="16,0,8,0"
+                       Source="{StaticResource WabbajackLegacyLogo}" />
+                <TextBlock Grid.Column="1" FontSize="13" VerticalAlignment="Center" Text="{Binding WindowTitle}" />
+
+                <!--
+                    WizardSteps: a screen that reports progress (the installer) puts two boxes in the middle of the
+                    title bar, its configuration text and its progress, each a bar filled as far as it has got.
+                    The wide one is 500px and left-aligned; which that is follows the screen's step (code-behind).
+                    WPF masked each inside a -1 margin, so each draws a pixel past its box, with greyscale text.
+                -->
+                <DockPanel x:Name="WizardSteps" Grid.Column="0" Grid.ColumnSpan="7" HorizontalAlignment="Center"
+                           Margin="0,10,0,10" IsVisible="False" RenderOptions.TextRenderingMode="Antialias">
+                    <Border Margin="12,1,0,1">
+                        <Grid Margin="-1">
+                            <Border CornerRadius="8" ClipToBounds="True" Background="{StaticResource ComplementaryBackgroundBrush}">
+                                <Grid>
+                                    <c:MetroProgressBar x:Name="WizardConfiguration" Background="Transparent"
+                                                 Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" Value="1" />
+                                    <TextBlock x:Name="ConfigurationText" Padding="12,0,12,0" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <Border Margin="12,1,0,1">
+                        <Grid Margin="-1">
+                            <Border CornerRadius="8" ClipToBounds="True" Background="{StaticResource ComplementaryBackgroundBrush}">
+                                <Grid>
+                                    <c:MetroProgressBar x:Name="WizardProgress" Background="Transparent"
+                                                 Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" />
+                                    <TextBlock x:Name="ProgressText" Padding="12,0,12,0" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="ProgressPercentage" Padding="0,0,12,0" VerticalAlignment="Center"
+                                               HorizontalAlignment="Right" Opacity="0" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </DockPanel>
+
+                <!-- Each shows only on a screen that offers it, as in WPF. -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                    <Button Classes="main lessRounded" Margin="0,10,12,10" Padding="12,0"
+                            Background="{StaticResource BackgroundPrimary08Brush}"
+                            IsVisible="{Binding ShowLoadLocalFile}"
+                            AutomationProperties.AutomationId="LoadLocalFileButton" AutomationProperties.Name="Install from disk"
+                            Command="{Binding LoadLocalFileCommand}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock FontSize="13" Text="Install from disk" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <ic:SymbolIcon FontSize="18" Symbol="ArrowUpload" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="main lessRounded" Margin="0,10,12,10" Padding="12,0"
+                            Background="{StaticResource BackgroundPrimary08Brush}"
+                            IsVisible="{Binding ShowGetHelp}"
+                            AutomationProperties.AutomationId="GetHelpButton" AutomationProperties.Name="Get Help"
+                            Command="{Binding GetHelpCommand}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock FontSize="13" Text="Get Help" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <ic:SymbolIcon FontSize="18" Symbol="QuestionCircle" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                <Button Grid.Column="4" Classes="bare" AutomationProperties.AutomationId="MinimizeButton" AutomationProperties.Name="Minimize"
+                        Click="Minimize_Click">
+                    <ic:SymbolIcon Symbol="Subtract" FontSize="18" />
+                </Button>
+                <Button Grid.Column="5" Classes="bare" AutomationProperties.AutomationId="MaximizeButton" AutomationProperties.Name="Maximize"
+                        Click="Maximize_Click">
+                    <ic:SymbolIcon Symbol="Maximize" FontSize="18" />
+                </Button>
+                <Button Grid.Column="6" Classes="bare" AutomationProperties.AutomationId="CloseButton" AutomationProperties.Name="Close"
+                        Click="Close_Click">
+                    <ic:SymbolIcon Symbol="Dismiss" FontSize="18" />
+                </Button>
+            </Grid>
+
+            <Grid x:Name="MainArea" Grid.Row="1" ColumnDefinitions="115,*">
+                <!-- The nav rail. -->
+                <Grid x:Name="NavRail" Grid.Column="0" RowDefinitions="Auto,8,Auto,8,Auto,*,Auto,Auto">
+                    <Button Grid.Row="0" Classes="main nav"
+                            Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.Home}}"
+                            AutomationProperties.AutomationId="HomeButton" AutomationProperties.Name="Home"
+                            Command="{Binding NavigateCommand}" CommandParameter="{x:Static svc:ScreenType.Home}">
+                        <v:NavItem Symbol="Home" Text="Home" />
+                    </Button>
+                    <Button Grid.Row="2" Classes="main nav"
+                            Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.ModListGallery}}"
+                            AutomationProperties.AutomationId="BrowseButton" AutomationProperties.Name="Browse lists"
+                            Command="{Binding NavigateCommand}" CommandParameter="{x:Static svc:ScreenType.ModListGallery}">
+                        <v:NavItem Symbol="CloudArrowDown" Text="Browse lists" />
+                    </Button>
+                    <Button Grid.Row="4" Classes="main nav"
+                            Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.CompilerHome}}"
+                            AutomationProperties.AutomationId="CompileButton" AutomationProperties.Name="Create a list"
+                            Command="{Binding NavigateCommand}" CommandParameter="{x:Static svc:ScreenType.CompilerHome}">
+                        <v:NavItem Symbol="Toolbox" Text="Create a list" />
+                    </Button>
+                    <Button Grid.Row="6" Classes="main nav" Padding="12"
+                            Classes.active="{Binding ActiveScreen, Converter={x:Static conv:ScreenIsConverter.Instance}, ConverterParameter={x:Static svc:ScreenType.Settings}}"
+                            AutomationProperties.AutomationId="SettingsButton" AutomationProperties.Name="Settings"
+                            Command="{Binding NavigateCommand}" CommandParameter="{x:Static svc:ScreenType.Settings}">
+                        <v:NavItem Symbol="Settings" Text="Settings" />
+                    </Button>
+                    <TextBlock Grid.Row="7" FontSize="12" HorizontalAlignment="Center" Margin="0,10"
+                               Opacity="0.66" Text="{Binding Version}" />
+                </Grid>
+
+                <!-- The main pane, with the logo watermark tilted behind whatever screen is showing. -->
+                <Border Grid.Column="1" Background="{StaticResource ComplementaryBackgroundBrush}"
+                        CornerRadius="8" ClipToBounds="True">
+                    <Grid>
+                        <Image Source="{StaticResource WabbajackLogoBackground}" Stretch="Uniform"
+                               HorizontalAlignment="Right" IsHitTestVisible="False"
+                               RenderTransform="scale(1.7) rotate(15deg)" />
+                        <ContentControl Content="{Binding ActivePane}" Margin="16">
+                            <ContentControl.DataTemplates>
+                                <DataTemplate DataType="vm:HomeVM">
+                                    <v:HomeView />
+                                </DataTemplate>
+                                <DataTemplate DataType="gallery:ModListGalleryVM">
+                                    <gv:ModListGalleryView />
+                                </DataTemplate>
+                                <DataTemplate DataType="compiler:CompilerMainVM">
+                                    <cv:CompilerMainView />
+                                </DataTemplate>
+                                <DataTemplate DataType="vm:InfoVM">
+                                    <v:InfoView />
+                                </DataTemplate>
+                                <DataTemplate DataType="compiler:CompilerHomeVM">
+                                    <cv:CompilerHomeView />
+                                </DataTemplate>
+                                <DataTemplate DataType="settings:SettingsVM">
+                                    <sv:SettingsView />
+                                </DataTemplate>
+                                <DataTemplate DataType="installers:InstallationVM">
+                                    <iv:InstallationView />
+                                </DataTemplate>
+                            </ContentControl.DataTemplates>
+                        </ContentControl>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!--
+                Floating panes (the Steam login, later the modlist details and file upload) sit over the whole
+                window, title bar included, with what is behind dimmed. Pressing on the dimmed part drags the
+                window, and a quick click there closes the pane, as does Escape (code-behind).
+            -->
+            <Grid Grid.Row="0" Grid.RowSpan="2" ZIndex="2"
+                  IsVisible="{Binding ActiveFloatingPane, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Rectangle x:Name="FloatingWindowBackground" Fill="{StaticResource BackgroundBrush}" Opacity="0.75" />
+                <Border CornerRadius="8" Margin="32" Background="{StaticResource ComplementaryBackgroundBrush}">
+                    <ContentControl Content="{Binding ActiveFloatingPane}" Margin="16" VerticalAlignment="Stretch">
+                        <ContentControl.DataTemplates>
+                            <DataTemplate DataType="vm:ConfirmationDialogVM">
+                                <v:ConfirmationDialogView />
+                            </DataTemplate>
+                            <DataTemplate DataType="vm:SteamLoginVM">
+                                <v:SteamLoginView />
+                            </DataTemplate>
+                            <DataTemplate DataType="vm:FileUploadVM">
+                                <v:FileUploadView />
+                            </DataTemplate>
+                            <DataTemplate DataType="gallery:ModListDetailsVM">
+                                <gv:ModListDetailsView />
+                            </DataTemplate>
+                        </ContentControl.DataTemplates>
+                    </ContentControl>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

@@ -155,11 +155,16 @@ h1, h2, h3, h4 {{ margin: 8px 0; }}
     ///     than carrying a random name. Anything a file name cannot hold becomes a separator, and a title
     ///     made entirely of those still leaves something usable.
     /// </summary>
+    /// <summary>
+    ///     Windows' set, on every OS. <see cref="System.IO.Path.GetInvalidFileNameChars" /> is only '/' and NUL on
+    ///     Linux, which let "Possible issue: ..." keep its colon there, and AbsolutePath refuses a colon in a name.
+    /// </summary>
+    private static readonly char[] NotInFileNames = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
+
     public static string FileName(string title)
     {
-        var invalid = System.IO.Path.GetInvalidFileNameChars();
         var cleaned = new string((title ?? string.Empty)
-            .Select(c => invalid.Contains(c) || c == '.' ? ' ' : c)
+            .Select(c => NotInFileNames.Contains(c) || char.IsControl(c) || c == '.' ? ' ' : c)
             .ToArray());
 
         var parts = cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

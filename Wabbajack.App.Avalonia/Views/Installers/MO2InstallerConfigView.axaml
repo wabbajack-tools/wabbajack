@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:common="using:Wabbajack.App.Avalonia.Views.Common"
+             xmlns:ivm="using:Wabbajack.App.Avalonia.ViewModels.Installers"
+             x:Class="Wabbajack.App.Avalonia.Views.Installers.MO2InstallerConfigView"
+             x:DataType="ivm:MO2InstallerVM">
+    <!--
+        The two folder pickers as labelled rows. Ported with the rest of the installer views, although the
+        WPF app no longer places it anywhere: InstallationView lays the pickers out itself.
+    -->
+    <Grid RowDefinitions="40,40,20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="120" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                   FontSize="13" Text="Modlist Installation Location" TextAlignment="Center"
+                   ToolTip.Tip="The directory where the modlist will be installed" />
+        <common:FilePicker Grid.Row="0" Grid.Column="2" Height="30" VerticalAlignment="Center" FontSize="13"
+                           PickerVM="{Binding Location}"
+                           ToolTip.Tip="The directory where the modlist will be installed" />
+        <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                   FontSize="13" Text="Resource Download Location" TextAlignment="Center"
+                   ToolTip.Tip="The directory where modlist archives will be downloaded to" />
+        <common:FilePicker Grid.Row="1" Grid.Column="2" Height="30" VerticalAlignment="Center" FontSize="13"
+                           PickerVM="{Binding DownloadLocation}"
+                           ToolTip.Tip="The directory where modlist archives will be downloaded to" />
+    </Grid>
+</UserControl>

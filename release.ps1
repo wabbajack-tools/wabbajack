@@ -71,9 +71,11 @@ Invoke-Step "Building projects" {
         "/p:VERSION=$script:version"
     )
 
-    Write-Host "`nPublishing Wabbajack.App.Wpf..." -ForegroundColor Yellow
-    dotnet publish Wabbajack.App.Wpf\Wabbajack.App.Wpf.csproj @commonArgs -o "$publishDir\app"
-    Assert-ExitCode "dotnet publish Wabbajack.App.Wpf"
+    # The app is the Avalonia one, which targets plain net10.0; the launcher and CLI are still net10.0-windows.
+    $appArgs = @($commonArgs | Select-Object -Skip 2) + @("--framework", "net10.0")
+    Write-Host "`nPublishing Wabbajack.App.Avalonia..." -ForegroundColor Yellow
+    dotnet publish Wabbajack.App.Avalonia\Wabbajack.App.Avalonia.csproj @appArgs -o "$publishDir\app"
+    Assert-ExitCode "dotnet publish Wabbajack.App.Avalonia"
 
     Write-Host "`nPublishing Wabbajack.Launcher..." -ForegroundColor Yellow
     dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj @commonArgs -o "$publishDir\launcher" /p:PublishSingleFile=true

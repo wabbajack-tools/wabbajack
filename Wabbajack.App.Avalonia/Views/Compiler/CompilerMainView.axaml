@@ -1,0 +1,79 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:common="using:Wabbajack.App.Avalonia.Views.Common"
+                          xmlns:v="using:Wabbajack.App.Avalonia.Views.Compiler"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Compiler"
+                          x:Class="Wabbajack.App.Avalonia.Views.Compiler.CompilerMainView"
+                          x:TypeArguments="vm:CompilerMainVM"
+                          x:DataType="vm:CompilerMainVM">
+    <!--
+        The compiler screen. While configuring, the list's image and the details form are on the left and the
+        MO2 folder's file tree on the right; compiling swaps them for the CPU view and the log; a finished
+        compile shows the image across the screen with the publish buttons under it.
+
+        WPF hid most of these (Visibility.Hidden) rather than collapsing them, which keeps their room in the
+        layout: the Auto rows keep the height of buttons that are not showing. Avalonia has no Hidden, so the
+        code-behind fades those to nothing and disables them instead, which keeps them out of hit testing and
+        keyboard focus as well.
+    -->
+    <Grid>
+        <Grid x:Name="MainContent" RowDefinitions="Auto,*,Auto,Auto" ColumnDefinitions="*,1.4*">
+            <common:DetailImageView x:Name="DetailImage" TitleFontSize="40" AuthorFontSize="18" Margin="0,0,0,16" />
+            <v:CompilerDetailsView x:Name="CompilerDetailsView" Grid.Row="1" Grid.RowSpan="2" />
+
+            <v:CompilerFileManagerView x:Name="FileManager" Grid.Column="1" Grid.RowSpan="2" Margin="16,0,0,0" />
+            <DockPanel x:Name="ConfigurationButtons" Grid.Row="2" Grid.Column="1" Margin="0,16,0,0">
+                <c:WJButton x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List"
+                            Icon="Box" ButtonStyle="Color" AutomationProperties.AutomationId="StartButton" />
+            </DockPanel>
+
+            <Grid x:Name="CompilationButtons" Grid.Row="2" Grid.Column="1" Margin="0,16,0,0" HorizontalAlignment="Stretch"
+                  ColumnDefinitions="*,Auto,Auto,Auto">
+                <c:WJButton x:Name="CancelButton" Text="Cancel" Icon="DismissCircle" ButtonStyle="Danger" Grid.Column="1"
+                            Margin="16,0,0,0" HorizontalAlignment="Right" />
+                <c:WJButton Text="Open in File Explorer" Icon="Folder" IsEnabled="False" Grid.Column="2" Margin="16,0,0,0"
+                            HorizontalAlignment="Right" />
+                <c:WJButton Text="Publish Modlist" Icon="CloudArrowUp" IsEnabled="False" Grid.Column="3" Margin="16,0,0,0"
+                            HorizontalAlignment="Right" />
+            </Grid>
+
+            <common:CpuView x:Name="CpuView" Grid.Row="1" Grid.RowSpan="2" />
+            <common:LogView x:Name="LogView" Grid.Column="1" Grid.RowSpan="2" Margin="16,0,0,0"
+                            LoggerProvider="{Binding LoggerProvider}" />
+
+            <common:DetailImageView x:Name="CompiledImage" TitleFontSize="80" AuthorFontSize="36" Grid.ColumnSpan="2"
+                                    Grid.RowSpan="2" IsVisible="False" />
+
+            <Grid x:Name="CompletedButtons" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,16,0,0" HorizontalAlignment="Stretch"
+                  ColumnDefinitions="Auto,16,Auto,*,2*,16,3.5*,16,2.5*">
+                <c:WJButton x:Name="OpenLogButton" Text="Open Log" Icon="DocumentText" Grid.Column="0" HorizontalAlignment="Left" />
+
+                <c:WJButton x:Name="RefreshPreflightButton" Text="Refresh Checks" Icon="ArrowClockwise" Grid.Column="2"
+                            ButtonStyle="Danger" HorizontalAlignment="Left" IsVisible="False" />
+
+                <TextBlock x:Name="PreflightStatusText" Grid.Column="3" Margin="16,5,0,5" VerticalAlignment="Center"
+                           TextWrapping="Wrap" HorizontalAlignment="Left" />
+
+                <c:WJButton x:Name="OpenFolderButton" Text="Open in File Explorer" Icon="Folder" Grid.Column="4" MinWidth="220"
+                            HorizontalAlignment="Stretch" ButtonStyle="Color" />
+
+                <c:WJButton x:Name="PublishCollectionButton" MinWidth="320" Text="Publish Nexus Mods Collection (experimental)"
+                            Icon="CloudArrowUp" Grid.Column="6" ButtonStyle="Progress" />
+
+                <c:WJButton x:Name="PublishButton" Text="Publish Modlist" Icon="CloudArrowUp" MinWidth="220" Grid.Column="8"
+                            HorizontalAlignment="Stretch" ButtonStyle="Progress" />
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="BusyOverlay" IsVisible="False" Background="#80000000" ZIndex="9999">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="420">
+                <!-- MahApps' ProgressRing in its accent colour. -->
+                <c:ProgressRing Width="56" Height="56" IsActive="True" Foreground="#CCD8BAF8" />
+                <TextBlock x:Name="BusyOverlayText" Margin="0,16,0,0" TextAlignment="Center" FontSize="16"
+                           Foreground="White" TextWrapping="Wrap" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>

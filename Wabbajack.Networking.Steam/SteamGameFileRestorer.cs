@@ -127,8 +127,8 @@ public class SteamGameFileRestorer : IGameFileRestorer
             return await _content.CheckAccessAsync((uint) appId, (uint) appId, token) switch
             {
                 DepotAccess.Granted => new GameSourceResult(GameSourceOutcome.Available,
-                    $"Your Steam account owns {meta.HumanFriendlyGameName}, so the files this list needs from " +
-                    "it can be fetched from Steam's depots into your downloads folder."),
+                    $"Your Steam account owns {meta.HumanFriendlyGameName}, so Wabbajack can download its " +
+                    "files from Steam."),
 
                 DepotAccess.NotEntitled => new GameSourceResult(GameSourceOutcome.NotOwned,
                     $"The Steam account {_session.AccountName} holds no licence for " +

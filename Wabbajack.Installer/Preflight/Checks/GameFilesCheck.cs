@@ -181,7 +181,7 @@ public sealed class GameFilesCheck : IPreflightCheck
         var status = restorer.Status();
         detail.Add(string.Empty);
         detail.Add(status.Ready
-            ? $"{restorer.SourceName} can fetch {Plural.Of(repairable.Count, "file")} " +
+            ? $"Wabbajack can download {Plural.Of(repairable.Count, "file")} from {restorer.SourceName} " +
               "into your downloads folder, which is all the install needs. Your game install is never " +
               "written to, and the files can be deleted again afterwards."
             : status.Reason);

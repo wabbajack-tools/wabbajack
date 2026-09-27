@@ -1,0 +1,87 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Settings"
+                          xmlns:v="using:Wabbajack.App.Avalonia.Views.Settings"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          x:Class="Wabbajack.App.Avalonia.Views.Settings.SettingsView"
+                          x:TypeArguments="vm:SettingsVM"
+                          x:DataType="vm:SettingsVM">
+    <UserControl.Styles>
+        <!-- WPF's SettingsView gave every TextBlock under it 12px bold unless it said otherwise. -->
+        <Style Selector="TextBlock">
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="Border.settingsCard">
+            <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+        <Style Selector="TextBlock.cardHeading">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid RowDefinitions="Auto,16,*">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="345" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" MinWidth="220" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Logins -->
+            <Border Grid.Row="0" Grid.Column="0" Classes="settingsCard">
+                <Grid Margin="16" RowDefinitions="Auto,*">
+                    <TextBlock Classes="cardHeading" Margin="0,0,0,8" Text="Logins" />
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding LoginVM.Logins}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:LoginTargetVM">
+                                <v:LoginItemView Margin="0,0,0,8" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Border>
+
+            <!-- Performance -->
+            <v:PerformanceSettingsView Grid.Row="0" Grid.Column="2" DataContext="{Binding PerformanceVM}" />
+
+            <!-- Miscellaneous -->
+            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Classes="settingsCard">
+                <Grid Margin="16" RowDefinitions="Auto,16,*">
+                    <TextBlock Classes="cardHeading" Text="Miscellaneous" />
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <c:WJButton Icon="WindowConsole" Text="Launch Wabbajack CLI" Margin="0,0,16,0"
+                                    AutomationProperties.AutomationId="OpenTerminalButton"
+                                    Command="{Binding LaunchCLICommand}" />
+                        <c:WJButton Icon="ArrowReset" Text="Reset Wabbajack" ButtonStyle="Danger"
+                                    AutomationProperties.AutomationId="ResetButton"
+                                    Command="{Binding ResetCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- About -->
+            <v:AboutView Grid.Row="0" Grid.Column="4" DataContext="{Binding AboutVM}" />
+
+            <!-- Wabbajack CDN, for list authors only. -->
+            <Border Grid.Row="2" Grid.Column="4" Classes="settingsCard" IsVisible="{Binding IsAuthor}">
+                <Grid Margin="16" RowDefinitions="Auto,16,*">
+                    <TextBlock Classes="cardHeading" Text="Wabbajack CDN" />
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <c:WJButton Icon="DocumentMultiple" Text="Browse uploads" Margin="0,0,16,0"
+                                    AutomationProperties.AutomationId="BrowseUploadedFilesButton"
+                                    Command="{Binding BrowseUploadsCommand}" />
+                        <c:WJButton Icon="DocumentArrowUp" Text="Upload file"
+                                    AutomationProperties.AutomationId="OpenFileUploadButton"
+                                    Command="{Binding OpenFileUploadCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</rxui:ReactiveUserControl>

@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <!-- Plain net10.0, unlike the WPF app: nothing here needs the Windows desktop targeting pack,
+             and every library this references is net10.0 already. Whether the app actually runs
+             elsewhere is a separate question - GameLocator and the shell integration still assume
+             Windows - but the UI framework is no longer the thing stopping it. -->
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <AssemblyName>Wabbajack</AssemblyName>
+        <RootNamespace>Wabbajack.App.Avalonia</RootNamespace>
+        <!-- The exe's own icon, for Explorer, the taskbar and shortcuts; the window sets its icon separately. -->
+        <ApplicationIcon>Assets\wabbajack.ico</ApplicationIcon>
+        <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
+        <Version>$(VERSION)</Version>
+        <!-- Stated outright, as the WPF app does, so GitInfo does not stamp a version from the git tags. -->
+        <AssemblyVersion>$(VERSION)</AssemblyVersion>
+        <FileVersion>$(VERSION)</FileVersion>
+        <!-- Required for source-generated [Reactive] partial properties that carry an initializer
+             (partial-property initializers are a preview language feature in the .NET 10 SDK). -->
+        <LangVersion>preview</LangVersion>
+        <!-- SystemParametersConstructor reads DXGI adapters through pointers, as in the WPF app. -->
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>CS8600,CS8601,CS8618,CS8604,CS1998</NoWarn>
+    </PropertyGroup>
+
+    <Import Project="..\SingleFile.targets" />
+
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" />
+        <PackageReference Include="Avalonia.Desktop" />
+        <PackageReference Include="Avalonia.Diagnostics" />
+        <PackageReference Include="Avalonia.Themes.Fluent" />
+        <PackageReference Include="Avalonia.ReactiveUI" />
+        <PackageReference Include="FluentIcons.Avalonia" />
+        <!-- The git SHA the startup log and the metrics report. -->
+        <PackageReference Include="GitInfo">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Hosting" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+        <PackageReference Include="ReactiveUI" />
+        <PackageReference Include="ReactiveUI.SourceGenerators">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="DynamicData" />
+        <PackageReference Include="Humanizer" />
+        <PackageReference Include="NLog.Extensions.Logging" />
+        <PackageReference Include="Net.Codecrete.QrCodeGenerator" />
+        <PackageReference Include="SixLabors.ImageSharp" />
+        <!-- What SystemParametersConstructor reads the screen and video memory with, as in the WPF app. -->
+        <PackageReference Include="PInvoke.User32" />
+        <PackageReference Include="Silk.NET.DXGI" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wabbajack.Services.OSIntegrated\Wabbajack.Services.OSIntegrated.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.WabbajackClientApi\Wabbajack.Networking.WabbajackClientApi.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.GitHub\Wabbajack.Networking.GitHub.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.Steam\Wabbajack.Networking.Steam.csproj" />
+        <ProjectReference Include="..\Wabbajack.Networking.Bethesda\Wabbajack.Networking.Bethesda.csproj" />
+        <!-- The installer's failure screen: the log diagnosis and the article it opens. -->
+        <ProjectReference Include="..\Wabbajack.Reporting\Wabbajack.Reporting.csproj" />
+        <!-- Not Wabbajack.CLI, although Settings launches it: that project is net10.0-windows and this one is
+             not. An install ships the CLI in its "cli" folder, which is where the button looks. -->
+
+    </ItemGroup>
+
+</Project>

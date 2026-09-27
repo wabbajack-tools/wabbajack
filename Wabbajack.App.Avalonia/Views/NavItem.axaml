@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:v="using:Wabbajack.App.Avalonia.Views"
+             x:Class="Wabbajack.App.Avalonia.Views.NavItem"
+             x:DataType="v:NavItem">
+    <!-- One rail item's content: icon over label. The colours, the Filled icon and the accent bar all
+         come from the button's classes. -->
+    <Grid RowDefinitions="*,Auto">
+        <ic:SymbolIcon Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36"
+                       Symbol="{Binding Symbol, RelativeSource={RelativeSource AncestorType=v:NavItem}}" />
+        <TextBlock Grid.Row="1" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8,0,0"
+                   Text="{Binding Text, RelativeSource={RelativeSource AncestorType=v:NavItem}}" />
+    </Grid>
+</UserControl>

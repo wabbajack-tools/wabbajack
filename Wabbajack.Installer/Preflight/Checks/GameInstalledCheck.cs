@@ -121,13 +121,17 @@ public sealed class GameInstalledCheck : IPreflightCheck
         if (folder != default)
             return PreflightResult.Passed($"{meta.HumanFriendlyGameName} found at {folder}", detail);
 
-        ctx.Logger.LogInformation("{Game} is not installed; its files will be fetched from {Source}",
+        ctx.Logger.LogInformation("{Game} is not installed; any game files the list needs can be downloaded from {Source}",
             meta.HumanFriendlyGameName, ctx.GameFileRestorer!.SourceName);
 
+        // Worded for what happens next: nothing is downloaded here, it is Wabbajack that downloads (the stores
+        // only serve the files), and only if game-files finds the list needs any and the user asks for them.
         return PreflightResult.Warning(
-            $"{meta.HumanFriendlyGameName} is not installed on this machine, so the files this list takes " +
-            $"from it will be fetched from {ctx.GameFileRestorer.SourceName}",
+            $"{meta.HumanFriendlyGameName} is not installed on this machine, but Wabbajack can download any " +
+            $"game files this list needs from {ctx.GameFileRestorer.SourceName}",
             Join(source!.Reason,
+                "Nothing is downloaded yet. If this list uses files from the game, the Game files step lists " +
+                "them, and Wabbajack downloads them into your downloads folder when you choose Fetch files.",
                 "The modlist itself installs as usual. Nothing is written to a game folder, and anything " +
                 "that points at one - a launcher, MO2's game path - has nowhere to point until you install " +
                 "the game.",
