@@ -813,6 +813,23 @@ public static class GameRegistry
             }
         },
         {
+            Game.VtMB2, new GameMetaData
+            {
+                Game = Game.VtMB2,
+                MO2Name = "Vampire: The Masquerade - Bloodlines 2",
+                NexusName = "vtmbloodlines2",
+                NexusGameId = 8298,
+                MO2ArchiveName = "vampire",
+                SteamIDs = [532790],
+                RequiredFiles = new []
+                {
+                    @"Bloodlines2.exe".ToRelativePath(),
+                },
+                MainExecutable = @"Bloodlines2.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/icon/afda5d2a5428dc582c46bcf5ebc18366/32/512x512.png",
+            }
+        },
+        {
             Game.KingdomComeDeliverance2, new GameMetaData
             {
                 Game = Game.KingdomComeDeliverance2,
