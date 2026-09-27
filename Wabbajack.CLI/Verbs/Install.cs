@@ -64,6 +64,7 @@ public class Install
             Install = output,
             ModList = modlist,
             Game = modlist.GameType,
+            OtherGames = modlist.OtherGames,
             ModlistArchive = wabbajack,
             GameFolder = default
         }, _logger, token);

@@ -73,6 +73,7 @@ public class InstallCompileInstallVerify
                 Install = installPath,
                 ModList = modlist,
                 Game = modlist.GameType,
+                OtherGames = modlist.OtherGames,
                 ModlistArchive = wabbajackPath,
                 GameFolder = default
             }, _logger, token);
@@ -114,6 +115,7 @@ public class InstallCompileInstallVerify
                 Install = installPath2,
                 ModList = modlist2,
                 Game = modlist2.GameType,
+                OtherGames = modlist2.OtherGames,
                 ModlistArchive = inferredSettings.OutputFile,
                 GameFolder = default
             }, _logger, token);
