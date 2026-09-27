@@ -2,6 +2,7 @@
 
 #### Version - TBD - TBD
 * Fixed modlist images remaining stale due to not being picked up by the list validation actions
+* Fixed othergames being ignored in CLI installs ([@vadimtrifonov](https://github.com/wabbajack-tools/wabbajack/pull/3029)) PR #3029
 * Add Dune: Awakening support- ([@Fluffernuttersandwich](https://github.com/wabbajack-tools/wabbajack/pull/3036)) PR #3036
 
 #### Version - 4.2.3.0 - 09/09/2026
