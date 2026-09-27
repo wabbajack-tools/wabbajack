@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using ReactiveMarbles.ObservableEvents;
 using ReactiveUI.SourceGenerators;
 using Wabbajack.Common;
 using Wabbajack.Compiler;
@@ -43,6 +44,9 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
     
     public CompilerFileManagerVM CompilerFileManagerVM { get; private set; }
     [Reactive] public partial List<string> AvailableProfiles { get; set; }
+    [Reactive] public partial List<string> AvailableTags { get; set; } = new();
+    public ObservableCollection<string> SelectedTags { get; } = new();
+    private bool _syncingTags;
 
     [Reactive]
     public partial CompilerState State { get; set; }
@@ -152,7 +156,45 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
                 })
                 .DisposeWith(disposables);
 
+            Observable.FromAsync(LoadAllowedTags)
+                .CombineLatest(this.WhenAnyValue(x => x.Settings))
+                .ObserveOnGuiThread()
+                .Subscribe(x =>
+                {
+                    var saved = x.Second.ModListTags ?? Array.Empty<string>();
+                    _syncingTags = true;
+                    AvailableTags = x.First.Union(saved)
+                        .OrderBy(t => t, StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                    SelectedTags.Clear();
+                    foreach (var tag in saved)
+                        SelectedTags.Add(tag);
+                    _syncingTags = false;
+                })
+                .DisposeWith(disposables);
+
+            SelectedTags.Events().CollectionChanged
+                .Subscribe(_ =>
+                {
+                    if (_syncingTags) return;
+                    Settings.ModListTags = SelectedTags.ToArray();
+                })
+                .DisposeWith(disposables);
+
         });
+    }
+
+    private async Task<HashSet<string>> LoadAllowedTags()
+    {
+        try
+        {
+            return await _wjClient.LoadAllowedTags();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load the allowed gallery tags");
+            return new HashSet<string>();
+        }
     }
 
     private async Task ReInferSettings(AbsolutePath filePath)

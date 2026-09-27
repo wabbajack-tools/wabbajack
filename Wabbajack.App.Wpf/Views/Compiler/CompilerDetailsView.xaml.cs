@@ -107,6 +107,15 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
 
             this.Bind(ViewModel, vm => vm.Settings.AutoGenerateReport, view => view.AutoGenerateReportSetting.IsChecked)
                 .DisposeWith(disposables);
+
+            this.Bind(ViewModel, vm => vm.Settings.ModlistIsUtilityList, view => view.UtilityListSetting.IsChecked)
+                .DisposeWith(disposables);
+
+            TagsSetting.SelectedItems = ViewModel.SelectedTags;
+
+            this.WhenAnyValue(v => v.ViewModel.AvailableTags)
+                .BindToStrict(this, view => view.TagsSetting.ItemsSource)
+                .DisposeWith(disposables);
         });
 
     }
