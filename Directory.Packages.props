@@ -20,7 +20,7 @@
     <!-- Do not upgrade. 8.0 left Apache 2.0 for a paid Xceed licence; 7.2.2 is the last Apache release.
          Dependabot is told to ignore this package entirely in .github/dependabot.yml. -->
     <PackageVersion Include="FluentAssertions" Version="7.2.2" />
-    <PackageVersion Include="FluentFTP" Version="54.2.1" />
+    <PackageVersion Include="FluentFTP" Version="55.0.0" />
     <!-- The last release built against Avalonia 11; 2.1.x requires Avalonia 12. -->
     <PackageVersion Include="FluentIcons.Avalonia" Version="2.0.321" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.4.0" />
