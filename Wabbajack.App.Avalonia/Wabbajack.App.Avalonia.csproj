@@ -51,6 +51,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Hosting" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+        <PackageReference Include="NLog" />
         <PackageReference Include="ReactiveUI" />
         <PackageReference Include="ReactiveUI.SourceGenerators">
             <PrivateAssets>all</PrivateAssets>
