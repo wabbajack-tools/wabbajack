@@ -117,8 +117,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Compression.Zip.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Downloaders.ManualSources", "Wabbajack.Downloaders.ManualSources\Wabbajack.Downloaders.ManualSources.csproj", "{6C2B9E5D-7A41-4F0B-9C3E-2D8F1A5B7E90}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Wpf", "Wabbajack.App.Wpf\Wabbajack.App.Wpf.csproj", "{1196560A-9FFD-4290-9418-470508E984C9}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.VFS.Interfaces", "Wabbajack.VFS.Interfaces\Wabbajack.VFS.Interfaces.csproj", "{E4BDB22D-11A4-452F-8D10-D9CA9777EA22}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.CLI.Builder", "Wabbajack.CLI.Builder\Wabbajack.CLI.Builder.csproj", "{99CD51A1-38C9-420E-9497-2C9AEAF0053C}"
@@ -131,8 +129,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Reporting", "Wabb
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.CLI.Test", "Wabbajack.CLI.Test\Wabbajack.CLI.Test.csproj", "{352A7EC7-7A1E-4AD3-BF65-E8FB2050F417}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Wpf.Test", "Wabbajack.App.Wpf.Test\Wabbajack.App.Wpf.Test.csproj", "{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Steam", "Wabbajack.Networking.Steam\Wabbajack.Networking.Steam.csproj", "{B82A5893-1545-4AD6-8D0C-C16D41077ECD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Steam.Test", "Wabbajack.Networking.Steam.Test\Wabbajack.Networking.Steam.Test.csproj", "{012B258A-6018-423C-93BF-131F20FB5807}"
@@ -142,6 +138,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Networking.Bethesda.Test", "Wabbajack.Networking.Bethesda.Test\Wabbajack.Networking.Bethesda.Test.csproj", "{5C2F3B0D-8A46-4E19-B07C-1D9E4F82A6B3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Avalonia", "Wabbajack.App.Avalonia\Wabbajack.App.Avalonia.csproj", "{8809B3C0-9F54-4C5C-AC53-64BA9E0176A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.App.Avalonia.Test", "Wabbajack.App.Avalonia.Test\Wabbajack.App.Avalonia.Test.csproj", "{77BE941D-87F1-4B96-B95F-3C7956230CAA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -341,10 +339,6 @@ Global
 		{6C2B9E5D-7A41-4F0B-9C3E-2D8F1A5B7E90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C2B9E5D-7A41-4F0B-9C3E-2D8F1A5B7E90}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C2B9E5D-7A41-4F0B-9C3E-2D8F1A5B7E90}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1196560A-9FFD-4290-9418-470508E984C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1196560A-9FFD-4290-9418-470508E984C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1196560A-9FFD-4290-9418-470508E984C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1196560A-9FFD-4290-9418-470508E984C9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E4BDB22D-11A4-452F-8D10-D9CA9777EA22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E4BDB22D-11A4-452F-8D10-D9CA9777EA22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4BDB22D-11A4-452F-8D10-D9CA9777EA22}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -369,10 +363,6 @@ Global
 		{352A7EC7-7A1E-4AD3-BF65-E8FB2050F417}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{352A7EC7-7A1E-4AD3-BF65-E8FB2050F417}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{352A7EC7-7A1E-4AD3-BF65-E8FB2050F417}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DEC60E83-9C48-4211-9AE8-2B2A460D6D68}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B82A5893-1545-4AD6-8D0C-C16D41077ECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B82A5893-1545-4AD6-8D0C-C16D41077ECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B82A5893-1545-4AD6-8D0C-C16D41077ECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -393,6 +383,10 @@ Global
 		{8809B3C0-9F54-4C5C-AC53-64BA9E0176A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8809B3C0-9F54-4C5C-AC53-64BA9E0176A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8809B3C0-9F54-4C5C-AC53-64BA9E0176A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77BE941D-87F1-4B96-B95F-3C7956230CAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77BE941D-87F1-4B96-B95F-3C7956230CAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77BE941D-87F1-4B96-B95F-3C7956230CAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77BE941D-87F1-4B96-B95F-3C7956230CAA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

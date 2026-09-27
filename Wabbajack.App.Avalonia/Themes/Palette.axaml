@@ -1,5 +1,5 @@
 <!--
-    The colours and brushes of the WPF theme (Wabbajack.App.Wpf/Themes/Styles.xaml), carried across
+    The colours and brushes of the old WPF app's theme (its Themes/Styles.xaml, in git history), carried across
     key for key so a ported view can keep saying {StaticResource PrimaryBrush}. Generated from that
     file rather than retyped: 214 values are too many to copy by hand without one of them drifting.
     Two things were left out: the MahApps.* keys, which were MahApps' own plumbing, and

@@ -4,9 +4,8 @@ An automated modlist installer. It reproduces a modding setup on another machine
 file came from, then downloading and rebuilding it, without redistributing any mods.
 
 Two things ship: an Avalonia desktop app (`Wabbajack.App.Avalonia`, built as `Wabbajack.exe`) and a CLI
-(`Wabbajack.CLI`). The ~60 remaining projects are libraries behind them. `Wabbajack.App.Wpf` is the app the
-Avalonia one replaced, screen for screen; it is kept for now as the reference to compare against, but it no
-longer ships. The app and the CLI are published as single files (`SingleFile.targets`), with the external tools under
+(`Wabbajack.CLI`). The ~60 remaining projects are libraries behind them. The Avalonia app replaced a WPF
+one screen for screen; the WPF project is gone, and git history has it. The app and the CLI are published as single files (`SingleFile.targets`), with the external tools under
 `Extractors` and `Tools` kept beside the exe.
 
 ## Build and test
@@ -51,7 +50,7 @@ Projects are small and single-purpose. The name says what is inside.
 | Network clients | `Wabbajack.Networking.*` |
 | Serialization | `Wabbajack.DTOs` plus the `Wabbajack.DTOs.ConverterGenerators` source generator |
 | Wiring | `Wabbajack.Services.OSIntegrated` registers nearly everything in DI |
-| UI | `Wabbajack.App.Avalonia` (Avalonia, ReactiveUI), `Wabbajack.Launcher`; `Wabbajack.App.Wpf` is the retired WPF app |
+| UI | `Wabbajack.App.Avalonia` (Avalonia, ReactiveUI), `Wabbajack.Launcher` |
 
 Packages are pinned centrally in `Directory.Packages.props`. A `<PackageReference>` carries no version.
 
@@ -355,13 +354,13 @@ half: an answer from a source that actually tried always beats a decline, so `No
 when *every* source declined. Among sources that tried, the ranking is
 `GameFileRepair.Informativeness`'s. `CompositeGameFileRestorerTests` is the table.
 
-Both hosts wire the pair the same way: `App.xaml.cs` and `Wabbajack.CLI/Program.cs` call
+Both hosts wire the pair the same way: the app's `Program.cs` and `Wabbajack.CLI/Program.cs` call
 `AddBethesdaCreations()` and then `AddSteamAppTicket()` after `AddSteam()`. The second is what registers
 `CreationRestorer`, because it is the call that says this host will talk to the local Steam client, and a
 restorer with no ticket source in reach could only throw; it calls `AddBethesdaCreations()` itself so the
 two halves cannot be half-wired. A host that registers neither behaves exactly as it does today.
 
-**The WPF side of it.** `App.xaml.cs` calls `AddSteam`, registering its own `SteamGuardPrompt` first
+**The app side of it.** `Program.cs` calls `AddSteam`, registering its own `SteamGuardPrompt` first
 because `AddSteam`'s `TryAdd`ed default raises an intervention this app answers by throwing. The prompt is
 a singleton publishing whatever Steam Guard is asking as a `Pending` request; the pane binds to it and
 answers, and null out of the two code questions is the only way out of SteamKit's infinite retry loop.
@@ -434,7 +433,7 @@ suite's way into the raw API; it is simply not a login. Whatever `NexusLoginChec
 something the download path can deliver, and the row says *how* the user is authenticated: a stored API key
 reads "Logged in as X (API key)", and `NEXUS_API_KEY` with nothing stored reads as logged out with a detail
 naming the variable, because the variable working everywhere else is exactly what makes it confusing. The
-WPF Nexus tile (`NexusLoginManager`) asks the same predicate rather than testing the stored token itself,
+Nexus tile in Settings (`NexusLoginManager`) asks the same predicate rather than testing the stored token itself,
 which is what kept a stored API key reading "logged out" there and "Logged in (API key)" in preflight.
 The predicate is true for a credential Nexus has since revoked, so `TriggerLogin` carries no `canExecute`:
 "your login has expired, log in again" is a row whose `LoggedIn` is true, and a `ReactiveCommand` that
@@ -443,9 +442,9 @@ thread. Nothing executes a sibling command either — `ToggleLogin` calls the wo
 the tile's only one, so it falls through to the login when logging out cannot change anything: `LoggedIn`
 means a usable credential is in reach, not that there is a file to delete, and a host that supplies
 `NEXUS_OAUTH_INFO` would otherwise get a button reading "Log out" for ever. A login stored by the browser
-shadows the variable, so that fall-through is a real way out. One login window at a time, too —
-`MainWindowVM` serialises browser windows, so a second request would open behind the first rather than
-being dropped.
+shadows the variable, so that fall-through is a real way out. One login at a time, too —
+`NexusOAuthLogin` refuses a second while one is in flight (`AlreadyRunning`) rather than opening another
+browser window.
 
 A source is only reported when there is something to send with it. `GetAuthInfo` rejects an empty API key
 either side, and equally an OAuth state carrying no access token — which is not hypothetical: a refused
@@ -510,4 +509,6 @@ Reach for a pure function plus a table of cases where behaviour is fiddly and th
 destructive; `FileDeletionRulesTests` is the model. Concurrency bugs need a sample large enough to fail
 every run rather than one run in three, so prefer tens of thousands of iterations over a few hundred.
 
-The app projects have close to no test coverage and are not a good place to add it.
+The app has little test coverage: `Wabbajack.App.Avalonia.Test` holds its pure pieces (link filtering, the
+Nexus login's store rule, the failure article, a JIT check of the view models). Put logic somewhere it can be
+tested like that rather than testing views.

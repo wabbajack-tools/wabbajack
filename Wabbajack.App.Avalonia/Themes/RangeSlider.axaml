@@ -1,5 +1,5 @@
 <!--
-    The WPF gallery's size filter: MahApps' RangeSlider under the app's restyle in Wabbajack.App.Wpf/Themes/
+    The WPF gallery's size filter: MahApps' RangeSlider under the old WPF app's restyle in its Themes/
     Styles.xaml ("MahApps.Styles.Thumb.Slider", "MahApps.Styles.RepeatButton.Slider.HorizontalTrack" and the
     implicit mahapps:RangeSlider style), with the SliderHelper brushes ModListGalleryView set on it, and
     MahApps' own "MahApps.Styles.MetroThumb.RangeSlider.Horizontal.Middle" for the bar between the thumbs.
