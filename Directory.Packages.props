@@ -55,8 +55,8 @@
     <PackageVersion Include="Octopus.Octodiff" Version="2.0.549" />
     <PackageVersion Include="OMODFramework" Version="3.0.1" />
     <PackageVersion Include="PInvoke.User32" Version="0.7.124" />
-    <PackageVersion Include="ReactiveUI.SourceGenerators" Version="3.2.0" />
-    <PackageVersion Include="ReactiveUI" Version="20.1.63" />
+    <PackageVersion Include="ReactiveUI.SourceGenerators" Version="4.2.0" />
+    <PackageVersion Include="ReactiveUI" Version="25.0.1" />
     <PackageVersion Include="SharpCompress" Version="0.50.4" />
     <PackageVersion Include="SharpZipLib" Version="1.4.2" />
     <PackageVersion Include="Shipwreck.Phash" Version="0.5.0" />
