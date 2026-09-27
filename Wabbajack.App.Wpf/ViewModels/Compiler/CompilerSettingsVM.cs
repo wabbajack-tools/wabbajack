@@ -15,6 +15,8 @@ public partial class CompilerSettingsVM : ViewModel
     public CompilerSettingsVM(CompilerSettings cs)
     {
         ModlistIsNSFW = cs.ModlistIsNSFW;
+        ModlistIsUtilityList = cs.ModlistIsUtilityList;
+        ModListTags = cs.ModListTags ?? Array.Empty<string>();
         Source = cs.Source;
         Downloads = cs.Downloads;
         Game = cs.Game;
@@ -44,6 +46,8 @@ public partial class CompilerSettingsVM : ViewModel
     }
 
     [Reactive] public partial bool ModlistIsNSFW { get; set; }
+    [Reactive] public partial bool ModlistIsUtilityList { get; set; }
+    [Reactive] public partial string[] ModListTags { get; set; } = Array.Empty<string>();
     [Reactive] public partial AbsolutePath Source { get; set; }
     [Reactive] public partial AbsolutePath Downloads { get; set; }
     [Reactive] public partial Game Game { get; set; }
@@ -112,6 +116,8 @@ public partial class CompilerSettingsVM : ViewModel
         return new CompilerSettings()
         {
             ModlistIsNSFW = ModlistIsNSFW,
+            ModlistIsUtilityList = ModlistIsUtilityList,
+            ModListTags = ModListTags,
             Source = Source,
             Downloads = Downloads,
             Game = Game,

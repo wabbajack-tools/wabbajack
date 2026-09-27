@@ -9,6 +9,7 @@
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rxui="http://reactiveui.net"
+    xmlns:sdl="http://schemas.sdl.com/xaml"
     xmlns:wabbacommon="clr-namespace:Wabbajack.Common;assembly=Wabbajack.Common"
     xmlns:controls1="clr-namespace:Wabbajack.ViewModels.Controls"
     xmlns:ic="clr-namespace:FluentIcons.Wpf;assembly=FluentIcons.Wpf"
@@ -39,6 +40,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -145,7 +147,7 @@
                 </CheckBox>
             </StackPanel>
 
-            <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}">
+            <StackPanel Grid.Row="9" Margin="{StaticResource TextPanelMargin}">
                 <CheckBox
                       x:Name="AutoGenerateReportSetting"
                       Margin="{StaticResource TitleMargin}"
@@ -154,7 +156,30 @@
                 </CheckBox>
             </StackPanel>
 
-            <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}" ToolTip="Wabbajack will include selected profiles as part of the modlist alongside your main selected MO2 profile.">
+            <StackPanel Grid.Row="9" Grid.Column="1" Margin="{StaticResource TextPanelMargin}">
+                <CheckBox
+                      x:Name="UtilityListSetting"
+                      Margin="{StaticResource TitleMargin}"
+                      ToolTip="Select this if your modlist is a baseline of essentials that other people are meant to build their own setups on top of, rather than a list to play as-is.">
+                    <TextBlock Text="Utility List" FontSize="10" VerticalAlignment="Center"/>
+                </CheckBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}" ToolTip="Tags shown and searchable in the Wabbajack gallery. Only tags from the gallery's allowed list can be selected.">
+                <DockPanel>
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Gallery tags"/>
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Optional" Opacity="0.5" TextAlignment="Right" HorizontalAlignment="Right" />
+                </DockPanel>
+                <sdl:MultiSelectComboBox
+                    x:Name="TagsSetting"
+                    MinHeight="32"
+                    IsEditable="True"
+                    EnableAutoComplete="False"
+                    SetFocusOnFirstSelectedItemOnDropDown="False"
+                    Margin="0, 0, 0, 8" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="11" Grid.ColumnSpan="2" Margin="{StaticResource TextPanelMargin}" ToolTip="Wabbajack will include selected profiles as part of the modlist alongside your main selected MO2 profile.">
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Additional profile(s)"/>
                 <ListBox SelectionMode="Multiple" x:Name="AdditionalProfilesSetting">
                     <ListBox.Resources>

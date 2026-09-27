@@ -484,6 +484,19 @@ public abstract class ACompiler
         await using var metajson = _settings.OutputFile.WithExtension(new Extension(".meta.json"))
             .Open(FileMode.Create, FileAccess.Write);
         await _dtos.Serialize(metadata, metajson);
+
+        try
+        {
+            _logger.LogInformation("Exporting gallery entry template");
+            var galleryEntry = GalleryEntry.Build(_settings, metadata, await _wjClient.GetGitHubUsername());
+            await using var galleryJson = _settings.OutputFile.WithExtension(new Extension(".gallery.json"))
+                .Open(FileMode.Create, FileAccess.Write);
+            await _dtos.Serialize(new[] {galleryEntry}, galleryJson, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to export the gallery entry template");
+        }
         if (_settings.AutoGenerateReport)
         {
             _logger.LogInformation("Generating Modlist HTML report");

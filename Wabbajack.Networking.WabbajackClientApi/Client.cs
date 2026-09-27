@@ -554,6 +554,26 @@ public class Client
         return await _dtos.DeserializeAsync<IndexedVirtualFile>(await response.Content.ReadAsStreamAsync(token), token);
     }
 
+    public async Task<string?> GetGitHubUsername()
+    {
+        var key = (await _token.Get())?.AuthorKey;
+        if (string.IsNullOrWhiteSpace(key)) return null;
+
+        try
+        {
+            var ghClient = new GitHubClient(new ProductHeaderValue("wabbajack"))
+            {
+                Credentials = new Credentials(key)
+            };
+            return (await ghClient.User.Current()).Login;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unable to resolve the GitHub username behind the stored author key");
+            return null;
+        }
+    }
+
     private async Task<(GitHubClient Gh, string Owner, string Repo, string Path)> GetAuthorRepoTarget(string namespacedName)
     {
         var pair = namespacedName.Split("/");
