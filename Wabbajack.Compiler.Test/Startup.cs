@@ -3,6 +3,8 @@ using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.DTOs.Logins;
+using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Services.OSIntegrated;
 using Xunit.DependencyInjection;
@@ -25,6 +27,7 @@ public class Startup
         // Every request a compile makes goes through this one client; answered locally, the tests need no network.
         service.AddSingleton(s => new HttpClient(
             new Offline.OfflineServers(s.GetRequiredService<Wabbajack.Networking.WabbajackClientApi.Configuration>())));
+        service.AddSingleton<ITokenProvider<WabbajackApiState>, Offline.FixedApiToken>();
 
         service.AddScoped<ModListHarness>();
     }
