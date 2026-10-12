@@ -432,7 +432,10 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         if (!Consts.KnownModifiedFiles.Contains(directive.To.FileName))
                             ThrowOnNonMatchingHash(directive, hash);
 
-                        await FileHashCache.FileHashWriteCache(outPath, directive.Hash);
+                        // The hash of what was written. For a known-modified file it can differ from the
+                        // directive's (lists compiled before modlist.txt's hash was fixed), and caching the
+                        // directive's would describe this file as another one.
+                        await FileHashCache.FileHashWriteCache(outPath, hash);
                         break;
                 }
             });
