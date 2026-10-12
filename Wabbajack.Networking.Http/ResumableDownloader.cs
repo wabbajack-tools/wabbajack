@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Net.Http;
 using System;
@@ -91,9 +91,9 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
     {
         if(job.Size == null) throw new ArgumentException("Job size must be set before downloading");
 
-        using Stream fileStream = GetDownloadFileStream(filePath);
-
-        var startingPosition = fileStream.Length;
+        // What is on disk is what has been received: the file is never extended ahead of the bytes, so after a
+        // dropped connection its length is exactly where the next attempt resumes from.
+        var startingPosition = filePath.FileExists() ? filePath.Size() : 0;
 
         _logger.LogDebug("Download for '{name}' is starting from {position}...", filePath.FileName.ToString(), startingPosition);
 
@@ -102,12 +102,23 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
         message.Headers.Range = new RangeHeaderValue(startingPosition, null);
         using var response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, token);
 
-        var responseContentLength = response.Content.Headers.ContentLength;
+        // An error page is not the file. A 416 on a resume is caught above and starts over.
+        response.EnsureSuccessStatusCode();
 
-        if (responseContentLength != null && responseContentLength > fileStream.Length)
+        // Only a 206 starting where the file ends continues it. A server that ignores the range sends the whole
+        // file with a 200, which has to replace what is there rather than follow it.
+        var resumes = startingPosition > 0 &&
+                      response.StatusCode == System.Net.HttpStatusCode.PartialContent &&
+                      response.Content.Headers.ContentRange?.From == startingPosition;
+        if (startingPosition > 0 && !resumes)
         {
-            fileStream.SetLength(responseContentLength.Value);
+            _logger.LogDebug("Server did not resume '{name}' from {position}, starting over", filePath.FileName.ToString(), startingPosition);
+            startingPosition = 0;
         }
+
+        using Stream fileStream = resumes
+            ? filePath.Open(FileMode.Append, FileAccess.Write, FileShare.None)
+            : filePath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
 
         var responseStream = await response.Content.ReadAsStreamAsync(token);
 
@@ -139,18 +150,6 @@ public class ResumableDownloader(ILogger<ResumableDownloader> _logger, IHttpClie
         using var fileStream = filePath.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
 
         return await fileStream.Hash(token);
-    }
-
-    private static Stream GetDownloadFileStream(AbsolutePath filePath)
-    {
-        if (filePath.FileExists())
-        {
-            return filePath.Open(FileMode.Append, FileAccess.Write, FileShare.None);
-        }
-        else
-        {
-            return filePath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-        }
     }
 
     private static HttpRequestMessage CloneRequest(HttpRequestMessage original)
