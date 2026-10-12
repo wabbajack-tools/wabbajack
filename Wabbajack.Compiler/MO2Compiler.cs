@@ -186,6 +186,8 @@ public class MO2Compiler : ACompiler
 
         await BuildPatches(token);
 
+        ChooseArchiveSources();
+
         await GatherArchives();
 
         await GatherMetaData();
