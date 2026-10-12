@@ -444,73 +444,39 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         // Don't remap files for Native Game Compiler games
         if (!profilesPath.DirectoryExists()) return;
-        if (_configuration.SystemParameters == null)
-            _logger.LogWarning("No SystemParameters set, ignoring ini settings for system parameters");
+
+        // The CLI has no screen to measure, so it passes none and the files stay as the list ships them.
+        if (_configuration.SystemParameters is not { } system)
+        {
+            _logger.LogInformation("No screen size given, leaving the ini files' screen size and VRAM as the list ships them");
+            return;
+        }
 
         var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
         config.CommentRegex = new Regex(@"^(#|;)(.*)");
         var oblivionPath = (RelativePath) "Oblivion.ini";
 
-        if (profilesPath.DirectoryExists())
-        {
-            foreach (var file in profilesPath.EnumerateFiles()
-                         .Where(f => ((string) f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
-                try
-                {
-                    var parser = new FileIniDataParser(new IniDataParser(config));
-                    var data = parser.ReadFile(file.ToString());
-                    var modified = false;
-                    if (data.Sections["Display"] != null)
-                        if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
-                        {
-                            data.Sections["Display"]["iSize W"] =
-                                _configuration.SystemParameters!.ScreenWidth.ToString(CultureInfo.CurrentCulture);
-                            data.Sections["Display"]["iSize H"] =
-                                _configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
-                            modified = true;
-                        }
+        var width = system.ScreenWidth.ToString(CultureInfo.CurrentCulture);
+        var height = system.ScreenHeight.ToString(CultureInfo.CurrentCulture);
 
-                    if (data.Sections["MEMORY"] != null)
-                        if (data.Sections["MEMORY"]["VideoMemorySizeMb"] != null)
-                        {
-                            data.Sections["MEMORY"]["VideoMemorySizeMb"] =
-                                _configuration.SystemParameters!.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture);
-                            modified = true;
-                        }
-
-                    if (!modified) continue;
-                    parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
-                    _logger.LogTrace("Remapped screen size in {file}", file);
-                }
-                catch (Exception ex)
+        foreach (var file in profilesPath.EnumerateFiles()
+                     .Where(f => ((string) f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
+            RemapIni(file, text =>
+            {
+                if (IniLineEditor.Contains(text, "Display", "iSize W") && IniLineEditor.Contains(text, "Display", "iSize H"))
                 {
-                    _logger.LogCritical(ex, "Skipping screen size remap for {file} due to parse error.", file);
+                    text = IniLineEditor.Set(text, "Display", "iSize W", width);
+                    text = IniLineEditor.Set(text, "Display", "iSize H", height);
                 }
-        }
+
+                return IniLineEditor.Set(text, "MEMORY", "VideoMemorySizeMb",
+                    system.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture));
+            });
 
         var tweaksPath = (RelativePath) "SSEDisplayTweaks.ini";
         foreach (var file in _configuration.Install.EnumerateFiles()
             .Where(f => f.FileName == tweaksPath))
-            try
-            {
-                var parser = new FileIniDataParser(new IniDataParser(config));
-                var data = parser.ReadFile(file.ToString());
-                var modified = false;
-                if (data.Sections["Render"] != null)
-                    if (data.Sections["Render"]["Resolution"] != null)
-                    {
-                        data.Sections["Render"]["Resolution"] =
-                            $"{_configuration.SystemParameters!.ScreenWidth.ToString(CultureInfo.CurrentCulture)}x{_configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture)}";
-                        modified = true;
-                    }
-
-                if (modified)
-                    parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogCritical(ex, "Skipping screen size remap for {file} due to parse error.", file);
-            }
+            RemapIni(file, text => IniLineEditor.Set(text, "Render", "Resolution", $"{width}x{height}"));
 
         // The Witcher 3
         if (_configuration.Game == Game.Witcher3)
@@ -532,6 +498,25 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                     _logger.LogInformation(ex, "While remapping user.settings");
                 }
             }
+        }
+    }
+
+    private void RemapIni(AbsolutePath file, Func<string, string> edit)
+    {
+        try
+        {
+            // Latin-1 maps every byte to one char and back, so whatever encoding the file is in, the bytes
+            // the edit does not touch are written back unchanged.
+            var original = File.ReadAllText(file.ToString(), Encoding.Latin1);
+            var updated = edit(original);
+            if (updated == original) return;
+
+            File.WriteAllText(file.ToString(), updated, Encoding.Latin1);
+            _logger.LogTrace("Remapped screen size in {file}", file);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not remap screen size in {file}", file);
         }
     }
 
