@@ -73,8 +73,10 @@ public partial class CompilerHomeVM : ViewModel
 
             try
             {
-                var compilerSettings = _dtos.Deserialize<CompilerSettings>(await File.ReadAllTextAsync(path.ToString()));
-                OpenCompiler(compilerSettings!);
+                var compilerSettings = _dtos.Deserialize<CompilerSettings>(await File.ReadAllTextAsync(path.ToString()))!;
+                // An installed list carries its author's settings; their paths are the author's machine.
+                await inferencer.RepointForThisMachine(compilerSettings, path);
+                OpenCompiler(compilerSettings);
             }
             catch (Exception ex)
             {
