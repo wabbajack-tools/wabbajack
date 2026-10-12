@@ -18,8 +18,6 @@ using Xunit;
 
 namespace Wabbajack.Compiler.Test;
 
-// Test fixtures are downloaded from authored-files.wabbajack.org, so the whole class needs network.
-[Trait("Category", "RequiresNetwork")]
 public class CompilerSanityTests : IAsyncLifetime
 {
     private readonly FileExtractor.FileExtractor _fileExtractor;
@@ -52,9 +50,7 @@ public class CompilerSanityTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _mod = await _harness.InstallMod(Ext.Zip,
-            new Uri(
-                "https://authored-files.wabbajack.org/Tonal%20Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f"));
+        _mod = await _harness.InstallGeneratedMod();
     }
 
     public Task DisposeAsync()

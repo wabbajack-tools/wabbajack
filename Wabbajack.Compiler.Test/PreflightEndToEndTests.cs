@@ -15,10 +15,8 @@ namespace Wabbajack.Compiler.Test;
 
 /// <summary>
 ///     Compiles a real list through the harness, then runs the preflight checklist the way the installer
-///     hosts will. The fixture the harness builds on comes from authored-files.wabbajack.org, so the whole
-///     class needs network.
+///     hosts will.
 /// </summary>
-[Trait("Category", "RequiresNetwork")]
 public class PreflightEndToEndTests : IAsyncLifetime
 {
     private readonly ModListHarness _harness;
@@ -35,9 +33,7 @@ public class PreflightEndToEndTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _mod = await _harness.InstallMod(Ext.Zip,
-            new Uri(
-                "https://authored-files.wabbajack.org/Tonal%20Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f"));
+        _mod = await _harness.InstallGeneratedMod();
     }
 
     public Task DisposeAsync()
