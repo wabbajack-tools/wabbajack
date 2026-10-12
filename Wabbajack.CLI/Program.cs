@@ -29,7 +29,9 @@ internal class Program
 {
     private static async Task<int> Main(string[] args)
     {
-        var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+        // Disposed on the way out: that is what deletes this run's temporary folders, which otherwise wait for
+        // the next launch to clean them up. A compile leaves a whole game's extracted archives there.
+        using var host = Host.CreateDefaultBuilder(Array.Empty<string>())
             .ConfigureLogging(AddLogging)
             .ConfigureServices((host, services) =>
             {
