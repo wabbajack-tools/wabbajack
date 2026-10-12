@@ -49,7 +49,8 @@ public class CompilerSettingsInferencer
                 cs.Game = GameRegistry.GetByFuzzyName(general["gameName"].FromMO2Ini()).Game;
                 cs.Source = mo2Folder;
 
-                var selectedProfile = general["selected_profile"].FromMO2Ini();
+                // The profile is the one whose modlist.txt was picked, not whichever MO2 last had selected.
+                var selectedProfile = settingsFile.Parent.FileName.ToString();
                 //cs.GamePath = general["gamePath"].FromMO2Ini().ToAbsolutePath();
                 cs.ModListName = selectedProfile;
                 cs.Profile = selectedProfile;
