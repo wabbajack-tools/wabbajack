@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wabbajack.DTOs.Interventions;
@@ -20,6 +21,10 @@ public class Startup
             o.UseLocalCache = true;
             o.UseStubbedGameFolders = true;
         });
+
+        // Every request a compile makes goes through this one client; answered locally, the tests need no network.
+        service.AddSingleton(s => new HttpClient(
+            new Offline.OfflineServers(s.GetRequiredService<Wabbajack.Networking.WabbajackClientApi.Configuration>())));
 
         service.AddScoped<ModListHarness>();
     }
