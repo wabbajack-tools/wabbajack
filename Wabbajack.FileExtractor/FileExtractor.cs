@@ -210,7 +210,7 @@ public class FileExtractor
         public bool CanMove { get; set; } = true;
         public async ValueTask Move(AbsolutePath newPath, CancellationToken token)
         {
-            await using var output = newPath.Open(FileMode.Create, FileAccess.Read, FileShare.Read);
+            await using var output = newPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
             _rdr.Position = _start;
             await _rdr.BaseStream.CopyToLimitAsync(output, (int)_length, token);
         }
