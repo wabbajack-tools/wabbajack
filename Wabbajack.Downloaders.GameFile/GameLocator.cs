@@ -162,9 +162,14 @@ public class GameLocator : IGameLocator
             }
         }
 
+        // A store that is not installed reports its missing registry key or folder as an error. That is the
+        // usual case on any machine, so it is only worth more than a debug line when the store found games.
         foreach (var error in errors)
         {
-            _logger.LogError("{Error}", error);
+            if (games.Count == 0)
+                _logger.LogDebug("{Error}", error);
+            else
+                _logger.LogWarning("{Error}", error);
         }
     }
 

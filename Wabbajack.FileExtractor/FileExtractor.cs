@@ -557,7 +557,12 @@ public class FileExtractor
                 .ForEachAsync(p =>
                 {
                     var (_, line) = p;
-                    _logger.LogError("While extracting InnoSetup archive {fileName} at {path}: {line}", source.FileName, processExtract.Path, line);
+                    // Every .exe is offered to innoextract, and most are not installers: that answer is normal,
+                    // and logged as an error it buried real ones under a line per executable.
+                    if (line.Contains("Not a supported Inno Setup installer", StringComparison.OrdinalIgnoreCase))
+                        _logger.LogDebug("{fileName} is not an Inno Setup installer", source.FileName);
+                    else
+                        _logger.LogError("While extracting InnoSetup archive {fileName} at {path}: {line}", source.FileName, processExtract.Path, line);
                 }, token);
 
             // Wait for the job size to be calculated before actually starting the extraction operation, should be very fast
