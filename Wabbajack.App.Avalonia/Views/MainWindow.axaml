@@ -71,7 +71,9 @@
                                 <Grid>
                                     <c:MetroProgressBar x:Name="WizardProgress" Background="Transparent"
                                                  Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" />
-                                    <TextBlock x:Name="ProgressText" Padding="12,0,12,0" VerticalAlignment="Center" />
+                                    <!-- Room on the right for the percentage, which shares this cell. -->
+                                    <TextBlock x:Name="ProgressText" Padding="12,0,56,0" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis" />
                                     <TextBlock x:Name="ProgressPercentage" Padding="0,0,12,0" VerticalAlignment="Center"
                                                HorizontalAlignment="Right" Opacity="0" />
                                 </Grid>

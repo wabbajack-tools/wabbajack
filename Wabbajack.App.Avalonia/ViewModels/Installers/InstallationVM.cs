@@ -878,6 +878,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                     {
                         InstallResult = result;
                         ProgressText = $"Finished installing {ModList.Name}";
+                        // The last status update is the last step's, short of the end; the bar should be full.
+                        ProgressPercent = Percent.One;
                         InstallState = InstallState.Success;
                     });
                 }
