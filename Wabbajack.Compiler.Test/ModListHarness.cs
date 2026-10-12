@@ -209,6 +209,24 @@ public class ModListHarness
         return _installDownloads.Combine(fileName);
     }
 
+    /// <summary>
+    ///     Adds the <see cref="Offline.GeneratedFixture" /> archive as a download and its contents as an enabled
+    ///     mod, the way <see cref="InstallMod" /> does for a downloaded one. Its download URL is answered by
+    ///     <see cref="Offline.OfflineServers" />, which the compiler asks when it checks the link still works.
+    /// </summary>
+    public async Task<Mod> InstallGeneratedMod()
+    {
+        var archive = await Offline.GeneratedFixture.Create(_downloadPath);
+        await archive.WithExtension(Ext.Meta).WriteAllLinesAsync(
+            new[] {"[General]", $"directURL={Offline.OfflineServers.FixtureUrl}"},
+            CancellationToken.None);
+
+        var mod = AddMod(Offline.GeneratedFixture.Name);
+        mod.EnabledIn.Add(_profileName);
+        await mod.AddFromArchive(archive);
+        return mod;
+    }
+
     public async Task<Mod> InstallMod(Extension ext, Uri uri)
     {
         var state = _downloadDispatcher.Parse(uri);
