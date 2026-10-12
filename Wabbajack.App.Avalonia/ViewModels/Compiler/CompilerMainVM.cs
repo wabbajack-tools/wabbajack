@@ -100,14 +100,7 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                 vm => vm.Settings.Downloads,
                 vm => vm.Settings.OutputFile,
                 vm => vm.Settings.Version,
-                (name, author, desc, img, downloads, output, version) =>
-                    !string.IsNullOrWhiteSpace(name) &&
-                    !string.IsNullOrWhiteSpace(author) &&
-                    !string.IsNullOrWhiteSpace(desc) &&
-                    img.FileExists() &&
-                    !string.IsNullOrEmpty(downloads.ToString()) &&
-                    !string.IsNullOrEmpty(output.ToString()) && output.Extension == Ext.Wabbajack &&
-                    System.Version.TryParse(version, out _)));
+                (_, _, _, _, _, _, _) => MissingRequiredFields().Count == 0));
 
         CancelCommand = ReactiveCommand.Create(CancelCompilation);
         OpenLogCommand = ReactiveCommand.Create(OpenLog);
@@ -300,7 +293,9 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                     .Subscribe(update =>
                     {
                         var s = update.EventArgs;
-                        ProgressText = $"{s.StatusText}";
+                        // The step's own progress, as the installer shows. Without it a long step, such as
+                        // indexing a game's archives, sat on one overall percentage for many minutes.
+                        ProgressText = s.StepProgress.Value > 0 ? $"{s.StatusText} ({s.StepProgress})" : s.StatusText;
                         ProgressPercent = s.StepsProgress;
                     });
 
@@ -364,11 +359,38 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
         await tsk;
     }
 
+    /// <summary>
+    ///     What still has to be filled in before a compile can start. The start button is enabled when this is
+    ///     empty, and its tooltip lists it, so the two cannot disagree.
+    /// </summary>
+    public IReadOnlyList<string> MissingRequiredFields()
+    {
+        var missing = new List<string>();
+        if (string.IsNullOrWhiteSpace(Settings.ModListName)) missing.Add("title");
+        if (string.IsNullOrWhiteSpace(Settings.ModListAuthor)) missing.Add("author");
+        if (string.IsNullOrWhiteSpace(Settings.ModListDescription)) missing.Add("description");
+        if (!Settings.ModListImage.FileExists()) missing.Add("an image that exists");
+        if (string.IsNullOrEmpty(Settings.Downloads.ToString())) missing.Add("downloads folder");
+        if (string.IsNullOrEmpty(Settings.OutputFile.ToString()) || Settings.OutputFile.Extension != Ext.Wabbajack)
+            missing.Add("export destination ending in .wabbajack");
+        if (!System.Version.TryParse(Settings.Version, out _)) missing.Add("a version such as 1.0.0");
+        return missing;
+    }
+
     private async Task RunPreflightChecksAsync()
     {
         try
         {
             _logger.LogInformation("Running preflight checks...");
+            // A list compiled without a machine URL has no gallery entry to publish to, which is not a failure
+            // worth asking the server about.
+            if (string.IsNullOrWhiteSpace(Settings.MachineUrl))
+            {
+                PreflightChecksPassed = false;
+                PreflightCheckMessage = "Set a machine URL to publish this list";
+                return;
+            }
+
             PreflightCheckMessage = "Running checks...";
             PreflightChecksPassed = null;
 
@@ -630,6 +652,9 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
             ExistingCollectionRevisionNumber = null;
             ExistingCollectionSlug = null;
             ExistingCollectionIsDraft = false;
+
+            // Without a machine URL there is no gallery entry, so no collection to look for.
+            if (string.IsNullOrWhiteSpace(Settings.MachineUrl)) return;
 
             _logger.LogInformation("CheckExistingCollectionStatus: MachineUrl='{url}'", Settings.MachineUrl);
             var mapping = await _wjClient.GetNexusCollectionMapping(Settings.MachineUrl, CancellationToken.None);
