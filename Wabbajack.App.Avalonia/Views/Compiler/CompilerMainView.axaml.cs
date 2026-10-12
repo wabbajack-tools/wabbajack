@@ -96,7 +96,7 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
                 .StartWith(startCommand.CanExecute(null))
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(canStart => ToolTip.SetTip(StartButton,
-                    canStart ? null : "Cannot start compilation, not all required fields have been filled out."))
+                    canStart ? null : "Still needed: " + string.Join(", ", ViewModel.MissingRequiredFields())))
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, x => x.CancelCommand, x => x.CancelButton)

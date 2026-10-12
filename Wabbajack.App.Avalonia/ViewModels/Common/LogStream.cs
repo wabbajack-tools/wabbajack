@@ -83,5 +83,8 @@ public class LogStream : TargetWithLayout
         public DateTime TimeStamp => info.TimeStamp;
         public LogLevel Level => info.Level;
         public string LongMessage => $"[{TimeStamp:HH:mm:ss} {info.Level.ToString().ToUpper()}] {info.FormattedMessage}";
+
+        // A list row's accessible name is its item's ToString, which for a record is a dump of its fields.
+        public override string ToString() => LongMessage;
     }
 }
