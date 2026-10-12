@@ -236,7 +236,7 @@ public sealed class ArchiveDownloadPipeline
         _ctx.Logger.LogInformation("Downloading {Count} archives", ready.Count);
         var total = ready.Count;
         var done = 0L;
-        _progress.Report(0, total, $"Downloading 0 of {total}");
+        _progress.Report(0, total, $"0 of {total} finished");
 
         using var tickCts = CancellationTokenSource.CreateLinkedTokenSource(token);
         var ticker = TickProgress(tickCts.Token);
@@ -248,7 +248,7 @@ public sealed class ArchiveDownloadPipeline
                 {
                     await DownloadOne(archive, token);
                     var finished = Interlocked.Increment(ref done);
-                    _progress.Report(finished, total, $"Downloading {finished} of {total}");
+                    _progress.Report(finished, total, $"{finished} of {total} finished");
                 });
         }
         finally
