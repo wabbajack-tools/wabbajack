@@ -126,6 +126,9 @@
             <ic:SymbolIcon Foreground="{StaticResource Triadic2Brush}" HorizontalAlignment="Center" VerticalAlignment="Top"
                            Symbol="DismissCircle" IconVariant="Regular" FontSize="72" />
             <TextBlock FontSize="24" Margin="0,8,0,0" Text="No modlists matching specified criteria" />
+            <!-- Most lists are not featured, so a search that finds nothing is often only filtered. -->
+            <TextBlock FontSize="14" Margin="0,8,0,0" HorizontalAlignment="Center" IsVisible="{Binding !IncludeUnofficial}"
+                       Text="Lists that are not featured are hidden. Tick Non-featured to search them too." />
         </StackPanel>
 
         <Grid x:Name="ProtocolOverlay" Grid.ColumnSpan="2" Background="#80000000" ZIndex="9999"
