@@ -255,8 +255,10 @@ public abstract class ACompiler
                 {
                     if (!_locator.TryFindLocation(ag, out var path))
                     {
+                        // Carry on with the other games: OtherGames comes first, so returning here skipped
+                        // the list's own game, and GamesWithHashes below was never filled in.
                         _logger.LogWarning("Game {game} was to be used in compilation but it is not installed", ag);
-                        return;
+                        continue;
                     }
 
                     var mainFile = ag.MetaData().MainExecutable!.Value.RelativeTo(path);
