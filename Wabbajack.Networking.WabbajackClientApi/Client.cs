@@ -54,6 +54,12 @@ public class Client
 
     public bool IgnoreMirrorList { get; set; } = false;
 
+    /// <summary>
+    ///     How the client quits when the build server refuses it (see <see cref="SendMetric" />). Replaced by the
+    ///     tests, which would otherwise end the test run.
+    /// </summary>
+    internal Action<int> Exit { get; init; } = Environment.Exit;
+
     public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token,
         DTOSerializer dtos,
         IResource<HttpClient> limiter, IResource<Client> hashLimiter, Configuration configuration)
@@ -96,7 +102,7 @@ public class Client
         {
             _logger.LogError("HTTP Error: {Result}", result);
             await SendMetric("rebound", "Error", false);
-            Environment.Exit(0);
+            Exit(0);
         }
     }
 
@@ -393,14 +399,14 @@ public class Client
                 new ByteArrayContent(data)));
 
             if (!partResult.IsSuccessStatusCode)
-                throw new HttpException(result);
+                throw new HttpException(partResult);
         }
 
         using var finalResult = await _client.SendAsync(await MakeMessage(HttpMethod.Put,
             new Uri($"{_configuration.BuildServerUrl}mirrored_files/{hashAsHex}/finish")));
 
         if (!finalResult.IsSuccessStatusCode)
-            throw new HttpException(result);
+            throw new HttpException(finalResult);
     }
 
     public async Task<FileDefinition[]> GetAllMirroredFileDefinitions(CancellationToken token)
