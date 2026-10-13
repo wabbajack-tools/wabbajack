@@ -383,7 +383,15 @@ public class SteamGameFileRestorer : IGameFileRestorer
             return null;
         }
 
-        foreach (var copy in copies)
+        // The index is a GitHub repo, so only copies under apps this repair would search anyway are used: the
+        // game's own, then its companion apps. That keeps a licence for some other app out of the user's
+        // library, and means a tool's licence is never taken while the game's own depot has the file.
+        var tools = game.MetaData().SteamToolIDs.Where(id => id > 0).Select(id => (uint) id).ToHashSet();
+        var usable = copies
+            .Where(c => ownApps.Contains(c.App) || tools.Contains(c.App))
+            .OrderBy(c => ownApps.Contains(c.App) ? 0 : 1);
+
+        foreach (var copy in usable)
         {
             token.ThrowIfCancellationRequested();
 

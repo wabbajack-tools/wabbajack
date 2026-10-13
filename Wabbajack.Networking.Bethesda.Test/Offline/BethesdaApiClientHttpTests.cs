@@ -144,7 +144,7 @@ public class BethesdaApiClientHttpTests
     ///     skips signing in when one is claimed, so the next file would resolve against entitlements that were
     ///     never updated, and the user would be told they "may not own" Creations they do own.
     /// </summary>
-    [Fact(Skip = "Bug: BethesdaApiClient.SignIn sets SessionToken before fulfillment, so HasSession stays true after a failed fulfillment and CreationCache never retries it")]
+    [Fact]
     public async Task AFailedFulfillmentLeavesNoSessionBehind()
     {
         _http.ThenOk(LoginOk).ThenOk("""{"platform":{"code":4000,"message":"entitlements unavailable"}}""");
