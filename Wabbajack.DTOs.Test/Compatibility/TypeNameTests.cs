@@ -149,8 +149,8 @@ public class TypeNameTests
         var original = new SampleBuilder().Build(type);
         var json = JsonSerializer.Serialize(original, family, _serializer.Options);
 
-        // Swap the name by text rather than through JsonNode: rewriting the document would re-escape
-        // every hash in it, which HashJsonConverter cannot read (see KnownGapTests).
+        // Swap the name by text rather than through JsonNode, so the rest of the document is read exactly as
+        // the converter wrote it.
         var prefix = "{\"$type\":" + JsonSerializer.Serialize(ModlistTypes.JsonName(type));
         Assert.StartsWith(prefix, json);
         json = "{\"$type\":" + JsonSerializer.Serialize(name) + json[prefix.Length..];

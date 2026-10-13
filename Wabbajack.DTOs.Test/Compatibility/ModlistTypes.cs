@@ -67,15 +67,11 @@ public static class ModlistTypes
 
     /// <summary>
     ///     Properties Generated.cs is known not to write, so the round-trip tests leave them at their
-    ///     defaults instead of failing on them. Each has a skipped test in <see cref="KnownGapTests" />
-    ///     that will pass once Generated.cs is regenerated; remove the entry here at the same time.
+    ///     defaults instead of failing on them, as "Type.Property". Empty: a type changed without
+    ///     Generated.cs being regenerated (BA2State's Starfield fields were) shows up as a round-trip
+    ///     failure, and the fix is to rerun Wabbajack.DTOs.ConverterGenerators, not to add an entry.
     /// </summary>
-    public static readonly HashSet<string> KnownDroppedProperties = new()
-    {
-        "BA2State.Unknown1",
-        "BA2State.Unknown2",
-        "BA2State.Compression"
-    };
+    public static readonly HashSet<string> KnownDroppedProperties = new();
 
     /// <summary>
     ///     The properties the generated converters read and write: public, readable, publicly settable
