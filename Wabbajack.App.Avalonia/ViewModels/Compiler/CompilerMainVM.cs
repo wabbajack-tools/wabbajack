@@ -363,17 +363,23 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
     ///     What still has to be filled in before a compile can start. The start button is enabled when this is
     ///     empty, and its tooltip lists it, so the two cannot disagree.
     /// </summary>
-    public IReadOnlyList<string> MissingRequiredFields()
+    public IReadOnlyList<string> MissingRequiredFields() => MissingRequiredFields(Settings);
+
+    /// <summary>
+    ///     What still has to be filled in before a compile can start, in the words the Compile button's tooltip
+    ///     uses. Nothing else gates the button.
+    /// </summary>
+    public static IReadOnlyList<string> MissingRequiredFields(CompilerSettingsVM settings)
     {
         var missing = new List<string>();
-        if (string.IsNullOrWhiteSpace(Settings.ModListName)) missing.Add("title");
-        if (string.IsNullOrWhiteSpace(Settings.ModListAuthor)) missing.Add("author");
-        if (string.IsNullOrWhiteSpace(Settings.ModListDescription)) missing.Add("description");
-        if (!Settings.ModListImage.FileExists()) missing.Add("an image that exists");
-        if (string.IsNullOrEmpty(Settings.Downloads.ToString())) missing.Add("downloads folder");
-        if (string.IsNullOrEmpty(Settings.OutputFile.ToString()) || Settings.OutputFile.Extension != Ext.Wabbajack)
+        if (string.IsNullOrWhiteSpace(settings.ModListName)) missing.Add("title");
+        if (string.IsNullOrWhiteSpace(settings.ModListAuthor)) missing.Add("author");
+        if (string.IsNullOrWhiteSpace(settings.ModListDescription)) missing.Add("description");
+        if (!settings.ModListImage.FileExists()) missing.Add("an image that exists");
+        if (string.IsNullOrEmpty(settings.Downloads.ToString())) missing.Add("downloads folder");
+        if (string.IsNullOrEmpty(settings.OutputFile.ToString()) || settings.OutputFile.Extension != Ext.Wabbajack)
             missing.Add("export destination ending in .wabbajack");
-        if (!System.Version.TryParse(Settings.Version, out _)) missing.Add("a version such as 1.0.0");
+        if (!System.Version.TryParse(settings.Version, out _)) missing.Add("a version such as 1.0.0");
         return missing;
     }
 
@@ -457,20 +463,7 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                         _logger.LogInformation("Game version info: FileVersion={fv} ProductVersion={pv}",
                             versionInfo.FileVersion, versionInfo.ProductVersion);
 
-                        var pv = versionInfo.ProductVersion?.Trim();
-                        var fv = versionInfo.FileVersion?.Trim();
-
-                        static bool IsMeaningful(string? v) =>
-                            !string.IsNullOrWhiteSpace(v) &&
-                            v != "0.0.0.0" &&
-                            v != "1.0.0.0" &&
-                            v != "0, 0, 0, 0" &&
-                            v != "1, 0, 0, 0" &&
-                            !v.StartsWith("0.0.0") &&
-                            !v.StartsWith("1.0.0.0");
-
-                        // ProductVersion first, FileVersion only if ProductVersion says nothing.
-                        gameVersion = IsMeaningful(pv) ? pv : IsMeaningful(fv) ? fv : null;
+                        gameVersion = CollectionPublishing.GameVersion(versionInfo.ProductVersion, versionInfo.FileVersion);
 
                         _logger.LogInformation("Detected game version: {version} for {game}", gameVersion ?? "none", modList.GameType);
                     }
@@ -557,25 +550,18 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                 _logger.LogWarning(ex, "Failed to read Nexus collection mapping from modlists.json; will create a new collection instead.");
             }
 
-            if (!string.IsNullOrWhiteSpace(existingCollectionId) &&
-                !string.IsNullOrWhiteSpace(existingDomain) &&
-                !existingDomain.Equals(listDomain, StringComparison.OrdinalIgnoreCase))
-            {
+            var usable = CollectionPublishing.UsableMapping(existingCollectionId, existingSlug, existingDomain, listDomain);
+            if (usable.CollectionId == null && existingCollectionId != null)
                 _logger.LogWarning(
                     "Stored Nexus mapping domain '{stored}' does not match current list domain '{current}'. Ignoring stored collectionId={id}.",
                     existingDomain, listDomain, existingCollectionId);
-                existingCollectionId = null;
-                existingSlug = null;
-                existingDomain = null;
-            }
+            (existingCollectionId, existingSlug) = usable;
 
             if (!string.IsNullOrWhiteSpace(existingCollectionId))
                 _logger.LogInformation("Using stored Nexus collection mapping: collectionId={id} slug={slug} domain={domain}",
                     existingCollectionId, existingSlug, existingDomain);
             else
                 _logger.LogInformation("No stored Nexus collection mapping found; creating new collection.");
-
-            var expectedNewRevisionNumber = (ExistingCollectionRevisionNumber ?? 0) + 1;
 
             var result = await uploader.UploadCollection(
                 modList,
@@ -591,6 +577,11 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
             {
                 PublishCollectionLastResult = PublishCollectionResult.Success;
 
+                // The revision Nexus says it made. Guessing "the last one plus one" was wrong twice over: Nexus
+                // replaces a draft revision in place rather than adding one, and a mapping ignored for being
+                // another game's left the old number behind for a brand new collection.
+                var revision = result.RevisionNumber;
+
                 // Put the mapping back into the author's modlists.json.
                 try
                 {
@@ -601,7 +592,7 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                         result.CollectionId,
                         slugToPersist,
                         listDomain,
-                        expectedNewRevisionNumber,
+                        revision,
                         CancellationToken.None);
 
                     _logger.LogInformation("Persisted Nexus mapping to modlists.json: collectionId={id} slug={slug} domain={domain} rev={rev}",
@@ -616,8 +607,7 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                 {
                     try
                     {
-                        var revisionForUrl = expectedNewRevisionNumber > 0 ? expectedNewRevisionNumber : result.RevisionNumber;
-                        UIUtils.OpenWebsite($"https://www.nexusmods.com/games/{listDomain}/collections/{result.Slug}/revisions/{revisionForUrl}");
+                        UIUtils.OpenWebsite(CollectionPublishing.RevisionPage(listDomain, result.Slug, revision));
                     }
                     catch (Exception openEx)
                     {
@@ -678,15 +668,8 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                 mapping.DomainName ?? listDomain,
                 CancellationToken.None);
 
-            var isDraft = !latestRevisionFromApi.HasValue;
-            var latestRevision = latestRevisionFromApi;
-
-            if (!latestRevision.HasValue && mapping.LastRevisionNumber.HasValue)
-            {
-                latestRevision = mapping.LastRevisionNumber;
-                _logger.LogInformation("Using stored revision number {rev} for slug={slug} (collection is unpublished draft)",
-                    latestRevision.Value, mapping.Slug);
-            }
+            var (latestRevision, isDraft) =
+                CollectionPublishing.ExistingRevision(latestRevisionFromApi, mapping.LastRevisionNumber);
 
             if (latestRevision.HasValue)
             {
