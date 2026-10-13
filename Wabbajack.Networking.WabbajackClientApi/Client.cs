@@ -266,7 +266,7 @@ public class Client
         var repositories = await _client.GetFromJsonAsync<Dictionary<string, Uri>>(_limiter,
             new HttpRequestMessage(HttpMethod.Get,
                 "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/repositories.json"), _dtos.Options);
-        return repositories!;
+        return repositories!.ToDictionary(repo => repo.Key, repo => GitHubRawUrl.Normalize(repo.Value));
     }
 
     public async Task<HashSet<string>> LoadAllowedTags()
