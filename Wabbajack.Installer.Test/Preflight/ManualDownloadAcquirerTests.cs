@@ -920,8 +920,19 @@ public class ManualDownloadAcquirerTests : IAsyncDisposable
         Assert.Equal(archive.Name, acquirer.Current?.Key);
 
         Directory.Delete(squatter.ToString());
-        acquirer.Retry(archive.Name);
-        Assert.Equal(ManualDownloadState.Pending, Item(acquirer, archive.Name).State);
+        // Retry publishes Pending before it requeues the candidate, and a fast machine has the requeued
+        // candidate verifying by the time the state could be read back, so the published event is checked.
+        var afterRetry = new List<ManualDownloadState>();
+        using (acquirer.Events.Subscribe(e =>
+               {
+                   if (e.Item.Key == archive.Name) lock (afterRetry) afterRetry.Add(e.Item.State);
+               }))
+        {
+            acquirer.Retry(archive.Name);
+            await PreflightTestFolder.WaitUntil(() => { lock (afterRetry) return afterRetry.Count > 0; },
+                "the retry's state change");
+            lock (afterRetry) Assert.Equal(ManualDownloadState.Pending, afterRetry[0]);
+        }
 
         // Nothing polls here, so only the requeued candidate can complete it.
         await WaitForState(acquirer, archive.Name, ManualDownloadState.Moved);
