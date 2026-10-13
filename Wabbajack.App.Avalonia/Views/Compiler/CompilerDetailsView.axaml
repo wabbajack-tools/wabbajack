@@ -1,0 +1,232 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          xmlns:common="using:Wabbajack.App.Avalonia.Views.Common"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Compiler"
+                          x:Class="Wabbajack.App.Avalonia.Views.Compiler.CompilerDetailsView"
+                          x:TypeArguments="vm:CompilerDetailsVM"
+                          x:DataType="vm:CompilerDetailsVM">
+    <!-- The details form: two columns of fields in a scrolling panel, each field a title over its box. -->
+    <UserControl.Styles>
+        <!-- TitleMargin. -->
+        <Style Selector="TextBlock.title">
+            <Setter Property="Margin" Value="0,8,0,8" />
+        </Style>
+        <Style Selector="TextBlock.optional">
+            <Setter Property="Margin" Value="0,8,0,8" />
+            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="TextAlignment" Value="Right" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+        <!-- ValueStyle: MainTextBoxStyle with a 150 character limit and a margin under it. -->
+        <Style Selector="TextBox.value">
+            <Setter Property="MaxLength" Value="150" />
+            <Setter Property="AcceptsTab" Value="False" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <!-- PickerStyle. -->
+        <Style Selector="common|FilePicker.picker">
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <!-- TextPanelMargin. -->
+        <Style Selector="StackPanel.field">
+            <Setter Property="Margin" Value="0,0,16,0" />
+        </Style>
+
+        <!--
+            The implicit ListBox style, and ListBoxItemStyle with the 08 tone as its background. What that style
+            left unset came from the system (Aero2) ListBoxItem style: 4,1 of padding in a transparent 1px border,
+            content left and centred. Selection outranks hover.
+        -->
+        <Style Selector="ListBox.profiles">
+            <Setter Property="Background" Value="{StaticResource ListBackground}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ListBorder}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <ScrollViewer Name="PART_ScrollViewer" Padding="{TemplateBinding Padding}"
+                                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ListBox.profiles ListBoxItem">
+            <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="4,1" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Name="Presenter"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ListBox.profiles ListBoxItem:pointerover /template/ Border#Bd">
+            <Setter Property="Background" Value="{StaticResource MouseOverListItem}" />
+        </Style>
+        <Style Selector="ListBox.profiles ListBoxItem:selected /template/ Border#Bd">
+            <Setter Property="Background" Value="{StaticResource SelectedListItem}" />
+        </Style>
+        <Style Selector="ListBox.profiles ListBoxItem:selected">
+            <Setter Property="Foreground" Value="{StaticResource SelectedListItemForeground}" />
+        </Style>
+        <Style Selector="ListBox.profiles ListBoxItem:disabled">
+            <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+        </Style>
+        <Style Selector="ListBox.profiles ListBoxItem ic|SymbolIcon#Check">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="ListBox.profiles ListBoxItem:selected ic|SymbolIcon#Check">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer x:Name="SettingsScrollViewer" Background="Transparent" HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+            <StackPanel Classes="field">
+                <DockPanel HorizontalAlignment="Stretch">
+                    <TextBlock Classes="title" Text="Author" />
+                </DockPanel>
+                <TextBox x:Name="AuthorNameSetting" Classes="value" Watermark="Author name(s)..." />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Classes="field">
+                <TextBlock Classes="title" Text="Version" />
+                <TextBox x:Name="VersionSetting" Classes="value" MaxLength="9" Watermark="1.0.0..." />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Classes="field">
+                <TextBlock Classes="title" Text="Title" />
+                <TextBox x:Name="ModListNameSetting" Classes="value" Watermark="Modlist name..." />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Grid.Column="1" Classes="field">
+                <TextBlock Classes="title" Text="Selected MO2 Profile" />
+                <ComboBox x:Name="ProfileSetting">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <TextBlock Padding="2,8,0,8" Text="{Binding}" VerticalAlignment="Center" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Classes="field">
+                <TextBlock Classes="title" Text="Description" />
+                <TextBox x:Name="DescriptionSetting" Classes="value" Height="135" VerticalContentAlignment="Top"
+                         Watermark="A comprehensive overhaul of..." AcceptsReturn="True" MaxLength="999" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Classes="field">
+                <TextBlock Classes="title" Text="Image" />
+                <common:FilePicker x:Name="ImageFilePicker" Classes="picker" Icon="DocumentImage"
+                                   ToolTip.Tip="Path to an image to display for the modlist."
+                                   Watermark="C:\...\Thumbnail-1600x900.webp" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Classes="field">
+                <TextBlock Classes="title" Text="Downloads folder" />
+                <common:FilePicker x:Name="DownloadsPicker" Classes="picker" Icon="Folder"
+                                   ToolTip.Tip="Path to the folder where the downloaded archives of your modlist are stored"
+                                   Watermark="C:\...\downloads" />
+            </StackPanel>
+            <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Classes="field">
+                <TextBlock Classes="title" Text="Export destination" />
+                <common:FilePicker x:Name="OutputFilePicker" Classes="picker" Icon="Folder"
+                                   ToolTip.Tip="Path to the file where the list installer will be saved to on completion"
+                                   Watermark="C:\...\Modlist.wabbajack" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="6" Classes="field">
+                <DockPanel>
+                    <TextBlock Classes="title" Text="Documentation (Readme)" ToolTip.Tip="Link to the documentation." />
+                    <TextBlock Classes="optional" Text="Optional" />
+                </DockPanel>
+                <TextBox x:Name="ReadmeSetting" Classes="value" Watermark="https://www..." />
+            </StackPanel>
+            <StackPanel Grid.Row="6" Grid.Column="1" Classes="field">
+                <DockPanel>
+                    <TextBlock Classes="title" Text="Website" />
+                    <TextBlock Classes="optional" Text="Optional" />
+                </DockPanel>
+                <TextBox x:Name="WebsiteSetting" Classes="value" Watermark="https://www..." />
+            </StackPanel>
+            <StackPanel Grid.Row="7" Classes="field">
+                <DockPanel>
+                    <TextBlock Classes="title" Text="Community" />
+                    <TextBlock Classes="optional" Text="Optional" />
+                </DockPanel>
+                <TextBox x:Name="CommunitySetting" Classes="value" Watermark="https://discord.gg/..." />
+            </StackPanel>
+            <StackPanel Grid.Row="7" Grid.Column="1" Classes="field" Orientation="Vertical">
+                <DockPanel>
+                    <TextBlock Classes="title" Text="Machine URL"
+                               ToolTip.Tip="Unique text string for this modlist prefixed with its GitHub repository name." />
+                    <TextBlock Classes="optional" Text="Optional" />
+                </DockPanel>
+                <TextBox x:Name="MachineUrl" Classes="value" Watermark="modlistRepository/ModlistName" />
+            </StackPanel>
+            <StackPanel Grid.Row="8" Classes="field">
+                <CheckBox x:Name="NSFWSetting" Margin="0,8,0,8"
+                          ToolTip.Tip="Select this if your modlist has adult themed content such as SexLab or other mods involving sexual acts. Nude body replacer do not fall under this category, neither do revealing outfits or gore.">
+                    <TextBlock Text="Not Safe For Work (NSFW)" FontSize="10" VerticalAlignment="Center" />
+                </CheckBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="8" Grid.Column="1" Classes="field">
+                <CheckBox x:Name="TextureRecompressionSetting" Margin="0,8,0,8"
+                          ToolTip.Tip="If this box is ticked, Wabbajack will recompress DDS textures to save on export file size rather than using the default binary patching method.">
+                    <TextBlock Text="Enable Texture Recompression" FontSize="10" VerticalAlignment="Center" />
+                </CheckBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Classes="field">
+                <CheckBox x:Name="AutoGenerateReportSetting" Margin="0,8,0,8"
+                          ToolTip.Tip="If ticked, Wabbajack will generate an HTML report next to the .wabbajack after compilation.">
+                    <TextBlock Text="Auto-generate Modlist HTML Report" FontSize="10" VerticalAlignment="Center" />
+                </CheckBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Classes="field"
+                        ToolTip.Tip="Wabbajack will include selected profiles as part of the modlist alongside your main selected MO2 profile.">
+                <TextBlock Classes="title" Text="Additional profile(s)" />
+                <ListBox x:Name="AdditionalProfilesSetting" Classes="profiles" SelectionMode="Multiple,Toggle"
+                         AutoScrollToSelectedItem="False">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <ic:SymbolIcon x:Name="Check" Grid.Column="0" FontSize="13" Symbol="Checkmark" />
+                                <TextBlock Grid.Column="2" Padding="4,8,0,8" Text="{Binding}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</rxui:ReactiveUserControl>

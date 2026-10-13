@@ -1,0 +1,26 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          x:Class="Wabbajack.App.Avalonia.Views.ConfirmationDialogView"
+                          x:TypeArguments="vm:ConfirmationDialogVM"
+                          x:DataType="vm:ConfirmationDialogVM">
+    <!-- A warning icon and title, the message, and Cancel / Continue, centred in the floating pane. -->
+    <Grid VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="600" Margin="32"
+          RowDefinitions="Auto,16,Auto,24,Auto">
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <ic:SymbolIcon Symbol="Warning" FontSize="24" Foreground="{StaticResource WarningBrush}" Margin="0,0,12,0" VerticalAlignment="Center" />
+            <TextBlock FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Title}" />
+        </StackPanel>
+
+        <!-- An element Opacity, which WPF blends plainly (unlike a translucent brush), so it carries over as is. -->
+        <TextBlock Grid.Row="2" TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource ForegroundBrush}" Opacity="0.8" Text="{Binding Message}" />
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <c:WJButton x:Name="CancelBtn" Text="Cancel" Icon="Dismiss" ButtonStyle="Mono" Margin="0,0,16,0" Command="{Binding CancelCommand}" />
+            <c:WJButton x:Name="ConfirmBtn" Text="Continue" Icon="Checkmark" ButtonStyle="Danger" Command="{Binding ConfirmCommand}" />
+        </StackPanel>
+    </Grid>
+</rxui:ReactiveUserControl>

@@ -34,9 +34,14 @@ public class FileHashCache
             _location.Parent.CreateDirectory();
 
         _connectionString =
-            string.Intern($"URI=file:{_location};Pooling=True;Max Pool Size=100; Journal Mode=Memory;");
+            string.Intern($"URI=file:{_location};Pooling=True;Max Pool Size=100;");
         _conn = new SQLiteConnection(_connectionString);
         _conn.Open();
+        // The cache is shared by every Wabbajack process the user runs, so wait for another one's write rather
+        // than failing on the spot, which is SQLite's default. The journal mode is set here rather than in the
+        // connection string because Open applies that before any busy timeout, and fails just the same.
+        using (var pragmas = new SQLiteCommand("PRAGMA busy_timeout=60000; PRAGMA journal_mode=MEMORY;", _conn))
+            pragmas.ExecuteNonQuery();
 
 
         using var cmd = new SQLiteCommand(_conn);

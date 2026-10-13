@@ -210,7 +210,7 @@ public class FileExtractor
         public bool CanMove { get; set; } = true;
         public async ValueTask Move(AbsolutePath newPath, CancellationToken token)
         {
-            await using var output = newPath.Open(FileMode.Create, FileAccess.Read, FileShare.Read);
+            await using var output = newPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
             _rdr.Position = _start;
             await _rdr.BaseStream.CopyToLimitAsync(output, (int)_length, token);
         }
@@ -557,7 +557,12 @@ public class FileExtractor
                 .ForEachAsync(p =>
                 {
                     var (_, line) = p;
-                    _logger.LogError("While extracting InnoSetup archive {fileName} at {path}: {line}", source.FileName, processExtract.Path, line);
+                    // Every .exe is offered to innoextract, and most are not installers: that answer is normal,
+                    // and logged as an error it buried real ones under a line per executable.
+                    if (line.Contains("Not a supported Inno Setup installer", StringComparison.OrdinalIgnoreCase))
+                        _logger.LogDebug("{fileName} is not an Inno Setup installer", source.FileName);
+                    else
+                        _logger.LogError("While extracting InnoSetup archive {fileName} at {path}: {line}", source.FileName, processExtract.Path, line);
                 }, token);
 
             // Wait for the job size to be calculated before actually starting the extraction operation, should be very fast

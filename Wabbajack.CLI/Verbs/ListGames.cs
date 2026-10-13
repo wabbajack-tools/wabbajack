@@ -38,7 +38,12 @@ public class ListGames
                 var mainFile = game.Value.MainExecutable!.Value.RelativeTo(location);
 
                 if (!mainFile.FileExists())
+                {
+                    // A partly downloaded or broken install has its folder but not its executable.
                     _logger.LogWarning("Main file {file} for {game} does not exist", mainFile, game.Key);
+                    _logger.LogInformation("[X] {Game} (unknown version) -> Path: {Path}", game.Value.HumanFriendlyGameName, location);
+                    continue;
+                }
 
                 var versionInfo = FileVersionInfo.GetVersionInfo(mainFile.ToString());
                 

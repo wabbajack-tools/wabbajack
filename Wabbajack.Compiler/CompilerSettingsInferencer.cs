@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -21,6 +22,24 @@ public class CompilerSettingsInferencer
     {
         _logger = logger;
 
+    }
+
+    /// <summary>
+    ///     Points settings loaded from <paramref name="settingsFile" /> at this machine; see
+    ///     <see cref="ReusedCompilerSettings" />. Returns what was changed.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> RepointForThisMachine(CompilerSettings settings, AbsolutePath settingsFile)
+    {
+        var modlistTxt = settingsFile.Parent.Combine(Consts.MO2Profiles, settings.Profile, Consts.ModListTxt);
+        var inferred = !string.IsNullOrEmpty(settings.Profile) && modlistTxt.FileExists()
+            ? await InferModListFromLocation(modlistTxt)
+            : null;
+
+        var changed = ReusedCompilerSettings.Repoint(settings, settingsFile, inferred);
+        if (changed.Count > 0)
+            _logger.LogInformation("Settings in {File} were made for another folder; changed {Changed} to suit this one",
+                settingsFile, string.Join(", ", changed));
+        return changed;
     }
 
     public async Task<CompilerSettings?> InferFromRootPath(AbsolutePath rootPath)
@@ -49,7 +68,8 @@ public class CompilerSettingsInferencer
                 cs.Game = GameRegistry.GetByFuzzyName(general["gameName"].FromMO2Ini()).Game;
                 cs.Source = mo2Folder;
 
-                var selectedProfile = general["selected_profile"].FromMO2Ini();
+                // The profile is the one whose modlist.txt was picked, not whichever MO2 last had selected.
+                var selectedProfile = settingsFile.Parent.FileName.ToString();
                 //cs.GamePath = general["gamePath"].FromMO2Ini().ToAbsolutePath();
                 cs.ModListName = selectedProfile;
                 cs.Profile = selectedProfile;

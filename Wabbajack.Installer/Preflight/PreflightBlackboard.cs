@@ -78,6 +78,18 @@ public sealed class PreflightBlackboard
     public Dictionary<Game, AbsolutePath> OtherGameFolders { get; } = new();
 
     /// <summary>
+    ///     Set by game-installed: games with no folder on this machine that a game file source said it
+    ///     could supply anyway, because the account owns them where the files come from.
+    ///     <para>
+    ///         game-files reads it for the same thing <c>IGameLocator.TryGetSteamBuildId</c> tells it about
+    ///         an installed game - that the game came from a store the repair can fetch from - since that
+    ///         one is read out of a local install and there is none here. Without it the row that lists
+    ///         every game file as missing would offer no way to get any of them.
+    ///     </para>
+    /// </summary>
+    public HashSet<Game> SourcedGames { get; } = new();
+
+    /// <summary>
     ///     Set by archive-inventory: the archives this install will actually read, after pruning what an
     ///     existing install already has (see <c>RequiredArchives.Compute</c>). Writing it throws the download
     ///     plan away, which was partitioned from the previous answer - see <see cref="DropPlan" />.

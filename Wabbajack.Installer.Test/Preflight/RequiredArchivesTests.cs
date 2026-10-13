@@ -136,6 +136,24 @@ public class RequiredArchivesTests : IDisposable
     }
 
     [Fact]
+    public async Task ProgressCountsEveryDirectiveStillToCheck()
+    {
+        await BuildModList();
+        await PreflightTestHost.WriteFile(Install.Combine("mods/b/plain.txt"), "plain from b");
+        var reports = new System.Collections.Concurrent.ConcurrentBag<(long Done, long Total)>();
+
+        await RequiredArchives.Compute(_host.Config.ModList, Install, _host.Cache, _host.Limiter,
+            CancellationToken.None, onChecked: (done, total) => reports.Add((done, total)));
+
+        // One report per directive the BSA pruning left, the last saying all of them, installed or not.
+        var total = reports.First().Total;
+        Assert.True(total > 0);
+        Assert.All(reports, r => Assert.Equal(total, r.Total));
+        Assert.Equal(total, reports.Count);
+        Assert.Equal(Enumerable.Range(1, (int) total).Select(i => (long) i), reports.Select(r => r.Done).OrderBy(d => d));
+    }
+
+    [Fact]
     public async Task ComputeChangesNothingOnDisk()
     {
         await BuildModList();

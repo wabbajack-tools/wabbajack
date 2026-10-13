@@ -1,0 +1,280 @@
+﻿<!--
+    The WPF theme's CheckBox, ComboBox and ScrollViewer/ScrollBar, rebuilt as Avalonia templates. Each block
+    names the WPF style it reproduces; sizes, radii, brushes and states are that style's.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ic="using:FluentIcons.Avalonia">
+
+    <!--
+        CheckBox. A 12px box with a 4px radius and a drawn checkmark, the content 4px to its right, and the
+        whole control, text included, scaled 1.4x by a LayoutTransform. Hover lightens the box's border.
+    -->
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="Background" Value="{StaticResource CheckBoxFillNormal}" />
+        <Setter Property="BorderBrush" Value="{StaticResource CheckBoxStroke}" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="4,0,0,0" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <LayoutTransformControl>
+                    <LayoutTransformControl.LayoutTransform>
+                        <ScaleTransform ScaleX="1.4" ScaleY="1.4" />
+                    </LayoutTransformControl.LayoutTransform>
+                    <Grid ColumnDefinitions="Auto,*" Background="Transparent">
+                        <Border Name="CheckBoxBorder" Width="12" Height="12" CornerRadius="4" BorderThickness="1"
+                                VerticalAlignment="Center"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}">
+                            <Path Name="CheckMark" Margin="1,1.007,1,1" Stretch="Fill"
+                                  Fill="{StaticResource CheckBoxForeground}"
+                                  Data="M7.2,5 L5.5,7.16 4.16,6.3 3.5,6.7 5.5,8.4 8.6,5.25 C8.6,5.25 8,4.7 7.22,5" />
+                        </Border>
+                        <ContentPresenter Name="PART_ContentPresenter" Grid.Column="1"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="Center" />
+                    </Grid>
+                </LayoutTransformControl>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="CheckBox /template/ Path#CheckMark">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="CheckBox:checked /template/ Path#CheckMark">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="CheckBox:pointerover /template/ Border#CheckBoxBorder">
+        <Setter Property="BorderBrush" Value="{StaticResource CheckBoxMouseOverStroke}" />
+    </Style>
+    <Style Selector="CheckBox:disabled">
+        <Setter Property="Foreground" Value="{StaticResource CheckBoxDisabledForeground}" />
+    </Style>
+    <Style Selector="CheckBox:disabled /template/ Border#CheckBoxBorder">
+        <Setter Property="BorderBrush" Value="{StaticResource CheckBoxDisabledStroke}" />
+    </Style>
+
+    <!--
+        ComboBox. A 4px-radius box in ButtonNormalBackground, the selection drawn with Padding 5,3,5,1 and a
+        30px strip on the right holding a filled chevron, which lightens on hover. The drop-down is a 1px
+        bordered box in the combo's own colours, at least as wide as the combo.
+    -->
+    <Style Selector="ComboBox">
+        <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+        <Setter Property="Background" Value="{StaticResource ButtonNormalBackground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ButtonNormalBorder}" />
+        <Setter Property="Padding" Value="5,3,5,1" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Top" />
+        <Setter Property="MaxDropDownHeight" Value="{DynamicResource WpfMaxDropDownHeight}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <!-- WPF's list is capped at a third of the screen's height (its default MaxDropDownHeight);
+                     App sets WpfMaxDropDownHeight from the primary screen at startup. -->
+                <Grid Name="MainGrid" ColumnDefinitions="*,Auto">
+                    <Border Name="Chrome" Grid.ColumnSpan="2" CornerRadius="4" Background="{TemplateBinding Background}">
+                        <Border Name="PopUpButton" Width="30" HorizontalAlignment="Right" CornerRadius="4"
+                                Background="{StaticResource ComboBoxButtonNormalBackground}">
+                            <ic:SymbolIcon Symbol="ChevronDown" FontSize="13" IconVariant="Filled"
+                                           Foreground="{StaticResource ButtonForeground}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </Border>
+                    <ContentPresenter Name="ContentPresenter" IsHitTestVisible="False"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Content="{TemplateBinding SelectionBoxItem}"
+                                      ContentTemplate="{TemplateBinding ItemTemplate}" />
+                    <Popup Name="PART_Popup" Grid.ColumnSpan="2"
+                           IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"
+                           MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                           MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                           Placement="Bottom" PlacementTarget="MainGrid"
+                           IsLightDismissEnabled="True" InheritsTransform="True"
+                           WindowManagerAddShadowHint="False">
+                        <Border Name="DropDownBorder" BorderThickness="1"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}">
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="ComboBox:pointerover /template/ Border#PopUpButton">
+        <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
+    </Style>
+    <!-- WPF counts the pointer over the open list as over the combo box (the list is its logical child), so the
+         button stays lit while the list is open and pointed at. Avalonia's list is another window. -->
+    <Style Selector="ComboBox:dropdownopen /template/ Border#PopUpButton">
+        <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
+    </Style>
+    <Style Selector="ComboBox:disabled">
+        <Setter Property="Foreground" Value="{StaticResource TextBoxDisabledForeground}" />
+        <Setter Property="Background" Value="{StaticResource TextBoxDisabledBackground}" />
+    </Style>
+
+    <!--
+        ComboBoxItemStyle: padding 4,0; the highlighted item (under the pointer, or the selected one when the
+        list opens) takes SelectedListItem. The style set no border, so WPF's default 1px transparent one
+        stayed, which makes each row 2px taller than its content. The presenter is not PART_ContentPresenter,
+        so Fluent's blue selection rules do not reach it.
+    -->
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Padding" Value="4,0,4,0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Top" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Bd" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}"
+                        BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
+                    <ContentPresenter Name="Presenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <!-- One highlighted row, as WPF's IsHighlighted: focus follows the pointer, and the selected item takes
+         focus when the list opens (App sets that up). -->
+    <Style Selector="ComboBoxItem:focus /template/ Border#Bd">
+        <Setter Property="Background" Value="{StaticResource SelectedListItem}" />
+    </Style>
+    <!-- Fluent paints the selected item's presenter blue from state rules, which outrank plain ones. -->
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter, ComboBoxItem:pointerover /template/ ContentPresenter, ComboBoxItem:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+    </Style>
+    <Style Selector="ComboBoxItem:disabled">
+        <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+    </Style>
+
+    <!--
+        ScrollViewer. WPF's gives the vertical bar a column of its own beside the content, always shown when
+        the content overflows; Fluent's lays auto-hiding bars over the content. This is the WPF arrangement.
+    -->
+    <Style Selector="ScrollViewer">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="AllowAutoHide" Value="False" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto" Background="{TemplateBinding Background}">
+                    <!-- The presenter scrolls on the wheel, so it has the background too: over an empty part of the
+                         content the pointer would otherwise hit the grid beside it and the wheel would do nothing.
+                         WPF's ScrollViewer took the wheel wherever it was. -->
+                    <ScrollContentPresenter Name="PART_ContentPresenter" Grid.Row="0" Grid.Column="0"
+                                            Background="{TemplateBinding Background}"
+                                            Content="{TemplateBinding Content}"
+                                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                                            Padding="{TemplateBinding Padding}" />
+                    <!-- Visibility is what hides a bar the content does not need, or one turned off. -->
+                    <ScrollBar Name="PART_VerticalScrollBar" Grid.Row="0" Grid.Column="1" Orientation="Vertical"
+                               Visibility="{TemplateBinding VerticalScrollBarVisibility}" />
+                    <ScrollBar Name="PART_HorizontalScrollBar" Grid.Row="1" Grid.Column="0" Orientation="Horizontal"
+                               Visibility="{TemplateBinding HorizontalScrollBarVisibility}" />                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!--
+        VerticalScrollBarStyle: a 17px-wide column (Windows' scroll bar width) holding an 8px thumb with a
+        4px radius. Hovered or dragged, the thumb widens to 16px and takes a lighter colour, and an 8px track
+        appears behind it. No arrows and no paging: the track itself does nothing when clicked.
+    -->
+    <!-- Matched on orientation because Fluent sets its own template there, and a style with a state in its
+         selector outranks one without, whichever file it comes from. -->
+    <Style Selector="ScrollBar:vertical, ScrollBar:horizontal">
+        <Setter Property="AllowAutoHide" Value="False" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Name="Bg">
+                    <!-- Shown while the pointer is on the thumb (or dragging it, which keeps it there). -->
+                    <Border Name="TrackBg" Background="{StaticResource VerticalScrollBarBackground}" CornerRadius="8"
+                            IsVisible="{Binding #thumb.IsPointerOver}" />
+                    <Track Name="PART_Track"
+                           Minimum="{TemplateBinding Minimum}"
+                           Maximum="{TemplateBinding Maximum}"
+                           Value="{TemplateBinding Value, Mode=TwoWay}"
+                           ViewportSize="{TemplateBinding ViewportSize}"
+                           Orientation="{TemplateBinding Orientation}"
+                           IsDirectionReversed="True">
+                        <Track.Thumb>
+                            <Thumb Name="thumb" />
+                        </Track.Thumb>
+                    </Track>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="ScrollBar:vertical">
+        <Setter Property="Width" Value="17" />
+        <Setter Property="MinWidth" Value="17" />
+    </Style>
+    <Style Selector="ScrollBar:vertical /template/ Border#TrackBg">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ScrollBar:horizontal">
+        <Setter Property="Height" Value="17" />
+        <Setter Property="MinHeight" Value="17" />
+    </Style>
+    <Style Selector="ScrollBar:horizontal /template/ Track#PART_Track">
+        <Setter Property="IsDirectionReversed" Value="False" />
+    </Style>
+    <Style Selector="ScrollBar:horizontal /template/ Border#TrackBg">
+        <Setter Property="Height" Value="8" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ScrollBar /template/ Thumb#thumb">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="ThumbBorder" Background="{StaticResource VerticalScrollBarThumb}" CornerRadius="4" />
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="ScrollBar:vertical /template/ Thumb#thumb /template/ Border#ThumbBorder">
+        <Setter Property="Width" Value="8" />
+    </Style>
+    <Style Selector="ScrollBar:horizontal /template/ Thumb#thumb /template/ Border#ThumbBorder">
+        <Setter Property="Height" Value="8" />
+    </Style>
+    <Style Selector="ScrollBar /template/ Thumb#thumb:pointerover /template/ Border#ThumbBorder">
+        <Setter Property="Background" Value="{StaticResource ScrollBarMouseOverThumb}" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ScrollBar:vertical /template/ Thumb#thumb:pointerover /template/ Border#ThumbBorder">
+        <Setter Property="Width" Value="16" />
+    </Style>
+    <Style Selector="ScrollBar:horizontal /template/ Thumb#thumb:pointerover /template/ Border#ThumbBorder">
+        <Setter Property="Height" Value="16" />
+    </Style>
+    <Style Selector="ScrollBar /template/ Thumb#thumb:pressed /template/ Border#ThumbBorder">
+        <Setter Property="Background" Value="{StaticResource ScrollBarSelectedThumb}" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ScrollBar:vertical /template/ Thumb#thumb:pressed /template/ Border#ThumbBorder">
+        <Setter Property="Width" Value="16" />
+    </Style>
+    <Style Selector="ScrollBar:horizontal /template/ Thumb#thumb:pressed /template/ Border#ThumbBorder">
+        <Setter Property="Height" Value="16" />
+    </Style>
+</Styles>

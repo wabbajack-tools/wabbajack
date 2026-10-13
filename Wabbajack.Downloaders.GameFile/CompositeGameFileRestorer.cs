@@ -65,6 +65,48 @@ public sealed class CompositeGameFileRestorer : IGameFileRestorer
     }
 
     /// <summary>
+    ///     Available as soon as one source says so: one source that can hand the game's files over is all
+    ///     an install without the game needs.
+    ///     <para>
+    ///         What is reported when none can is the same rule <see cref="Restore" /> follows. A source that
+    ///         actually asked - it knows the account does not own the game, or could not find out - has said
+    ///         something about this game, and that beats a source that declined to look at all. Among
+    ///         declines, <see cref="GameSourceOutcome.NotReady" /> beats
+    ///         <see cref="GameSourceOutcome.NoSource" />, because one is something the user can go and fix
+    ///         and the other is "this game is not ours".
+    ///     </para>
+    /// </summary>
+    public async Task<GameSourceResult> CanSourceGame(Game game, CancellationToken token)
+    {
+        var declined = new List<GameSourceResult>();
+        var answered = new List<GameSourceResult>();
+
+        foreach (var restorer in _restorers)
+        {
+            token.ThrowIfCancellationRequested();
+
+            var result = await restorer.CanSourceGame(game, token);
+            if (result.Available) return result;
+
+            _logger.LogDebug("{Source} cannot stand in for {Game}: {Outcome} ({Reason})", restorer.SourceName,
+                game, result.Outcome, result.Reason);
+
+            if (result.Outcome is GameSourceOutcome.NotReady or GameSourceOutcome.NoSource)
+                declined.Add(result);
+            else
+                answered.Add(result);
+        }
+
+        // Unconfirmed over NotOwned: a source that could not find out has not contradicted one that says no,
+        // and an install stopped over "you do not own this" should only ever be stopped by an account that
+        // was actually read.
+        if (answered.Count > 0)
+            return answered.FirstOrDefault(a => a.Outcome == GameSourceOutcome.Unconfirmed) ?? answered[0];
+
+        return declined.FirstOrDefault(d => d.Outcome == GameSourceOutcome.NotReady) ?? declined[0];
+    }
+
+    /// <summary>
     ///     The union. Each source speaks about a different thing it would do to the user's account - a
     ///     Steam licence taken for a free companion app, a Bethesda fetch that wants the Steam client
     ///     signed in - and a repair may reach either, so both have to be in front of the user while they
@@ -103,7 +145,7 @@ public sealed class CompositeGameFileRestorer : IGameFileRestorer
     ///     </para>
     /// </summary>
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-        AbsolutePath output, CancellationToken token)
+        AbsolutePath output, CancellationToken token, GameFileIdentity? wanted = null)
     {
         var declined = new List<GameFileRestoreResult>();
         var answered = new List<GameFileRestoreResult>();
@@ -112,7 +154,7 @@ public sealed class CompositeGameFileRestorer : IGameFileRestorer
         {
             token.ThrowIfCancellationRequested();
 
-            var result = await restorer.Restore(game, version, gameFile, output, token);
+            var result = await restorer.Restore(game, version, gameFile, output, token, wanted);
             if (result.Fetched) return result;
 
             _logger.LogDebug("{Source} did not supply {File}: {Outcome} ({Detail})", restorer.SourceName,

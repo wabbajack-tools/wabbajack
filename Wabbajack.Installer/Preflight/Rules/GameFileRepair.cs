@@ -232,7 +232,13 @@ public static class GameFileRepair
 
         try
         {
-            var fetched = await restorer.Restore(item.State.Game, version, item.State.GameFile, incoming, token);
+            // What the modlist knows about the file goes with the request. The hash is an identity a source
+            // can look up - which is how a file from a build nobody can name any more is still found - and
+            // the size is a refusal it can make without downloading anything. Everything fetched is hashed
+            // below and anything that is not what the list asked for is deleted, so without this a list
+            // built against a version the store has moved past downloads most of a game to throw it away.
+            var fetched = await restorer.Restore(item.State.Game, version, item.State.GameFile, incoming, token,
+                new GameFileIdentity(item.Archive.Hash, item.Archive.Size));
 
             if (!fetched.Fetched)
             {

@@ -23,14 +23,21 @@ public class PatchStockGameFiles : ACompilationStep
     {
         _client = client;
         _distFn = new Levenshtein();
+
+        // Only Skyrim SE lists carry downgraded 1.5.97 game files, so only they need the index.
+        if (compiler._settings.Game != Game.SkyrimSpecialEdition)
+        {
+            Disabled = true;
+            _files = Task.FromResult(Enumerable.Empty<Archive>().ToLookup(f => f.Hash));
+            return;
+        }
+
         _files = Task.Run(async () => (await _client.GetGameArchives(Game.SkyrimSpecialEdition, "1.5.97.0"))
             .ToLookup(f => f.Hash));
     }
 
     public override async ValueTask<Directive?> Run(RawSourceFile source)
     {
-        if (_compiler._settings.Game != Game.SkyrimSpecialEdition) return null;
-
         var found = (await _files)[source.Hash];
         if (!found.Any()) return null;
 

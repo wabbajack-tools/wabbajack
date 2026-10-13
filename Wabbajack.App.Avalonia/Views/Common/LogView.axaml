@@ -1,0 +1,95 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Common"
+             x:Class="Wabbajack.App.Avalonia.Views.Common.LogView">
+    <!--
+        The last 200 log messages at Info and above, in rows that alternate between two tones and wrap long
+        lines. WPF masked the list to an 8px-radius rectangle inside a -1 margin, so it draws one pixel past
+        its box on every side; the clipping border here keeps both. The white border WPF masked against sat
+        under an opaque list and never showed.
+    -->
+    <UserControl.Styles>
+        <!-- The implicit ListBox style: the 08 tone, no border, its ScrollViewer straight inside. -->
+        <Style Selector="ListBox.log">
+            <Setter Property="Background" Value="{StaticResource ListBackground}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ListBorder}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <ScrollViewer Name="PART_ScrollViewer" Padding="{TemplateBinding Padding}"
+                                      HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                      VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                            <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <!--
+            ListBoxItemStyle, over the system (Aero2) ListBoxItem style that still supplied what it left unset:
+            4,1 of padding inside a transparent 1px border, content left and centred. Rows alternate between
+            the 08 tone and LogViewAlternateBrush; hover and selection paint the row's border from the template,
+            so they win over the alternation, and selection over hover.
+        -->
+        <Style Selector="ListBox.log ListBoxItem">
+            <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="4,1" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Name="Presenter"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ListBox.log ListBoxItem:nth-child(2n)">
+            <Setter Property="Background" Value="{StaticResource LogViewAlternateBrush}" />
+        </Style>
+        <Style Selector="ListBox.log ListBoxItem:pointerover /template/ Border#Bd">
+            <Setter Property="Background" Value="{StaticResource MouseOverListItem}" />
+        </Style>
+        <Style Selector="ListBox.log ListBoxItem:selected /template/ Border#Bd">
+            <Setter Property="Background" Value="{StaticResource SelectedListItem}" />
+        </Style>
+        <Style Selector="ListBox.log ListBoxItem:selected">
+            <Setter Property="Foreground" Value="{StaticResource SelectedListItemForeground}" />
+        </Style>
+        <Style Selector="ListBox.log ListBoxItem:disabled">
+            <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Margin="-1" CornerRadius="8" ClipToBounds="True">
+        <ListBox x:Name="LogList" Classes="log">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:LogStream+ILogMessage">
+                    <TextBlock Text="{Binding ShortMessage}" FontSize="13" Margin="0,2,0,2" VerticalAlignment="Center" TextWrapping="WrapWithOverflow" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Border>
+</UserControl>

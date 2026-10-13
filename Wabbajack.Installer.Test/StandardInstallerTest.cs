@@ -12,6 +12,11 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Test.Preflight.Fakes;
+using Microsoft.Extensions.Logging;
+using Wabbajack.Downloaders;
+using Wabbajack.Hashing.PHash;
+using Wabbajack.RateLimiter;
+using Wabbajack.VFS;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -134,6 +139,103 @@ public class StandardInstallerTest
 
         Assert.Equal(0, server.Attempts(state));
         Assert.False(config.Downloads.Combine(archive.Name).FileExists());
+    }
+
+    /// <summary>
+    ///     A machine with no game folder at all is no longer refused. Preflight lets a run carry on when the
+    ///     game is not installed and a source can supply the files the list takes from it, and those land in
+    ///     the downloads folder - so the install has to get as far as looking for them.
+    ///     <para>
+    ///         What that looks like here: the archive is not in downloads either, so the install ends at the
+    ///         missing-archive check, naming the file. Before this it ended one step earlier with
+    ///         <see cref="InstallResult.GameMissing" />, which is a different thing to go and fix.
+    ///     </para>
+    /// </summary>
+    [Fact]
+    public async Task AMissingGameFolderNoLongerEndsTheInstall()
+    {
+        await using var installFolder = _manager.CreateFolder();
+        var config = await MissingArchiveList(installFolder);
+
+        var result = await InstallerWith(new FakeGameLocator(), config).Begin(CancellationToken.None);
+
+        Assert.Equal(InstallResult.DownloadFailed, result);
+        Assert.Equal(default, config.GameFolder);
+    }
+
+    /// <summary>
+    ///     A folder that was named and is not there is still a mistake to correct rather than a game to
+    ///     fetch: somebody said where the game is, and they were wrong.
+    /// </summary>
+    [Fact]
+    public async Task AGameFolderThatDoesNotExistIsStillInvalid()
+    {
+        await using var installFolder = _manager.CreateFolder();
+        var config = await MissingArchiveList(installFolder);
+        config.GameFolder = installFolder.Path.Combine("no-such-game-folder");
+
+        var result = await InstallerWith(new FakeGameLocator(), config).Begin(CancellationToken.None);
+
+        Assert.Equal(InstallResult.GameInvalid, result);
+    }
+
+    /// <summary>
+    ///     A one-archive list whose archive is nowhere, which is enough to reach the missing-archive check
+    ///     without any payload to extract.
+    /// </summary>
+    private async Task<InstallerConfiguration> MissingArchiveList(AbsolutePath installFolder)
+    {
+        var bytes = Encoding.UTF8.GetBytes("an archive nobody has " + Guid.NewGuid());
+        var archive = new Archive
+        {
+            Name = "missing.zip",
+            Size = bytes.Length,
+            Hash = await bytes.Hash(),
+            State = new Http {Url = new Uri($"https://example.invalid/{Guid.NewGuid()}/missing.zip")}
+        };
+
+        return new InstallerConfiguration
+        {
+            Install = installFolder,
+            Downloads = installFolder.Combine("downloads"),
+            ModlistArchive = _modList,
+            Game = Game.SkyrimSpecialEdition,
+            SystemParameters = SystemParameters(),
+            ModList = new ModList
+            {
+                Name = "No game folder",
+                GameType = Game.SkyrimSpecialEdition,
+                Archives = new[] {archive},
+                Directives = new Directive[]
+                {
+                    new FromArchive
+                    {
+                        To = "mods/missing/readme.txt".ToRelativePath(),
+                        Hash = archive.Hash,
+                        Size = archive.Size,
+                        ArchiveHashPath = new HashRelativePath(archive.Hash, "readme.txt".ToRelativePath())
+                    }
+                }
+            }
+        };
+    }
+
+    /// <summary>
+    ///     The registered locator is the stubbed one, which finds every game in the same folder - so a test
+    ///     about not having a game folder has to bring its own.
+    /// </summary>
+    private StandardInstaller InstallerWith(IGameLocator locator, InstallerConfiguration config)
+    {
+        return new StandardInstaller(_provider.GetRequiredService<ILogger<StandardInstaller>>(), config, locator,
+            _provider.GetRequiredService<FileExtractor.FileExtractor>(),
+            _provider.GetRequiredService<DTOSerializer>(),
+            _provider.GetRequiredService<Context>(),
+            _provider.GetRequiredService<FileHashCache>(),
+            _provider.GetRequiredService<DownloadDispatcher>(),
+            _provider.GetRequiredService<ParallelOptions>(),
+            _provider.GetRequiredService<IResource<IInstaller>>(),
+            _provider.GetRequiredService<Client>(),
+            _provider.GetRequiredService<IImageLoader>());
     }
 
     private static SystemParameters SystemParameters()

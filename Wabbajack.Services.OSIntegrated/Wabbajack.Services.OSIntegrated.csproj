@@ -13,6 +13,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Wabbajack.Networking.NexusApi.Test" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="DeviceId" />
         <PackageReference Include="GitInfo">
             <PrivateAssets>all</PrivateAssets>
