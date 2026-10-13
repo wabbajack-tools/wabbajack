@@ -514,6 +514,10 @@ to end offline. `NexusContractLiveTests` (network; the signed-in schema test nee
 snapshots with what Nexus serves now and send each query live. When they fail, run them with
 `NEXUS_CONTRACT_UPDATE=1` to rewrite the snapshots, review the diff, and let the offline tests show what the
 code has to change. All GraphQL queries live in `NexusGraphQL` so they can be checked; add new ones there.
+`NexusCollectionPublishTests` goes the whole way round against the real service: it publishes Halgari's Helper as
+a draft revision of one test collection (id kept in `%LOCALAPPDATA%\Wabbajack\nexus-publish-test.json`) and
+installs it back. It publishes under whoever is logged in, so it runs only with `WABBAJACK_NEXUS_PUBLISH=1`.
+Nexus replaces a collection's draft revision in place, so repeated runs leave one draft, never a pile.
 
 Reach for a pure function plus a table of cases where behaviour is fiddly and the consequences are
 destructive; `FileDeletionRulesTests` is the model. Concurrency bugs need a sample large enough to fail
