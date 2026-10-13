@@ -245,7 +245,7 @@ public class SteamRestoreBranchTests
     ///     cause a licence request for that app - which would add an unrelated package to the user's Steam
     ///     library - and must not be read. The repair should carry on to the game's own depots.
     /// </summary>
-    [Fact(Skip = "Bug: SteamGameFileRestorer.FromIndex asks EnsureFreeLicenseAsync for, and downloads from, any app the content index names, not just the game's own apps and SteamToolIDs")]
+    [Fact]
     public async Task AContentIndexCopyUnderAnUnrelatedAppIsNeitherLicensedNorRead()
     {
         const uint unrelatedApp = 12345;
@@ -274,7 +274,7 @@ public class SteamRestoreBranchTests
     ///     depot carries the file, the Creation Kit's copy is never reached, so no Creation Kit licence is
     ///     added to the user's library for a file they could have had without it.
     /// </summary>
-    [Fact(Skip = "Bug: SteamGameFileRestorer.FromIndex tries copies in index order, so a Creation Kit copy listed first takes a free licence even though the game's own depot has the file")]
+    [Fact]
     public async Task AContentIndexCopyInTheGamesOwnDepotIsPreferredToAToolCopy()
     {
         var hash = new Hash(0x4343);

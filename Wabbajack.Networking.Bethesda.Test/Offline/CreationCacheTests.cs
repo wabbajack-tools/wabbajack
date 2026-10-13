@@ -194,7 +194,7 @@ public class CreationCacheTests : IDisposable
     ///     so retry the update) rather than resolving against entitlements that were never brought up to
     ///     date. Otherwise a user who owns the Creations is told they "may not own" them.
     /// </summary>
-    [Fact(Skip = "Bug: after a failed fulfillment BethesdaApiClient.HasSession stays true, so CreationCache.Slots skips SignIn and the entitlement update is never retried")]
+    [Fact]
     public async Task AfterAFailedEntitlementUpdateTheNextFileSignsInAgain()
     {
         var container = Container();
