@@ -505,6 +505,20 @@ builds a synthetic modlist, compiles it and installs it; `Wabbajack.Installer.Te
 `TestData/MO2AndSKSETest.wabbajack`. Extending these reaches real compile and install behaviour without a
 game install or a large download.
 
+**Nexus Mods collections are tested against Nexus' own published contract, not against what the code sends.**
+Nexus changes the collections APIs without notice. `Wabbajack.Compiler.Test/NexusCollections/Contract` holds
+snapshots of the parts Wabbajack uses: the v3 operations from `https://api.nexusmods.com/openapi.yaml`, and
+every GraphQL field the queries in `NexusGraphQL` select, introspected from the live schema. `FakeNexus` is
+built from those snapshots and checks every request against them, so the real uploader and downloader run end
+to end offline. `NexusContractLiveTests` (network; the signed-in schema test needs a Nexus login) compare the
+snapshots with what Nexus serves now and send each query live. When they fail, run them with
+`NEXUS_CONTRACT_UPDATE=1` to rewrite the snapshots, review the diff, and let the offline tests show what the
+code has to change. All GraphQL queries live in `NexusGraphQL` so they can be checked; add new ones there.
+`NexusCollectionPublishTests` goes the whole way round against the real service: it publishes Halgari's Helper as
+a draft revision of one test collection (id kept in `%LOCALAPPDATA%\Wabbajack\nexus-publish-test.json`) and
+installs it back. It publishes under whoever is logged in, so it runs only with `WABBAJACK_NEXUS_PUBLISH=1`.
+Nexus replaces a collection's draft revision in place, so repeated runs leave one draft, never a pile.
+
 Reach for a pure function plus a table of cases where behaviour is fiddly and the consequences are
 destructive; `FileDeletionRulesTests` is the model. Concurrency bugs need a sample large enough to fail
 every run rather than one run in three, so prefer tens of thousands of iterations over a few hundred.

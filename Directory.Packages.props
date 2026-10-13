@@ -30,6 +30,7 @@
     <PackageVersion Include="GameFinder.StoreHandlers.Origin" Version="4.9.0" />
     <PackageVersion Include="GameFinder.StoreHandlers.Steam" Version="4.9.0" />
     <PackageVersion Include="GitInfo" Version="3.6.1" />
+    <PackageVersion Include="GraphQL-Parser" Version="9.5.0" />
     <PackageVersion Include="Humanizer" Version="3.0.10" />
     <PackageVersion Include="ini-parser-netstandard" Version="2.5.3" />
     <PackageVersion Include="JetBrains.Annotations" Version="2026.2.0" />

@@ -717,15 +717,8 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
         if (authState?.OAuth?.IsExpired ?? true)
             return null;
 
-        var query = @"
-            query collectionRevision($slug: String!, $domainName: String!) {
-              collectionRevision(slug: $slug, domainName: $domainName) {
-                revisionNumber
-              }
-            }";
-
         var variables = new { slug, domainName };
-        var graphqlRequest = new { query, variables };
+        var graphqlRequest = new { query = Wabbajack.Networking.NexusApi.NexusGraphQL.LatestRevisionNumber, variables };
 
         using var content = new StringContent(
             System.Text.Json.JsonSerializer.Serialize(graphqlRequest, new System.Text.Json.JsonSerializerOptions
@@ -736,7 +729,7 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
             System.Text.Encoding.UTF8,
             "application/json");
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.nexusmods.com/v2/graphql")
+        using var request = new HttpRequestMessage(HttpMethod.Post, Wabbajack.Networking.NexusApi.NexusGraphQL.Endpoint)
         {
             Content = content
         };

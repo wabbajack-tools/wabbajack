@@ -16,6 +16,7 @@ using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using static Wabbajack.Compiler.WabbajackToVortexCollection;
@@ -61,12 +62,19 @@ namespace Wabbajack.Compiler
             Environment.GetEnvironmentVariable("NEXUS_REST_URL")
             ?? "https://api.nexusmods.com/v3";
 
-        private static readonly string GraphQLUrl =
-            Environment.GetEnvironmentVariable("NEXUS_GRAPHQL_URL")
-            ?? "https://api.nexusmods.com/v2/graphql";
+        private static readonly Uri GraphQLUrl = NexusGraphQL.Endpoint;
 
         private const int CollectionSchemaId = 2;
         private const int MaxUploadAttempts = 3;
+
+        /// <summary>
+        ///     The client the archive's parts go out on. Presigned storage URLs carry their own authorisation, so it
+        ///     is not the shared client; the tests replace it to keep uploads in the process.
+        /// </summary>
+        internal Func<HttpClient> UploadClientFactory { get; init; } = CreateUploadClient;
+
+        /// <summary>Every wait between retries and polls goes through this, so the tests need not sit them out.</summary>
+        internal Func<TimeSpan, CancellationToken, Task> Delay { get; init; } = Task.Delay;
 
         public NexusCollectionUploader(
             ILogger logger,
@@ -130,7 +138,7 @@ namespace Wabbajack.Compiler
                         var delay = TimeSpan.FromSeconds(Math.Pow(2, uploadAttempt) * 5);
                         _logger.LogWarning("Upload attempt {attempt} failed. Retrying in {delay}s...",
                             uploadAttempt, delay.TotalSeconds);
-                        await Task.Delay(delay, token);
+                        await Delay(delay, token);
                     }
                 }
 
@@ -288,7 +296,7 @@ namespace Wabbajack.Compiler
             var etags = new ConcurrentDictionary<int, string>();
             var completed = 0;
 
-            using var uploadClient = CreateUploadClient();
+            using var uploadClient = UploadClientFactory();
 
             for (int i = 0; i < session.PartsPresignedUrl.Count; i++)
             {
@@ -375,7 +383,7 @@ namespace Wabbajack.Compiler
                         Math.Min(Math.Pow(2, attempt), 60) + Random.Shared.NextDouble() * 5);
                     _logger.LogInformation("Retrying part {part} in {delay:N1}s...",
                         partNumber, delay.TotalSeconds);
-                    await Task.Delay(delay, token);
+                    await Delay(delay, token);
                 }
             }
 
@@ -454,7 +462,7 @@ namespace Wabbajack.Compiler
             while (DateTime.UtcNow < deadline)
             {
                 attempt++;
-                await Task.Delay(TimeSpan.FromSeconds(Math.Min(3 * attempt, 15)), token);
+                await Delay(TimeSpan.FromSeconds(Math.Min(3 * attempt, 15)), token);
 
                 using var request = new HttpRequestMessage(
                     HttpMethod.Get, $"{RestBaseUrl}/uploads/{uploadUuid}");
@@ -832,7 +840,7 @@ namespace Wabbajack.Compiler
                         {
                             _logger.LogWarning(
                                 "Gateway timeout on attempt {attempt}, retrying in 20s...", attempt);
-                            await Task.Delay(TimeSpan.FromSeconds(20), token);
+                            await Delay(TimeSpan.FromSeconds(20), token);
                             continue;
                         }
 
@@ -844,14 +852,14 @@ namespace Wabbajack.Compiler
                 {
                     _logger.LogWarning(
                         "Collection REST request timed out on attempt {attempt}, retrying...", attempt);
-                    await Task.Delay(TimeSpan.FromSeconds(20), token);
+                    await Delay(TimeSpan.FromSeconds(20), token);
                     continue;
                 }
                 catch (Exception ex) when (attempt < MaxRestAttempts)
                 {
                     _logger.LogWarning(ex,
                         "Error during collection REST call attempt {attempt}, retrying...", attempt);
-                    await Task.Delay(TimeSpan.FromSeconds(20), token);
+                    await Delay(TimeSpan.FromSeconds(20), token);
                     continue;
                 }
                 catch (Exception ex)
@@ -1045,15 +1053,7 @@ namespace Wabbajack.Compiler
         {
             try
             {
-                var query = @"
-                    query collectionText($slug: String!) {
-                      collection(slug: $slug, viewAdultContent: true) {
-                        summary
-                        description
-                      }
-                    }";
-
-                var graphqlRequest = new { query, variables = new { slug } };
+                var graphqlRequest = new { query = NexusGraphQL.CollectionText, variables = new { slug } };
 
                 using var content = new StringContent(
                     JsonSerializer.Serialize(graphqlRequest, new JsonSerializerOptions
@@ -1136,7 +1136,7 @@ namespace Wabbajack.Compiler
                     _logger.LogInformation(
                         "Collection not visible yet; re-checking in {seconds}s (attempt {attempt})",
                         delay.TotalSeconds, attempt);
-                    await Task.Delay(delay, token);
+                    await Delay(delay, token);
                 }
 
                 _logger.LogWarning(
@@ -1159,29 +1159,8 @@ namespace Wabbajack.Compiler
             CancellationToken token,
             string? preferredCollectionId = null)
         {
-            var query = @"
-                query myCollections($count: Int!, $offset: Int!, $viewAdultContent: Boolean!, $viewUnlisted: Boolean!, $viewUnderModeration: Boolean!) {
-                  myCollections(
-                    count: $count,
-                    offset: $offset,
-                    viewAdultContent: $viewAdultContent,
-                    viewUnlisted: $viewUnlisted,
-                    viewUnderModeration: $viewUnderModeration,
-                    sortBy: ""created_at"",
-                    sortDirection: ""DESC""
-                  ) {
-                    nodes {
-                      id
-                      slug
-                      name
-                      game { domainName }
-                      draftRevisionNumber
-                    }
-                  }
-                }";
-
             var variables = new { count = 50, offset = 0, viewAdultContent = true, viewUnlisted = true, viewUnderModeration = true };
-            var graphqlRequest = new { query, variables };
+            var graphqlRequest = new { query = NexusGraphQL.MyCollections, variables };
 
             using var content = new StringContent(
                 JsonSerializer.Serialize(graphqlRequest, new JsonSerializerOptions
@@ -1302,75 +1281,6 @@ namespace Wabbajack.Compiler
             catch { }
             return 0;
         }
-
-        public async Task<string?> ValidateTokenAsync(CancellationToken token)
-        {
-            if (!_tokenProvider.HaveToken())
-                return "No Nexus Mods token found. Please log in via Settings.";
-
-            var authState = await _tokenProvider.Get();
-            if (authState?.OAuth == null)
-                return "OAuth state is missing. Please log in via Settings.";
-
-            if (authState.OAuth.IsExpired)
-                return "Your Nexus Mods session has expired. Please log in again via Settings.";
-
-            var query = @"query { currentUser { name } }";
-            var graphqlRequest = new { query };
-
-            using var content = new StringContent(
-                JsonSerializer.Serialize(graphqlRequest, _jsonOptions),
-                Encoding.UTF8, "application/json");
-
-            using var request = new HttpRequestMessage(HttpMethod.Post, GraphQLUrl)
-            {
-                Content = content
-            };
-            AddNexusHeaders(request, authState.OAuth.AccessToken);
-
-            try
-            {
-                using var validateCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                using var linked = CancellationTokenSource.CreateLinkedTokenSource(
-                    token, validateCts.Token);
-
-                var response = await _httpClient.SendAsync(request, linked.Token);
-                var body = await response.Content.ReadAsStringAsync(linked.Token);
-
-                if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized
-                                        or System.Net.HttpStatusCode.Forbidden)
-                    return "Your Nexus Mods session is no longer valid. " +
-                           "Please log in again via Settings.";
-
-                if (!response.IsSuccessStatusCode)
-                    return $"Nexus Mods API returned {(int)response.StatusCode} while " +
-                           "validating your session. Please try again.";
-
-                var root = JsonNode.Parse(body) as JsonObject;
-                var errors = root?["errors"] as JsonArray;
-                if (errors is { Count: > 0 })
-                {
-                    var firstCode = (errors[0] as JsonObject)?
-                        ["extensions"]?["code"]?.GetValue<string>();
-                    if (firstCode is "UNAUTHORIZED" or "FORBIDDEN" or "UNAUTHENTICATED")
-                        return "Your Nexus Mods session is no longer valid. " +
-                               "Please log in again via Settings.";
-                }
-
-                var userName = root?["data"]?["currentUser"]?["name"]?.GetValue<string>();
-                if (string.IsNullOrWhiteSpace(userName))
-                    return "Could not confirm Nexus Mods identity. Please log in again via Settings.";
-
-                _logger.LogInformation("Nexus token validated — logged in as: {user}", userName);
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Token validation request failed");
-                return $"Could not reach Nexus Mods to validate your session: {ex.Message}";
-            }
-        }
-
 
         private static void AddNexusHeaders(HttpRequestMessage request, string accessToken)
         {
