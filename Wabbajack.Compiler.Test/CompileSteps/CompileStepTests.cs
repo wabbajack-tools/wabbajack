@@ -159,6 +159,32 @@ public class CompileStepTests : IAsyncLifetime
         }, lines);
     }
 
+    /// <summary>
+    ///     A config file naming the author's downloads folder points at the downloads folder the user chose. It
+    ///     used to keep the author's path: the step swapped the MO2 folder in where it meant the downloads one.
+    /// </summary>
+    [Fact]
+    public async Task ConfigFile_NamingTheDownloadsFolder_PointsAtTheInstallsDownloads()
+    {
+        var downloads = _harness.DownloadPath("x").Parent;
+
+        var mod = _harness.AddMod("Configured");
+        mod.EnabledIn.Add(_harness.ProfileFolder.FileName.ToString());
+        var config = await mod.AddData("tool.ini".ToRelativePath(), string.Join("\r\n",
+            $"archiveBack={downloads}\\SkyUI.7z",
+            $"archiveForward={downloads.ToString().Replace("\\", "/")}/SkyUI.7z"));
+
+        await Compile(s => s.Downloads = downloads);
+
+        Assert.True(await _harness.Install());
+        var installDownloads = _harness.InstallDownloadPath("x").Parent.ToString();
+        Assert.Equal(new[]
+        {
+            $"archiveBack={installDownloads}\\SkyUI.7z",
+            $"archiveForward={installDownloads.Replace("\\", "/")}/SkyUI.7z"
+        }, (await _harness.InstalledPath(config).ReadAllTextAsync()).Split("\r\n"));
+    }
+
     [Fact]
     public async Task ConfigFile_NamingNoFolder_IsShippedUnchanged()
     {
