@@ -197,6 +197,12 @@ public class ModListHarness
         return url;
     }
 
+    /// <summary>The source profile being compiled; its <c>modlist.txt</c> is written when the compile starts.</summary>
+    public AbsolutePath ProfileFolder => _source.Combine(Consts.MO2Profiles, _profileName);
+
+    /// <summary>The game folder the install is given, which is not the one the compiler saw.</summary>
+    public AbsolutePath InstallGameFolder => _gameFolder;
+
     /// <summary>Path of a file in the folder the compiler reads archives from.</summary>
     public AbsolutePath DownloadPath(string fileName)
     {
