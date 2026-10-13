@@ -324,17 +324,8 @@ public partial class GameFilesVM : ViewModel
 
         foreach (var item in GameFileRepair.Group(repairable))
         {
-            var row = new ArchiveRowVM(item.Archive, null)
-            {
-                // A file of a game that is not installed reads as one nobody has fetched yet rather than as
-                // a failure: nothing has gone wrong with it, and the repair has not been asked for.
-                State = item.Problem == GameFileProblem.Missing ? ArchiveState.Missing : ArchiveState.Failed,
-                Detail = item.Problem == GameFileProblem.Missing
-                    ? "Not installed"
-                    : item.Version is {} version
-                        ? $"Another version; this list needs {version}"
-                        : "Another version"
-            };
+            var (state, detail) = Row(item.Problem, item.Version);
+            var row = new ArchiveRowVM(item.Archive, null) {State = state, Detail = detail};
 
             _rows.Add(row);
             _byName[row.Key] = row;
@@ -379,14 +370,15 @@ public partial class GameFilesVM : ViewModel
     /// </summary>
     private void Summarise(IReadOnlyList<GameFileRepairResult> results)
     {
+        (Tone, StatusText) = Summary(results);
+    }
+
+    public static (GameFilesTone Tone, string Text) Summary(IReadOnlyList<GameFileRepairResult> results)
+    {
         var fetched = results.Count(r => r.Status == GameFileRepairStatus.Repaired);
 
         if (fetched == results.Count)
-        {
-            Tone = GameFilesTone.Done;
-            StatusText = $"{Files(fetched)} fetched into the downloads folder.";
-            return;
-        }
+            return (GameFilesTone.Done, $"{Files(fetched)} fetched into the downloads folder.");
 
         var failed = results.Where(r => r.Status != GameFileRepairStatus.Repaired).ToList();
         var reasons = failed.GroupBy(r => r.Message, StringComparer.Ordinal)
@@ -404,8 +396,18 @@ public partial class GameFilesVM : ViewModel
             ? string.Empty
             : $" ({commonest.Count()} of {failed.Count})";
 
-        Tone = GameFilesTone.Problem;
-        StatusText = $"{what}{scope} {commonest.Key}";
+        return (GameFilesTone.Problem, $"{what}{scope} {commonest.Key}");
+    }
+
+    /// <summary>
+    ///     A file of a game that is not installed reads as one nobody has fetched yet rather than as a failure:
+    ///     nothing has gone wrong with it, and the repair has not been asked for.
+    /// </summary>
+    public static (ArchiveState State, string Detail) Row(GameFileProblem problem, string? version)
+    {
+        return problem == GameFileProblem.Missing
+            ? (ArchiveState.Missing, "Not installed")
+            : (ArchiveState.Failed, version is { } v ? $"Another version; this list needs {v}" : "Another version");
     }
 
     private static string Files(int count)

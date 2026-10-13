@@ -363,17 +363,23 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
     ///     What still has to be filled in before a compile can start. The start button is enabled when this is
     ///     empty, and its tooltip lists it, so the two cannot disagree.
     /// </summary>
-    public IReadOnlyList<string> MissingRequiredFields()
+    public IReadOnlyList<string> MissingRequiredFields() => MissingRequiredFields(Settings);
+
+    /// <summary>
+    ///     What still has to be filled in before a compile can start, in the words the Compile button's tooltip
+    ///     uses. Nothing else gates the button.
+    /// </summary>
+    public static IReadOnlyList<string> MissingRequiredFields(CompilerSettingsVM settings)
     {
         var missing = new List<string>();
-        if (string.IsNullOrWhiteSpace(Settings.ModListName)) missing.Add("title");
-        if (string.IsNullOrWhiteSpace(Settings.ModListAuthor)) missing.Add("author");
-        if (string.IsNullOrWhiteSpace(Settings.ModListDescription)) missing.Add("description");
-        if (!Settings.ModListImage.FileExists()) missing.Add("an image that exists");
-        if (string.IsNullOrEmpty(Settings.Downloads.ToString())) missing.Add("downloads folder");
-        if (string.IsNullOrEmpty(Settings.OutputFile.ToString()) || Settings.OutputFile.Extension != Ext.Wabbajack)
+        if (string.IsNullOrWhiteSpace(settings.ModListName)) missing.Add("title");
+        if (string.IsNullOrWhiteSpace(settings.ModListAuthor)) missing.Add("author");
+        if (string.IsNullOrWhiteSpace(settings.ModListDescription)) missing.Add("description");
+        if (!settings.ModListImage.FileExists()) missing.Add("an image that exists");
+        if (string.IsNullOrEmpty(settings.Downloads.ToString())) missing.Add("downloads folder");
+        if (string.IsNullOrEmpty(settings.OutputFile.ToString()) || settings.OutputFile.Extension != Ext.Wabbajack)
             missing.Add("export destination ending in .wabbajack");
-        if (!System.Version.TryParse(Settings.Version, out _)) missing.Add("a version such as 1.0.0");
+        if (!System.Version.TryParse(settings.Version, out _)) missing.Add("a version such as 1.0.0");
         return missing;
     }
 

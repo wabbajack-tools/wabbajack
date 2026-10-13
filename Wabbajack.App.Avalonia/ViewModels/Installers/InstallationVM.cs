@@ -308,27 +308,16 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 .Select(t =>
                 {
                     var (wjVr, dlVr, instVr, _, _, _) = t;
+                    var pickers = new[] { wjVr, dlVr, instVr };
+                    var rules = Validate().ToArray();
 
-                    var errors = new[] { wjVr, dlVr, instVr }
-                        .Where(v => v != null && v.Failed)
-                        .Concat(Validate())
-                        .ToArray();
-
-                    if (!errors.Any()) return ValidationResult.Success;
-
-                    var reasons = errors.Select(e => e.Reason)
-                        .Where(r => !string.IsNullOrWhiteSpace(r))
-                        .ToArray();
-
-                    foreach (var e in errors)
+                    foreach (var e in pickers.Where(v => v != null && v.Failed).Concat(rules))
                     {
-                        if (e.Failed && string.IsNullOrWhiteSpace(e.Reason))
+                        if (string.IsNullOrWhiteSpace(e!.Reason))
                             _logger.LogWarning("ValidationResult failed but had no reason. Type={Type}", e.GetType().FullName);
                     }
 
-                    return reasons.Length == 0
-                        ? ValidationResult.Fail("Validation failed (no reason provided).")
-                        : ValidationResult.Fail(string.Join("\n", reasons));
+                    return InstallPathRules.Combine(pickers, rules);
                 })
                 .BindTo(this, vm => vm.ValidationResult)
                 .DisposeWith(disposables);
@@ -493,22 +482,16 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         }
     }
 
-    private static string GetSuggestedInstallFolder(ModlistMetadata x)
+    /// <summary>A folder on the preferred drive named for the list, or null when no drive can be suggested.</summary>
+    private static string? GetSuggestedInstallFolder(ModlistMetadata x)
     {
-        var folderName = x.Title;
-        // Ignore everything after a dash
-        folderName = folderName.Split('-')[0];
-        // Remove all special characters
-        folderName = Regex.Replace(folderName, "[^a-zA-Z0-9_ .]+", "");
         // Get preferred installation drive (SSD with enough space). The drive's media type comes from WMI.
         var preferredPartition = OperatingSystem.IsWindows()
             ? DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata!.SizeOfInstalledFiles)
             : null;
-        var words = folderName.Split(' ');
-        // Abbreviate the list name if it's too long, otherwise convert it to PascalCase
-        folderName = words.Length >= 3 ? string.Join("", words.Select(w => w[0])).ToUpper() : folderName.Pascalize();
+        if (preferredPartition == null) return null;
 
-        return $"{preferredPartition!.Name}Modlists\\{folderName.Trim()}\\";
+        return $"{preferredPartition.Name}Modlists\\{InstallFolderSuggestion.FolderName(x.Title)}\\";
     }
 
     private async void CancelInstall()
@@ -543,63 +526,19 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
     private IEnumerable<ValidationResult> Validate()
     {
-        if (!WabbajackFileLocation.TargetPath.FileExists())
-            yield return ValidationResult.Fail("Wabbajack modlist file does not exist");
-
-        var downloadPath = Installer.DownloadLocation.TargetPath;
-        if (downloadPath.Depth <= 1)
-            yield return DownloadsPathValidationResult.Fail("Please specify a download location");
-
-        var installPath = Installer.Location.TargetPath;
-        if (installPath.Depth <= 1)
-            yield return InstallPathValidationResult.Fail("Please specify an installation location");
-        if (installPath.InFolder(KnownFolders.Windows))
-            yield return InstallPathValidationResult.Fail("Can't install modlist to Windows folder");
-
-        if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 && installPath == downloadPath)
-        {
-            yield return DownloadsPathValidationResult.Fail("Installation and download locations cannot be identical");
-        }
-
-        if (installPath.ToString().Length > 0 && downloadPath.ToString().Length > 0 &&
-            KnownFolders.IsSubDirectoryOf(installPath.ToString(), downloadPath.ToString()))
-        {
-            yield return InstallPathValidationResult.Fail("Can't install to folder within downloads folder");
-        }
-
+        var gameFolders = new List<AbsolutePath>();
         foreach (var game in GameRegistry.Games)
-        {
-            if (!_gameLocator.TryFindLocation(game.Key, out var location))
-                continue;
+            if (_gameLocator.TryFindLocation(game.Key, out var location))
+                gameFolders.Add(location);
 
-            if (installPath.InFolder(location))
-                yield return InstallPathValidationResult.Fail("Can't install modlist into a game folder");
-
-            if (location.ThisAndAllParents().Any(path => installPath == path))
-            {
-                yield return InstallPathValidationResult.Fail(
-                    "Can't install to path, installed files may overwrite game files");
-            }
-        }
-
-        if (installPath.InFolder(KnownFolders.EntryPoint))
-            yield return InstallPathValidationResult.Fail("Can't install a modlist into the Wabbajack folder");
-        if (downloadPath.InFolder(KnownFolders.EntryPoint))
-            yield return DownloadsPathValidationResult.Fail("Can't download a modlist into the Wabbajack folder");
-        if (KnownFolders.EntryPoint.ThisAndAllParents().Any(path => installPath == path))
-        {
-            yield return InstallPathValidationResult.Fail("Can't install into the Wabbajack folder");
-        }
-
-        if (KnownFolders.IsInSpecialFolder(installPath, out var specialFolder))
-        {
-            yield return InstallPathValidationResult.Fail($"Can't install into special folder ({specialFolder})");
-        }
-
-        if (KnownFolders.IsInSpecialFolder(downloadPath, out var specialDownloadsFolder))
-        {
-            yield return DownloadsPathValidationResult.Fail($"Can't download into special folder ({specialDownloadsFolder})");
-        }
+        return InstallPathRules.Validate(new InstallPathContext(
+            WabbajackFileLocation.TargetPath.FileExists(),
+            Installer.Location.TargetPath,
+            Installer.DownloadLocation.TargetPath,
+            gameFolders,
+            KnownFolders.EntryPoint,
+            KnownFolders.Windows,
+            path => KnownFolders.IsInSpecialFolder(path, out var special) ? special : null));
     }
 
     private async Task LoadLastModlist()
@@ -656,8 +595,11 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                     ModlistMetadata = metadata!;
                     if (!hasPrevModListInstallation)
                     {
-                        SuggestedInstallFolder = GetSuggestedInstallFolder(metadata!);
-                        SuggestedDownloadFolder = SuggestedInstallFolder + "\\downloads";
+                        if (GetSuggestedInstallFolder(metadata!) is { } suggested)
+                        {
+                            SuggestedInstallFolder = suggested;
+                            SuggestedDownloadFolder = suggested + "\\downloads";
+                        }
                     }
                 }
                 catch (Exception ex)
