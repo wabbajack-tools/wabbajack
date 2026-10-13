@@ -85,7 +85,7 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
 
     public ReadOnlyObservableCollection<GalleryModListMetadataVM> ModLists => _filteredModLists;
 
-    private const string ALL_GAME_IDENTIFIER = "All games";
+    private const string ALL_GAME_IDENTIFIER = GalleryFilter.AllGames;
 
     [Reactive] public partial IValidationResult Error { get; set; }
 
@@ -241,96 +241,64 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
                 .Select(change => change.Value?.Trim() ?? "")
                 .StartWith(Search ?? "")
                 .Select<string, Func<GalleryModListMetadataVM, bool>>(txt =>
-                {
-                    if (string.IsNullOrWhiteSpace(txt)) return _ => true;
-                    return item => item.Metadata.Title.ContainsCaseInsensitive(txt) ||
-                                   item.Metadata.Description.ContainsCaseInsensitive(txt) ||
-                                   item.Metadata.Tags.Contains(txt);
-                });
+                    item => GalleryFilter.MatchesSearch(item.Metadata, txt));
 
             var onlyInstalledGamesFilter = this.ObservableForProperty(vm => vm.OnlyInstalled)
                 .Select(v => v.Value)
                 .StartWith(OnlyInstalled)
                 .Select<bool, Func<GalleryModListMetadataVM, bool>>(onlyInstalled =>
-                {
-                    if (onlyInstalled == false) return _ => true;
-                    return item => _locator.IsInstalled(item.Metadata.Game);
-                });
+                    item => GalleryFilter.MatchesInstalled(item.Metadata, onlyInstalled, _locator.IsInstalled));
 
             var includeUnofficialFilter = this.ObservableForProperty(vm => vm.IncludeUnofficial)
                 .Select(v => v.Value)
                 .StartWith(IncludeUnofficial)
-                .Select<bool, Func<GalleryModListMetadataVM, bool>>(unoffical =>
-                {
-                    if (unoffical) return x => true;
-                    return x => x.Metadata.Official;
-                });
+                .Select<bool, Func<GalleryModListMetadataVM, bool>>(unofficial =>
+                    item => GalleryFilter.MatchesOfficial(item.Metadata, unofficial));
 
             var includeNSFWFilter = this.ObservableForProperty(vm => vm.IncludeNSFW)
                 .Select(v => v.Value)
                 .StartWith(IncludeNSFW)
                 .Select<bool, Func<GalleryModListMetadataVM, bool>>(showNsfw =>
-                {
-                    if (showNsfw) return x => true;
-                    return x => !x.Metadata.NSFW;
-                });
+                    item => GalleryFilter.MatchesNsfw(item.Metadata, showNsfw));
 
             var gameFilter = this.ObservableForProperty(vm => vm.GameType)
                 .Select(v => v.Value)
                 .StartWith(GameType)
                 .Select<string, Func<GalleryModListMetadataVM, bool>>(selected =>
-                {
-                    if (selected is null or ALL_GAME_IDENTIFIER) return _ => true;
-                    return item => item.Metadata.Game.MetaData().HumanFriendlyGameName == selected;
-                });
+                    item => GalleryFilter.MatchesGame(item.Metadata, selected));
 
             var minModlistSizeFilter = this.ObservableForProperty(vm => vm.MinModlistSize)
                 .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
                 .Select(v => v.Value)
                 .StartWith(MinModlistSize)
                 .Select<double, Func<GalleryModListMetadataVM, bool>>(minModlistSize =>
-                {
-                    return item => item.Metadata.DownloadMetadata.TotalSize >= minModlistSize;
-                });
+                    item => GalleryFilter.MatchesSize(item.Metadata, minModlistSize, double.MaxValue));
 
             var maxModlistSizeFilter = this.ObservableForProperty(vm => vm.MaxModlistSize)
                 .Throttle(TimeSpan.FromSeconds(0.05), RxApp.MainThreadScheduler)
                 .Select(v => v.Value)
                 .StartWith(MaxModlistSize)
                 .Select<double, Func<GalleryModListMetadataVM, bool>>(maxModlistSize =>
-                {
-                    return item => item.Metadata.DownloadMetadata.TotalSize <= maxModlistSize;
-                });
+                    item => GalleryFilter.MatchesSize(item.Metadata, double.MinValue, maxModlistSize));
 
             var includedTagsFilter = this.ObservableForProperty(vm => vm.HasTags)
                 .Select(v => v.Value)
                 .StartWith(HasTags)
                 .Select<ObservableCollection<ModListTag>, Func<GalleryModListMetadataVM, bool>>(filteredTags =>
                 {
-                    if (!filteredTags?.Any() ?? true) return _ => true;
-
-                    return item => filteredTags.All(tag => item.Metadata.Tags.Contains(tag.Name));
+                    var names = TagNames(filteredTags);
+                    return item => GalleryFilter.MatchesTags(item.Metadata, names);
                 });
 
             var includedModsFilter =
                 this.WhenAnyValue(vm => vm.HasMods, vm => vm.ExcludeMods)
-                    .Select(tuple => (Mods: tuple.Item1, Exclude: tuple.Item2))
-                    .Select(filterData =>
+                    .Select<(ObservableCollection<ModListMod>, bool), Func<GalleryModListMetadataVM, bool>>(tuple =>
                     {
-                        if (!(filterData.Mods?.Any() ?? false)) return (Func<GalleryModListMetadataVM, bool>)(_ => true);
-
-                        if (filterData.Exclude)
-                        {
-                            // Exclude mode: show modlists that do NOT contain the mods
-                            return item =>
-                                !ModsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) ||
-                                !filterData.Mods.Any(mod => mods.Contains(mod.Name));
-                        }
-
-                        // Include mode: show modlists that contain ALL selected mods
-                        return item =>
-                            ModsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) &&
-                            filterData.Mods.All(mod => mods.Contains(mod.Name));
+                        var (mods, exclude) = tuple;
+                        var names = ModNames(mods);
+                        // ModsPerList is read when an item is checked, not when the filter is built: the mod
+                        // index can arrive after the selection.
+                        return item => GalleryFilter.MatchesMods(item.Metadata, ModsPerList, names, exclude);
                     });
 
 
@@ -362,6 +330,12 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
         });
     }
 
+    private static IReadOnlyCollection<string> TagNames(IEnumerable<ModListTag>? tags) =>
+        tags?.Select(t => t.Name).ToArray() ?? Array.Empty<string>();
+
+    private static IReadOnlyCollection<string> ModNames(IEnumerable<ModListMod>? mods) =>
+        mods?.Select(m => m.Name).ToArray() ?? Array.Empty<string>();
+
     private void UpdateGamesToFilter()
     {
         if (AllGameTypeEntries == null || !AllGameTypeEntries.Any() || _updatingGamesToFilter) return;
@@ -369,68 +343,14 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
         try
         {
             _updatingGamesToFilter = true;
-            // Apply all filters EXCEPT the game filter to the master list to get counts per game
-            var search = Search?.Trim() ?? "";
-            var onlyInstalled = OnlyInstalled;
-            var includeUnofficial = IncludeUnofficial;
-            var includeNSFW = IncludeNSFW;
-            var minModlistSize = MinModlistSize;
-            var maxModlistSize = MaxModlistSize;
-            var hasTags = HasTags?.ToList();
-            var hasMods = HasMods?.ToList();
-            var excludeMods = ExcludeMods;
+            // Every filter but the game's, through the same rules the list uses, so a game's count is what
+            // choosing it then shows.
+            var criteria = new GalleryCriteria(Search?.Trim() ?? "", OnlyInstalled, IncludeUnofficial, IncludeNSFW,
+                MinModlistSize, MaxModlistSize, TagNames(HasTags), ModNames(HasMods), ExcludeMods);
             var modsPerList = ModsPerList;
 
             var filteredItems = _modLists.Items
-                .Where(item =>
-                {
-                    // Search
-                    if (!string.IsNullOrWhiteSpace(search) &&
-                        !item.Metadata.Title.ContainsCaseInsensitive(search) &&
-                        !item.Metadata.Description.ContainsCaseInsensitive(search) &&
-                        !item.Metadata.Tags.Contains(search))
-                        return false;
-
-                    // Only Installed
-                    if (onlyInstalled && !_locator.IsInstalled(item.Metadata.Game))
-                        return false;
-
-                    // Unofficial
-                    if (!includeUnofficial && !item.Metadata.Official)
-                        return false;
-
-                    // NSFW
-                    if (!includeNSFW && item.Metadata.NSFW)
-                        return false;
-
-                    // Size
-                    if (item.Metadata.DownloadMetadata.TotalSize < minModlistSize ||
-                        item.Metadata.DownloadMetadata.TotalSize > maxModlistSize)
-                        return false;
-
-                    // Tags
-                    if (hasTags != null && hasTags.Any() && !hasTags.All(tag => item.Metadata.Tags.Contains(tag.Name)))
-                        return false;
-
-                    // Mods
-                    if (hasMods != null && hasMods.Any())
-                    {
-                        if (excludeMods)
-                        {
-                            if (modsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) &&
-                                hasMods.Any(mod => mods.Contains(mod.Name)))
-                                return false;
-                        }
-                        else
-                        {
-                            if (!modsPerList.TryGetValue(item.Metadata.Links.MachineURL, out var mods) ||
-                                !hasMods.All(mod => mods.Contains(mod.Name)))
-                                return false;
-                        }
-                    }
-
-                    return true;
-                })
+                .Where(item => GalleryFilter.MatchesAllButGame(item.Metadata, criteria, _locator.IsInstalled, modsPerList))
                 .ToList();
 
             var counts = filteredItems
@@ -499,40 +419,36 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
 
         try
         {
-            // Check if this is a Nexus Collection
-            if (IsNexusCollection(normalized))
+            var link = ProtocolLink.Parse(payload);
+            switch (link)
             {
-                await HandleNexusCollection(normalized);
-                ll.Succeed();
-                return;
+                case ProtocolLink.NexusCollection collection:
+                    await HandleNexusCollection(collection.Slug, collection.Revision);
+                    ll.Succeed();
+                    return;
+                case ProtocolLink.DirectDownload download:
+                    await HandleDirectDownload(download.Url, download.FileName);
+                    ll.Succeed();
+                    return;
+                case ProtocolLink.Invalid invalid:
+                    _logger.LogWarning("[Protocol] {reason}", invalid.Reason);
+                    Error = ValidationResult.Fail(invalid.Reason);
+                    IsResolvingProtocol = false;
+                    ProtocolStatusText = string.Empty;
+                    ll.Fail();
+                    return;
             }
 
-            // Check if this is a direct download URL
-            if (IsDirectDownloadUrl(normalized))
-            {
-                await HandleDirectDownload(normalized);
-                ll.Succeed();
-                return;
-            }
-
-            ProtocolStatusText = $"Preparing to install {normalized}…";
+            var gallery = (ProtocolLink.GalleryList) link;
+            ProtocolStatusText = $"Preparing to install {gallery.Id}…";
 
             await EnsureGalleryLoadedAsync();
 
-            GalleryModListMetadataVM? modlist = null;
-
-            if (normalized.Contains("/"))
-            {
-                // repo/list
-                modlist = _modLists.Items.FirstOrDefault(m =>
-                    m.Metadata.NamespacedName.Equals(normalized, StringComparison.OrdinalIgnoreCase));
-            }
-            else
-            {
-                // Fallback: short list name only
-                modlist = _modLists.Items.FirstOrDefault(m =>
-                    m.Metadata.Links.MachineURL.Equals(normalized, StringComparison.OrdinalIgnoreCase));
-            }
+            // repo/list, or the short list name alone.
+            var modlist = _modLists.Items.FirstOrDefault(m => (gallery.Namespaced
+                    ? m.Metadata.NamespacedName
+                    : m.Metadata.Links.MachineURL)
+                .Equals(gallery.Id, StringComparison.OrdinalIgnoreCase));
 
             if (modlist == null)
             {
@@ -600,45 +516,17 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
         }
     }
 
-    private bool IsDirectDownloadUrl(string payload)
+    private async Task HandleDirectDownload(Uri url, string fileName)
     {
-        // ends with .wabbajack?
-        return payload.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-               payload.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
-               payload.EndsWith(".wabbajack", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private bool IsNexusCollection(string payload)
-    {
-        // Check for nexus-collection format: nexus-collection/{slug} or nexus-collection/{slug}/revision/{number}
-        return payload.StartsWith("nexus-collection/", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private async Task HandleDirectDownload(string downloadUrl)
-    {
-        _logger.LogInformation("[Protocol] Handling direct download from: {url}", downloadUrl);
+        _logger.LogInformation("[Protocol] Handling direct download from: {url}", url);
 
         ProtocolStatusText = "Downloading modlist file…";
 
         try
         {
-            // Unescape the URL if needed
-            var url = Uri.UnescapeDataString(downloadUrl);
-
-            if (url.StartsWith("http//", StringComparison.OrdinalIgnoreCase))
-                url = url.Replace("http//", "http://");
-            else if (url.StartsWith("https//", StringComparison.OrdinalIgnoreCase))
-                url = url.Replace("https//", "https://");
-
-            _logger.LogInformation("[Protocol] Normalized URL: {url}", url);
-
             var downloadDir = KnownFolders.EntryPoint.Combine("downloaded_mod_lists");
             if (!downloadDir.DirectoryExists())
                 downloadDir.CreateDirectory();
-
-            var fileName = System.IO.Path.GetFileName(new Uri(url).LocalPath);
-            if (!fileName.EndsWith(".wabbajack", StringComparison.OrdinalIgnoreCase))
-                fileName += ".wabbajack";
 
             var downloadedFile = downloadDir.Combine(fileName);
 
@@ -693,6 +581,9 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
 
             await Task.Delay(500, _cancellationToken);
 
+            // Nothing else clears the overlay for a direct download: the listener above only recognises a
+            // gallery list it was told to wait for.
+            IsResolvingProtocol = false;
             ProtocolStatusText = string.Empty;
 
             _logger.LogInformation("[Protocol] Loading modlist from downloaded file");
@@ -701,7 +592,7 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[Protocol] Failed to download modlist from: {url}", downloadUrl);
+            _logger.LogError(ex, "[Protocol] Failed to download modlist from: {url}", url);
             Error = ValidationResult.Fail($"Failed to download modlist: {ex.Message}");
             IsResolvingProtocol = false;
             ProtocolStatusText = string.Empty;
@@ -709,38 +600,14 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
         }
     }
 
-    private async Task HandleNexusCollection(string payload)
+    private async Task HandleNexusCollection(string slug, int? revisionNumber)
     {
-        _logger.LogInformation("[Protocol] Handling Nexus Collection: {payload}", payload);
+        _logger.LogInformation("[Protocol] Handling Nexus Collection: {slug}", slug);
 
         ProtocolStatusText = "Fetching collection from Nexus Mods…";
 
         try
         {
-            // Parse the payload: nexus-collection/{slug} or nexus-collection/{slug}/revision/{number}
-            var parts = payload.Split('/');
-
-            if (parts.Length < 2)
-            {
-                _logger.LogError("[Protocol] Invalid Nexus Collection format: {payload}", payload);
-                Error = ValidationResult.Fail($"Invalid Nexus Collection URL format: {payload}");
-                IsResolvingProtocol = false;
-                ProtocolStatusText = string.Empty;
-                return;
-            }
-
-            var slug = parts[1];
-            int? revisionNumber = null;
-
-            // Check if revision number is specified
-            if (parts.Length >= 4 && parts[2].Equals("revision", StringComparison.OrdinalIgnoreCase))
-            {
-                if (int.TryParse(parts[3], out var revNum))
-                {
-                    revisionNumber = revNum;
-                }
-            }
-
             _logger.LogInformation("[Protocol] Parsed collection: slug={slug}, revision={revision}",
                 slug, revisionNumber?.ToString() ?? "latest");
 
@@ -846,7 +713,7 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[Protocol] Failed to download from Nexus Collection: {payload}", payload);
+            _logger.LogError(ex, "[Protocol] Failed to download from Nexus Collection: {slug}", slug);
             Error = ValidationResult.Fail($"Failed to download Nexus Collection: {ex.Message}");
             IsResolvingProtocol = false;
             ProtocolStatusText = string.Empty;
@@ -947,20 +814,8 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
         var modlistSummaries = (await _wjClient.GetListStatuses()).ToDictionary(summary => summary.MachineURL);
         foreach (var modlist in modLists)
         {
-            var modlistTags = new List<string>();
-            foreach (var tag in modlist.Tags)
-            {
-                string? allowedTag = null;
-                tagMappings.TryGetValue(tag, out allowedTag);
-
-                if (allowedTags.TryGetValue(tag, out allowedTag))
-                    modlistTags.Add(allowedTag);
-            }
-            if (modlist.NSFW) modlistTags.Insert(0, "NSFW");
-            if (modlist.Official) modlistTags.Insert(0, "Featured");
-            if ((modlist.ValidationSummary?.HasFailures ?? false) || modlist.ForceDown) modlistTags.Insert(0, "Unavailable");
-
-            modlist.Tags = modlistTags;
+            modlist.Tags = GalleryTags.Normalize(modlist.Tags, allowedTags, tagMappings, modlist.NSFW,
+                modlist.Official, (modlist.ValidationSummary?.HasFailures ?? false) || modlist.ForceDown);
         }
 
         var httpClient = _serviceProvider.GetRequiredService<HttpClient>();
@@ -990,6 +845,9 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
 
             if (itemTotalSize > largestSize) LargestSizedModlist = item;
         }
+
+        // An empty gallery (every repository down, or a failed load) has no sizes to bound the slider with.
+        if (SmallestSizedModlist == null || LargestSizedModlist == null) return;
         MinModlistSize = SmallestSizedModlist.Metadata.DownloadMetadata.TotalSize;
         MaxModlistSize = LargestSizedModlist.Metadata.DownloadMetadata.TotalSize;
     }
