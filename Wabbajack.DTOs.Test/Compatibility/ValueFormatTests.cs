@@ -58,6 +58,19 @@ public class ValueFormatTests
         Assert.Equal(Hash.FromULong(value), Hash.FromBase64(base64));
     }
 
+    /// <summary>
+    ///     JSON lets a writer escape any character, and System.Text.Json's own writer escapes "+". A list that
+    ///     went through such a tool used to have those hashes read as something else, silently.
+    /// </summary>
+    [Theory]
+    [InlineData("""{"Hash":"+/+/+/+/+/8="}""", 0xFFFBBFFFFBBFFFFBUL)]
+    [InlineData("""{"Hash":"\/brB4w0cf7I="}""", 0xB27F1C0DE3C1BAFDUL)]
+    [InlineData("""{"Hash":"LqKnmSUrXac="}""", 0xA75D2B2599A7A22EUL)]
+    public void EscapedHashText_ReadsAsTheSameHash(string json, ulong value)
+    {
+        Assert.Equal(Hash.FromULong(value), _serializer.Deserialize<HashHolder>(json)!.Hash);
+    }
+
     [Fact]
     public void RandomHashesRoundTrip()
     {
