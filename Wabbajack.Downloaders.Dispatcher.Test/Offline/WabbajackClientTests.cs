@@ -59,10 +59,13 @@ public class WabbajackClientTests : IAsyncLifetime
         await _folder.DisposeAsync();
     }
 
-    private Client Client(FakeHttp http, string? authorKey = null)
+    private Client Client(FakeHttp http, string? authorKey = null, Action<int>? exit = null)
     {
         return new Client(NullLogger<Client>.Instance, http.Client(), new Keys(authorKey), _dtos,
-            new Resource<HttpClient>("http", 4), new Resource<Client>("hash", 4), new ClientConfiguration());
+            new Resource<HttpClient>("http", 4), new Resource<Client>("hash", 4), new ClientConfiguration())
+        {
+            Exit = exit ?? (code => throw new InvalidOperationException($"The client tried to exit with {code}"))
+        };
     }
 
     private static HttpResponseMessage Text(string body, HttpStatusCode status = HttpStatusCode.OK)
@@ -404,6 +407,58 @@ public class WabbajackClientTests : IAsyncLifetime
         Assert.Contains("oldSha=sha-1234", post.RequestUri!.Query);
         Assert.Equal(new[] {"first.7z", "second.7z"},
             _dtos.Deserialize<ValidatedArchive[]>(written!)!.Select(a => a.Original.Name));
+    }
+
+    /// <summary>
+    ///     The build server can close a client: a metric it refuses with 403, or fails with 500, is answered with a
+    ///     "rebound" metric and the client quitting. The rebound itself is never answered that way, or a refused
+    ///     client would loop.
+    /// </summary>
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public async Task Metric_TheServerRefuses_SendsARebound_ThenQuits(HttpStatusCode status)
+    {
+        int? exitCode = null;
+        var http = new FakeHttp(_ => Text("", status));
+
+        await Client(http, exit: code => exitCode = code).SendMetric("downloading", "Some List");
+
+        Assert.Equal(new[] {"/metrics/downloading/Some%20List", "/metrics/rebound/Error"},
+            http.Requests.Select(r => r.RequestUri!.AbsolutePath));
+        Assert.Equal(0, exitCode);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.BadGateway)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task Metric_AnyOtherFailure_IsLeftAlone(HttpStatusCode status)
+    {
+        var http = new FakeHttp(_ => Text("", status));
+
+        await Client(http).SendMetric("downloading", "Some List");
+
+        Assert.Single(http.Requests);
+    }
+
+    /// <summary>A failed mirror upload reports the call that failed, not the create call before it that worked.</summary>
+    [Theory]
+    [InlineData("/part/1")]
+    [InlineData("/finish")]
+    public async Task Mirror_FailedStep_IsTheOneReported(string failingStep)
+    {
+        var file = _folder.Path.Combine("mirror.7z");
+        await file.WriteAllBytesAsync(Enumerable.Range(0, (2 << 20) + 10).Select(i => (byte) i).ToArray());
+        var http = new FakeHttp(request => request.RequestUri!.AbsolutePath.EndsWith(failingStep)
+            ? Text("", HttpStatusCode.InsufficientStorage)
+            : Text(""));
+        var client = Client(http, "author-key");
+        var definition = await client.GenerateFileDefinition(file);
+
+        var error = await Assert.ThrowsAsync<HttpException>(() => client.UploadMirror(definition, file));
+
+        Assert.Equal((int) HttpStatusCode.InsufficientStorage, error.Code);
     }
 
     private sealed class Keys(string? authorKey) : ITokenProvider<WabbajackApiState>
