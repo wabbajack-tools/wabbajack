@@ -11,9 +11,9 @@ namespace Wabbajack.VFS.Test;
 
 /// <summary>
 ///     The caches live in one place per user, so the app and the CLI, or two copies of the app, share the
-///     same files. Opening a cache while another process is writing to it has to wait for the lock rather
-///     than fail: it used to fail at once, which failed an install before it started with "database is
-///     locked".
+///     same files. Opening a cache while another process is writing to it must not fail: it used to fail at
+///     once, which failed an install before it started with "database is locked". In WAL mode the open no
+///     longer needs the lock at all; a write still does, and has to wait for it rather than fail.
 /// </summary>
 public class CacheBusyTimeoutTests
 {
@@ -50,30 +50,40 @@ public class CacheBusyTimeoutTests
     }
 
     [Fact]
-    public async Task VfsCacheOpensOnceAnotherWriterLetsGo()
+    public async Task VfsCacheOpensWhileAnotherWriterHoldsTheLock()
     {
         var database = Database("vfs");
         _ = new VFSDiskCache(database);
 
         var holder = await HoldExclusiveLock(database);
-        var timer = Stopwatch.StartNew();
         _ = new VFSDiskCache(database);
-
-        Assert.True(timer.Elapsed >= HeldFor - TimeSpan.FromMilliseconds(500), "opened while the lock was still held");
         await holder;
     }
 
     [Fact]
-    public async Task HashCacheOpensOnceAnotherWriterLetsGo()
+    public async Task HashCacheOpensWhileAnotherWriterHoldsTheLock()
     {
         var database = Database("hash");
         _ = new FileHashCache(database, new Resource<FileHashCache>("Test hashing", 2));
 
         var holder = await HoldExclusiveLock(database);
-        var timer = Stopwatch.StartNew();
         _ = new FileHashCache(database, new Resource<FileHashCache>("Test hashing", 2));
+        await holder;
+    }
 
-        Assert.True(timer.Elapsed >= HeldFor - TimeSpan.FromMilliseconds(500), "opened while the lock was still held");
+    [Fact]
+    public async Task HashCacheWriteWaitsForAnotherWriterInsteadOfFailing()
+    {
+        var database = Database("hash_write");
+        var cache = new FileHashCache(database, new Resource<FileHashCache>("Test hashing", 2));
+        var file = KnownFolders.EntryPoint.Combine("Wabbajack.VFS.Test.dll");
+
+        var holder = await HoldExclusiveLock(database);
+        var timer = Stopwatch.StartNew();
+        await cache.FileHashWriteCache(file, new Hashing.xxHash64.Hash(42));
+
+        Assert.True(timer.Elapsed >= HeldFor - TimeSpan.FromMilliseconds(500), "wrote while the lock was still held");
+        Assert.Equal(new Hashing.xxHash64.Hash(42), await cache.TryGetHashCache(file));
         await holder;
     }
 }

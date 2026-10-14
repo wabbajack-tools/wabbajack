@@ -36,7 +36,9 @@ public class VerificationCache : IVerificationCache, IDisposable
         // The cache is shared by every Wabbajack process the user runs, so wait for another one's write rather
         // than failing on the spot, which is SQLite's default. The journal mode is set here rather than in the
         // connection string because Open applies that before any busy timeout, and fails just the same.
-        using (var pragmas = new SQLiteCommand("PRAGMA busy_timeout=60000; PRAGMA journal_mode=MEMORY;", _conn))
+        // WAL with synchronous=NORMAL, because in the default journal every commit waits for a disk flush
+        // (about 7 ms here), and an install commits one row per file it writes.
+        using (var pragmas = new SQLiteCommand("PRAGMA busy_timeout=60000; PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;", _conn))
             pragmas.ExecuteNonQuery();
 
 
