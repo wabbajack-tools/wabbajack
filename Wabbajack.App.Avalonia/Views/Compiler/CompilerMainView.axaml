@@ -47,23 +47,26 @@
                                     Grid.RowSpan="2" IsVisible="False" />
 
             <Grid x:Name="CompletedButtons" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,16,0,0" HorizontalAlignment="Stretch"
-                  ColumnDefinitions="Auto,16,Auto,*,2*,16,3.5*,16,2.5*">
-                <c:WJButton x:Name="OpenLogButton" Text="Open Log" Icon="DocumentText" Grid.Column="0" HorizontalAlignment="Left" />
+                  ColumnDefinitions="Auto,16,Auto,16,2.5*,16,3.5*,16,2.5*" RowDefinitions="Auto,Auto">
+                <!-- Its own row: squeezed into a column between the buttons it wrapped a word to a line and ran
+                     into the button beside it. -->
+                <TextBlock x:Name="PreflightStatusText" Grid.ColumnSpan="9" Margin="0,0,0,8" TextWrapping="Wrap"
+                           HorizontalAlignment="Right" TextAlignment="Right" />
 
-                <c:WJButton x:Name="RefreshPreflightButton" Text="Refresh Checks" Icon="ArrowClockwise" Grid.Column="2"
-                            ButtonStyle="Danger" HorizontalAlignment="Left" IsVisible="False" />
+                <c:WJButton x:Name="OpenLogButton" Text="Open Log" Icon="DocumentText" Grid.Row="1" Grid.Column="0"
+                            HorizontalAlignment="Left" />
 
-                <TextBlock x:Name="PreflightStatusText" Grid.Column="3" Margin="16,5,0,5" VerticalAlignment="Center"
-                           TextWrapping="Wrap" HorizontalAlignment="Left" />
+                <c:WJButton x:Name="RefreshPreflightButton" Text="Refresh Checks" Icon="ArrowClockwise" Grid.Row="1"
+                            Grid.Column="2" ButtonStyle="Danger" HorizontalAlignment="Left" IsVisible="False" />
 
-                <c:WJButton x:Name="OpenFolderButton" Text="Open in File Explorer" Icon="Folder" Grid.Column="4" MinWidth="220"
-                            HorizontalAlignment="Stretch" ButtonStyle="Color" />
+                <c:WJButton x:Name="OpenFolderButton" Text="Open in File Explorer" Icon="Folder" Grid.Row="1"
+                            Grid.Column="4" Width="NaN" HorizontalAlignment="Stretch" ButtonStyle="Color" />
 
-                <c:WJButton x:Name="PublishCollectionButton" MinWidth="320" Text="Publish Nexus Mods Collection (experimental)"
-                            Icon="CloudArrowUp" Grid.Column="6" ButtonStyle="Progress" />
+                <c:WJButton x:Name="PublishCollectionButton" Text="Publish Nexus Mods Collection (experimental)"
+                            Icon="CloudArrowUp" Grid.Row="1" Grid.Column="6" Width="NaN" HorizontalAlignment="Stretch" ButtonStyle="Progress" />
 
-                <c:WJButton x:Name="PublishButton" Text="Publish Modlist" Icon="CloudArrowUp" MinWidth="220" Grid.Column="8"
-                            HorizontalAlignment="Stretch" ButtonStyle="Progress" />
+                <c:WJButton x:Name="PublishButton" Text="Publish Modlist" Icon="CloudArrowUp" Grid.Row="1"
+                            Grid.Column="8" Width="NaN" HorizontalAlignment="Stretch" ButtonStyle="Progress" />
             </Grid>
         </Grid>
 

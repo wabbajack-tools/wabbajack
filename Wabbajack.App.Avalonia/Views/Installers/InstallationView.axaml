@@ -211,7 +211,7 @@
             <Grid x:Name="CompletedButtons" Grid.Row="2" ColumnDefinitions="Auto,*,Auto,16,Auto,16,Auto">
                 <c:WJButton x:Name="BackToGalleryButton" Text="Back to Gallery" Icon="ChevronLeft" Direction="RightToLeft" HorizontalAlignment="Left" />
                 <c:WJButton x:Name="ReadmeButton" Grid.Column="2" Text="Open Readme" Icon="WindowNew" HorizontalAlignment="Right" ButtonStyle="Mono" />
-                <c:WJButton x:Name="CreateShortcutButton" Grid.Column="4" Text="Create Desktop Shortcut" Icon="DesktopArrowRight" HorizontalAlignment="Right" ButtonStyle="Mono" />
+                <c:WJButton x:Name="CreateShortcutButton" Grid.Column="4" Width="230" Text="Create Desktop Shortcut" Icon="DesktopArrowRight" HorizontalAlignment="Right" ButtonStyle="Mono" />
                 <c:WJButton x:Name="OpenFolderButton" Grid.Column="6" Text="Open in File Explorer" Icon="FolderOpen" HorizontalAlignment="Right" ButtonStyle="Color" />
             </Grid>
         </Grid>

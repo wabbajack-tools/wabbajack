@@ -68,7 +68,7 @@
                     <c:WJButton x:Name="CheckAgainButton" Grid.Column="1" ButtonStyle="Mono" Text="I fixed it, check again"
                                 Icon="ArrowCounterclockwise" IconSize="16" Width="210" Height="32" Margin="0,0,8,0" />
                     <c:WJButton x:Name="RepairButton" Grid.Column="2" ButtonStyle="Color" Icon="ArrowDownload" IconSize="16"
-                                Width="210" Height="32" />
+                                Width="260" Height="32" />
                 </Grid>
             </Grid>
         </c:AttentionBorder>
