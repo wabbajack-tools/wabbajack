@@ -29,6 +29,15 @@ namespace Wabbajack.Installer;
 
 public record StatusUpdate(string StatusCategory, string StatusText, Percent StepsProgress, Percent StepProgress, int CurrentStep)
 {
+    /// <summary>
+    ///     How far through the whole run this is: the steps already done plus the part of this one. A bar driven by
+    ///     <see cref="StepsProgress" /> alone stands still for the length of a step, which for "Installing files"
+    ///     can be most of an install. <see cref="StepsProgress" /> is CurrentStep / MaxSteps, so the steps before
+    ///     this one are that scaled by (CurrentStep - 1) / CurrentStep.
+    /// </summary>
+    public Percent OverallProgress => CurrentStep <= 0
+        ? StepsProgress
+        : Percent.FactoryPutInRange(StepsProgress.Value * (CurrentStep - 1 + StepProgress.Value) / CurrentStep);
 }
 
 public interface IInstaller
@@ -55,6 +64,8 @@ public abstract class AInstaller<T>
     protected readonly Client _wjClient;
     private int _currentStep;
     private long _currentStepProgress;
+    private long _currentStepItems;
+    private long _maxStepItems;
 
 
     protected long MaxStepProgress { get; set; }
@@ -106,12 +117,20 @@ public abstract class AInstaller<T>
     public Directive[] UnoptimizedDirectives { get; set; }
     public Archive[] UnoptimizedArchives { get; set; }
 
-    public void NextStep(string statusCategory, string statusText, long maxStepProgress, Func<long, string>? formatter = null)
+    /// <param name="maxStepItems">
+    ///     A count of things to show beside the progress, for a step whose progress is in bytes but whose work
+    ///     is mostly small files: in GB to one decimal place, a long run of small files reads as standing still.
+    ///     Zero for none.
+    /// </param>
+    public void NextStep(string statusCategory, string statusText, long maxStepProgress, Func<long, string>? formatter = null,
+        long maxStepItems = 0)
     {
         _updateStopWatch.Restart();
         MaxStepProgress = maxStepProgress;
         _currentStep += 1;
         _currentStepProgress = 0;
+        _currentStepItems = 0;
+        _maxStepItems = maxStepItems;
         _statusText = statusText;
         _statusCategory = statusCategory;
         _statusFormatter = formatter ?? (x => x.ToString());
@@ -121,13 +140,16 @@ public abstract class AInstaller<T>
             Percent.FactoryPutInRange(_currentStep, MaxSteps), Percent.Zero, _currentStep));
     }
 
-    public void UpdateProgress(long stepProgress)
+    public void UpdateProgress(long stepProgress, long items = 0)
     {
-        Interlocked.Add(ref _currentStepProgress, stepProgress);
+        var progress = Interlocked.Add(ref _currentStepProgress, stepProgress);
+        var done = Interlocked.Add(ref _currentStepItems, items);
 
-        OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory, $"[{_currentStep}/{MaxSteps}] {_statusText} ({_statusFormatter(_currentStepProgress)}/{_statusFormatter(MaxStepProgress)})",
+        var count = _maxStepItems > 0 ? $"{done:N0}/{_maxStepItems:N0} files, " : "";
+        OnStatusUpdate?.Invoke(new StatusUpdate(_statusCategory,
+            $"[{_currentStep}/{MaxSteps}] {_statusText} ({count}{_statusFormatter(progress)}/{_statusFormatter(MaxStepProgress)})",
             Percent.FactoryPutInRange(_currentStep, MaxSteps),
-            Percent.FactoryPutInRange(_currentStepProgress, MaxStepProgress), _currentStep));
+            Percent.FactoryPutInRange(progress, MaxStepProgress), _currentStep));
     }
 
     public abstract Task<InstallResult> Begin(CancellationToken token);
@@ -219,7 +241,11 @@ public abstract class AInstaller<T>
 
     public async Task InstallArchives(CancellationToken token)
     {
-        NextStep(Consts.StepInstalling, "Installing files", ModList.Directives.Sum(d => d.Size), x => x.ToFileSizeString());
+        // Totals of what this step installs. The whole list's would count inline files and BSAs, which later
+        // steps write, so "remaining" never reached zero here.
+        var fromArchives = ModList.Directives.OfType<FromArchive>().ToArray();
+        NextStep(Consts.StepInstalling, "Installing files", fromArchives.Sum(d => d.Size), x => x.ToFileSizeString(),
+            fromArchives.Length);
         var grouped = ModList.Directives
             .OfType<FromArchive>()
             .Select(a => {
@@ -248,7 +274,6 @@ public abstract class AInstaller<T>
             {
                 if (token.IsCancellationRequested) return;
                 var file = directive.Directive;
-                UpdateProgress(file.Size);
                 var destPath = file.To.RelativeTo(_configuration.Install);
                 switch (file)
                 {
@@ -295,6 +320,7 @@ public abstract class AInstaller<T>
                         throw new Exception($"No handler for {directive}");
                 }
                 await FileHashCache.FileHashWriteCache(destPath, file.Hash);
+                UpdateProgress(file.Size, 1);
 
                 await job.Report((int) directive.VF.Size, token);
             }
