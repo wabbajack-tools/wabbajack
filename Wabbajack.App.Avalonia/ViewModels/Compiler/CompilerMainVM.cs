@@ -296,7 +296,7 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                         // The step's own progress, as the installer shows. Without it a long step, such as
                         // indexing a game's archives, sat on one overall percentage for many minutes.
                         ProgressText = s.StepProgress.Value > 0 ? $"{s.StatusText} ({s.StepProgress})" : s.StatusText;
-                        ProgressPercent = s.StepsProgress;
+                        ProgressPercent = s.OverallProgress;
                     });
 
                 try

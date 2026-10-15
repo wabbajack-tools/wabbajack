@@ -784,7 +784,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                     RxApp.MainThreadScheduler.Schedule(() =>
                     {
                         ProgressText = update.StatusText;
-                        ProgressPercent = update.StepsProgress;
+                        ProgressPercent = update.OverallProgress;
                     });
                 };
 
