@@ -13,6 +13,7 @@ using Wabbajack.Common;
 using Wabbajack.App.Avalonia.Interfaces;
 using Wabbajack.App.Avalonia.LoginManagers;
 using Wabbajack.Networking.Steam;
+using Wabbajack.Networking.WabbajackClientApi;
 
 namespace Wabbajack.App.Avalonia.ViewModels;
 
@@ -62,10 +63,13 @@ public partial class SteamLoginVM : ViewModel, IClosableVM
 
     private Task _running = Task.CompletedTask;
 
-    public SteamLoginVM(ILogger<SteamLoginVM> logger, ISteamSession session, SteamGuardPrompt guard)
+    private readonly Client _wjClient;
+
+    public SteamLoginVM(ILogger<SteamLoginVM> logger, ISteamSession session, SteamGuardPrompt guard, Client wjClient)
     {
         _logger = logger;
         _session = session;
+        _wjClient = wjClient;
         Guard = guard;
 
         Username = string.Empty;
@@ -220,6 +224,11 @@ public partial class SteamLoginVM : ViewModel, IClosableVM
 
             _logger.LogInformation("Logged into Steam as {AccountName}", result.AccountName);
             StatusText = $"Logged in as {result.AccountName}";
+
+            // Counts that the Steam login is used, and by which path. Nothing about the account goes with it.
+            var how = mode == SteamLoginMode.QrCode ? "qr" : "password";
+            Task.Run(() => _wjClient.SendMetric(MetricNames.SteamLogin, how)).FireAndForget();
+
             _result.TrySetResult(true);
         }
         catch (OperationCanceledException)

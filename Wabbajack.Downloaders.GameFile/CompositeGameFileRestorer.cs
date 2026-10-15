@@ -155,7 +155,7 @@ public sealed class CompositeGameFileRestorer : IGameFileRestorer
             token.ThrowIfCancellationRequested();
 
             var result = await restorer.Restore(game, version, gameFile, output, token, wanted);
-            if (result.Fetched) return result;
+            if (result.Fetched) return result with {Source = result.Source ?? restorer.SourceName};
 
             _logger.LogDebug("{Source} did not supply {File}: {Outcome} ({Detail})", restorer.SourceName,
                 gameFile, result.Outcome, result.Detail);
