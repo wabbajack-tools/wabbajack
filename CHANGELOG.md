@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.3.0.1 - 10/15/2026
+* HOTFIX: Fixed the manual downloads list sometimes coming up empty in preflight, leaving the install waiting on files it never showed PR #3085
+
 #### Version - 4.3.0.0 - 10/15/2026
 * Replaced the WPF app with an Avalonia one PR #3035
 * Added preflight, a checklist that runs before every install: game, archives, game files, Nexus login, manual and automated downloads, disk space. Preflight now does all the downloading, manual downloads come first, and files you download in the browser are picked up from your Downloads folder PRs #2989-#3004
