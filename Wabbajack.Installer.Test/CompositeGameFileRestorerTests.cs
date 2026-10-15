@@ -135,6 +135,20 @@ public class CompositeGameFileRestorerTests
     }
 
     /// <summary>
+    ///     A fetched file says which source supplied it, which is what lets the repair count how often each
+    ///     source is used.
+    /// </summary>
+    [Fact]
+    public async Task AFetchedFileNamesTheSourceThatSuppliedIt()
+    {
+        var result = await Restore(Composite(new ScriptedRestorer("Steam", GameFileRestoreOutcome.FileNotFound),
+            new ScriptedRestorer("Bethesda", GameFileRestoreOutcome.Fetched)));
+
+        Assert.True(result.Fetched);
+        Assert.Equal("Bethesda", result.Source);
+    }
+
+    /// <summary>
     ///     The reason this class exists. <c>GameFileRepair.One</c> stops dead on <c>NotReady</c>, and
     ///     <c>SteamGameFileRestorer</c> answers <c>NotReady</c> to every request when nobody has logged into
     ///     Steam through Wabbajack. Passing that up would leave a user with Steam running and no Wabbajack

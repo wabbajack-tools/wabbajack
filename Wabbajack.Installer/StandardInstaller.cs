@@ -75,7 +75,6 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     {
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
         _logger.LogInformation("Installing: {Name} - {Version}", _configuration.ModList.Name, _configuration.ModList.Version);
-        await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
         NextStep(Consts.StepPreparing, "Configuring Installer", 0);
         _logger.LogInformation("Configuring Processor");
 
@@ -141,6 +140,11 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
             return InstallResult.DownloadFailed;
         }
+
+        // Counted here rather than on entry: downloading is preflight's now and happens before Begin, and an
+        // install the checks above turn away (no game folder where one was named, an archive missing) never
+        // got as far as installing anything.
+        await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
 
         await ExtractModlist(token);
         if (token.IsCancellationRequested) return InstallResult.Cancelled;

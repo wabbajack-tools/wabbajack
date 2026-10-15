@@ -182,25 +182,7 @@ public sealed class ArchiveDownloadPipeline
         return _ctx.State.Nexus?.IsPremium == true;
     }
 
-    /// <summary>
-    ///     Fire-and-forget, as the installer's metrics always were; a failure to report is logged and
-    ///     otherwise ignored.
-    /// </summary>
-    public void SendMetric(string action, string subject)
-    {
-        if (!_ctx.Options.SendMetrics) return;
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await _ctx.WjClient.SendMetric(action, subject);
-            }
-            catch (Exception ex)
-            {
-                _ctx.Logger.LogDebug(ex, "Metric {Action} was not sent", action);
-            }
-        });
-    }
+    public void SendMetric(string action, string subject) => _ctx.SendMetric(action, subject);
 
     /// <summary>
     ///     Which of <paramref name="automated" /> an automated download could actually start with: the

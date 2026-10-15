@@ -102,6 +102,29 @@ public class GameFileRepairTests : IDisposable
     }
 
     /// <summary>
+    ///     A repair reports which source it used, once per source and game however many files came from it,
+    ///     and nothing for files it could not place. The metric names only the source and the game.
+    /// </summary>
+    [Fact]
+    public async Task ARepairCountsEachSourceAndGameItUsedOnce()
+    {
+        var dawnguard = await GameFile("Data/Dawnguard.esm", "dlc bytes");
+        var hearthfires = await GameFile("Data/HearthFires.esm", "more dlc bytes");
+        var unfetchable = await GameFile("Data/Dragonborn.esm", "nobody has these");
+        _host.Config.ModList.Archives = new[] {dawnguard, hearthfires, unfetchable};
+        _restorer.Files[(null, Depot("Data/Dawnguard.esm"))] = "dlc bytes";
+        _restorer.Files[(null, Depot("Data/HearthFires.esm"))] = "more dlc bytes";
+
+        var (ctx, repairable) = await Detect();
+        var results = await GameFileRepair.Run(ctx, repairable, _progress, CancellationToken.None);
+
+        Assert.All(results.Where(r => r.Status == GameFileRepairStatus.Repaired),
+            r => Assert.Equal("Steam", r.Source));
+        Assert.Equal(new[] {("game_files_from_steam", "SkyrimSpecialEdition")},
+            GameFileRepair.UsageMetrics(GameFileRepair.Group(repairable), results).ToArray());
+    }
+
+    /// <summary>
     ///     The whole point of putting it in the downloads folder: the installer takes game files by hash out
     ///     of one map of the downloads folder and the game folders. So the check that asked for the repair
     ///     passes afterwards, and the installer's own inventory - the same <c>ArchiveInventory.Scan</c> that

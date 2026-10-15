@@ -107,7 +107,15 @@ public class BethesdaApiClient
             SessionToken = null;
             throw;
         }
+
+        SignedIn?.Invoke();
     }
+
+    /// <summary>
+    ///     Raised once a sign-in has gone all the way through, entitlements included, so a host can count how
+    ///     often the Bethesda.net path is used. Carries nothing about the account.
+    /// </summary>
+    public event Action? SignedIn;
 
     /// <summary>
     ///     Resolves content ids to the best <c>.ckm</c> for each. An id that comes back with no record is
