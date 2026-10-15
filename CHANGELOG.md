@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 4.3.0.0 - 10/16/2026
+#### Version - 4.3.0.0 - 10/15/2026
 * Replaced the WPF app with an Avalonia one PR #3035
 * Added preflight, a checklist that runs before every install: game, archives, game files, Nexus login, manual and automated downloads, disk space. Preflight now does all the downloading, manual downloads come first, and files you download in the browser are picked up from your Downloads folder PRs #2989-#3004
 * Added game file repair from Steam: missing or wrong-version game files, Creation Kit files and Creation Club content are fetched into the downloads folder, and a list can be installed without the game installed. Needs a Steam login in Wabbajack PRs #3005-#3031, #3071
