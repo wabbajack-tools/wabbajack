@@ -71,6 +71,26 @@ public class ManualDownloadsCheckTests : IDisposable
         Assert.Empty(_progress.ManualQueues);
     }
 
+    /// <summary>
+    ///     The app draws the manual-downloads panel from the acquirer when it hears the queue, not from the
+    ///     event's own list, and redraws only when the acquirer reports a change. Announced before the acquirer
+    ///     held the queue - which with a large downloads folder to inventory first was the usual order - the
+    ///     panel came up empty, nothing ever changed, and the check waited on files the user was never shown.
+    /// </summary>
+    [Fact]
+    public async Task TheAcquirerHoldsTheQueueWhenItIsAnnounced()
+    {
+        var one = await Queued("one.7z", "first by hand");
+        var two = await Queued("two.7z", "second by hand");
+        var ctx = ContextWithQueue(false, null, one, two);
+        var heldWhenAnnounced = -1;
+        _progress.OnManualQueue = () => heldWhenAnnounced = _host.Acquirer.Snapshot().Count;
+
+        await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(2, heldWhenAnnounced);
+    }
+
     [Fact]
     public async Task NeedsUserWithListWhenNotWaiting()
     {

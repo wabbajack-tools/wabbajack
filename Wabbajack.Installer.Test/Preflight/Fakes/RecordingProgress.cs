@@ -24,9 +24,13 @@ public sealed class RecordingProgress : IPreflightProgress
         Archives.Enqueue((archive, state, message, bytes));
     }
 
+    /// <summary>Called as the queue is announced, so a test can look at what else was true at that moment.</summary>
+    public System.Action? OnManualQueue { get; set; }
+
     public void ManualQueue(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> queue)
     {
         ManualQueues.Enqueue(queue);
+        OnManualQueue?.Invoke();
     }
 
     /// <summary>The last state reported for each archive name.</summary>
