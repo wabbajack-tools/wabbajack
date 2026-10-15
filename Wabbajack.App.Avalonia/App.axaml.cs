@@ -50,9 +50,10 @@ public partial class App : Application
             ProtocolPipe.Listen(args => Dispatcher.UIThread.Post(() =>
             {
                 BringToFront(window);
-                // As in WPF, a later launch is only acted on for a wabbajack:// link.
-                if (args.Length > 0 && StartupChecks.ProtocolPayload(args[0]) != null)
-                    HandleStartupArgs(args);
+                // A later launch is handled as a first one would be: a wabbajack:// link, or a .wabbajack file
+                // double-clicked while the app is open. WPF only acted on links here, so opening a file just
+                // brought the window forward.
+                HandleStartupArgs(args);
             }), Program.Services.GetRequiredService<ILogger<App>>(), pipe.Token);
             desktop.Exit += (_, _) => pipe.Cancel();
 
