@@ -25,8 +25,13 @@
 
             <v:CompilerFileManagerView x:Name="FileManager" Grid.Column="1" Grid.RowSpan="2" Margin="16,0,0,0" />
             <DockPanel x:Name="ConfigurationButtons" Grid.Row="2" Grid.Column="1" Margin="0,16,0,0">
-                <c:WJButton x:Name="StartButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="Compile List"
-                            Icon="Box" ButtonStyle="Color" AutomationProperties.AutomationId="StartButton" />
+                <!-- A disabled button's tooltip does not show unless asked to, and the reason it is disabled is
+                     what the user needs, so the reason is also written out beside it. -->
+                <c:WJButton x:Name="StartButton" DockPanel.Dock="Right" VerticalAlignment="Bottom" Text="Compile List"
+                            Icon="Box" ButtonStyle="Color" AutomationProperties.AutomationId="StartButton"
+                            ToolTip.ShowOnDisabled="True" />
+                <TextBlock x:Name="StillNeededText" VerticalAlignment="Center" HorizontalAlignment="Right"
+                           Margin="0,0,16,0" TextWrapping="Wrap" TextAlignment="Right" />
             </DockPanel>
 
             <Grid x:Name="CompilationButtons" Grid.Row="2" Grid.Column="1" Margin="0,16,0,0" HorizontalAlignment="Stretch"

@@ -89,14 +89,24 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
             this.BindCommand(ViewModel, x => x.StartCommand, x => x.StartButton)
                 .DisposeWith(disposables);
 
-            var startCommand = ViewModel!.StartCommand;
-            Observable.FromEventPattern<EventHandler, EventArgs>(
-                    h => startCommand.CanExecuteChanged += h, h => startCommand.CanExecuteChanged -= h)
-                .Select(_ => startCommand.CanExecute(null))
-                .StartWith(startCommand.CanExecute(null))
+            // The same fields StartCommand watches, so the list shrinks as each one is filled in rather than only
+            // changing when the button flips between enabled and disabled.
+            if (ViewModel is not { } viewModel) return;
+            viewModel.WhenAnyValue(vm => vm.Settings.ModListName,
+                    vm => vm.Settings.ModListAuthor,
+                    vm => vm.Settings.ModListDescription,
+                    vm => vm.Settings.ModListImage,
+                    vm => vm.Settings.Downloads,
+                    vm => vm.Settings.OutputFile,
+                    vm => vm.Settings.Version,
+                    (_, _, _, _, _, _, _) => viewModel.MissingRequiredFields())
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(canStart => ToolTip.SetTip(StartButton,
-                    canStart ? null : "Still needed: " + string.Join(", ", ViewModel.MissingRequiredFields())))
+                .Subscribe(missing =>
+                {
+                    var stillNeeded = missing.Count == 0 ? null : "Still needed: " + string.Join(", ", missing);
+                    ToolTip.SetTip(StartButton, stillNeeded);
+                    StillNeededText.Text = stillNeeded;
+                })
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, x => x.CancelCommand, x => x.CancelButton)
