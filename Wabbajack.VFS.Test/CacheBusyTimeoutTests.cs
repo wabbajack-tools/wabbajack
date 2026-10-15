@@ -76,7 +76,11 @@ public class CacheBusyTimeoutTests
     {
         var database = Database("hash_write");
         var cache = new FileHashCache(database, new Resource<FileHashCache>("Test hashing", 2));
-        var file = KnownFolders.EntryPoint.Combine("Wabbajack.VFS.Test.dll");
+        // A file written here, not one of the test binaries: a binary copied into the output folder can have a
+        // creation time later than its write time, which the cache repairs by touching the file, and the row
+        // written below then no longer matches it.
+        var file = KnownFolders.EntryPoint.Combine("busy_timeout_hash_write.txt");
+        await file.WriteAllTextAsync(Guid.NewGuid().ToString());
 
         var holder = await HoldExclusiveLock(database);
         var timer = Stopwatch.StartNew();
