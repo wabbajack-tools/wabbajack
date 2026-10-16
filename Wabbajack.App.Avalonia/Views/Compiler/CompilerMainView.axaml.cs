@@ -245,12 +245,12 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
         control.IsEnabled = !hidden;
     }
 
-    private void OnPublishCollectionClick(object? sender, RoutedEventArgs e)
+    private async void OnPublishCollectionClick(object? sender, RoutedEventArgs e)
     {
         if (ViewModel is not { } vm || !((System.Windows.Input.ICommand)vm.PublishCollectionCommand).CanExecute(null))
             return;
 
-        var yes = NativeMessageBox.AskYesNo(
+        var yes = await NativeMessageBox.AskYesNoAsync(
             "Publishing to Nexus Mods will create a collection page that allows users browsing Nexus Mods to discover your Wabbajack list.\n\n" +
             "Important Notes:\n" +
             "• This will NOT create a Vortex collection\n" +

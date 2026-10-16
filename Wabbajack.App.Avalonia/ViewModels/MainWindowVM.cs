@@ -263,12 +263,22 @@ public partial class MainWindowVM : ViewModel
     ///     Asks a yes-or-no question in a floating pane and takes the pane down once it is answered. The
     ///     installer asks this through StandardInstaller's OnConfirmAction.
     /// </summary>
-    public async Task<bool> ShowConfirmationDialog(string title, string message)
+    public Task<bool> ShowConfirmationDialog(string title, string message)
     {
-        var dialog = new ConfirmationDialogVM(title, message);
+        return ShowDialog(new ConfirmationDialogVM(title, message));
+    }
+
+    /// <summary>An error in the same floating pane, with only OK; done once the user has dismissed it.</summary>
+    public Task ShowErrorDialog(string title, string message)
+    {
+        return ShowDialog(ConfirmationDialogVM.Error(title, message));
+    }
+
+    private async Task<bool> ShowDialog(ConfirmationDialogVM dialog)
+    {
         ActiveFloatingPane = dialog;
         var result = await dialog.Result;
-        ActiveFloatingPane = null;
+        if (ReferenceEquals(ActiveFloatingPane, dialog)) ActiveFloatingPane = null;
         return result;
     }
 
