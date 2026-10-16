@@ -209,6 +209,19 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
                 HandleProtocolLoad(pending).FireAndForget();
             }
 
+            // A link that arrives while the gallery is already showing: navigating to it activates nothing, so
+            // without this the link waited for the next time the gallery was opened. Taken through the same
+            // pending slot, so a link that also activated the gallery is handled once.
+            MessageBus.Current.Listen<LoadModlistFromProtocol>()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ =>
+                {
+                    if (!LoadModlistFromProtocol.TryConsumePending(out var link)) return;
+                    _logger.LogInformation("[Protocol] Received machine URL while the gallery was open: {machineUrl}", link);
+                    HandleProtocolLoad(link).FireAndForget();
+                })
+                .DisposeWith(disposables);
+
             MessageBus.Current.Listen<LoadModlistForInstalling>()
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(msg =>
