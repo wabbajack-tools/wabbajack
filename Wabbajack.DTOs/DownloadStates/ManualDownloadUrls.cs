@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Wabbajack.DTOs.DownloadStates;
 
@@ -39,12 +40,15 @@ public static class ManualDownloadUrls
             case Http http:
                 target = new ManualDownloadTarget(http.Url, "Direct download", DefaultInstructions);
                 return true;
-            case WabbajackCDN:
-                // The address is a definition and numbered parts, not a file: a browser opening it downloads nothing
-                // the user could hand back. A CDN file that will not download is a failed download with a retry, never a
-                // manual one.
-                target = null;
-                return false;
+            case WabbajackCDN cdn:
+                // The CDN address is a definition and numbered parts, not a file, so a browser opening it downloads
+                // nothing the user could hand back. A file a list author uploaded has a download page on the build
+                // server that puts the parts back together in the browser; anything else on the CDN has no page, and
+                // a CDN file that will not download is then a failed download with a retry.
+                target = AuthoredFilePage(cdn.Url) is { } page
+                    ? new ManualDownloadTarget(page, "Wabbajack CDN", DefaultInstructions)
+                    : null;
+                return target != null;
             case GoogleDrive googleDrive:
                 target = new ManualDownloadTarget(
                     new Uri($"https://drive.google.com/uc?id={googleDrive.Id}&export=download"),
@@ -78,6 +82,20 @@ public static class ManualDownloadUrls
     ///         there.
     ///     </para>
     /// </summary>
+    /// <summary>
+    ///     The build server's download page for an authored file, from its CDN address: the file's id is the first
+    ///     path segment on authored-files.wabbajack.org, or on wabbajack.b-cdn.net, the name it had before.
+    /// </summary>
+    public static Uri? AuthoredFilePage(Uri cdnUrl)
+    {
+        if (!cdnUrl.Host.Equals("authored-files.wabbajack.org", StringComparison.OrdinalIgnoreCase) &&
+            !cdnUrl.Host.Equals("wabbajack.b-cdn.net", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var id = cdnUrl.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        return string.IsNullOrEmpty(id) ? null : new Uri($"https://build.wabbajack.org/authored_files/download/{id}");
+    }
+
     private static ManualDownloadTarget NexusTarget(Nexus nexus)
     {
         var meta = nexus.Game.MetaData();

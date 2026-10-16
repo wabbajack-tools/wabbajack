@@ -241,15 +241,16 @@ public class AutomatedDownloadsCheckTests : IDisposable
     }
 
     /// <summary>
-    ///     4.3.0.1 sent a CDN file that would not download to the manual queue, with the CDN address as the page to
-    ///     download it from. That address is a folder of parts a browser cannot save, so the user was left waiting
-    ///     on a file they could never supply. It is a failed download now, with its reason and a retry.
+    ///     4.3.0.1 sent a CDN file that would not download to the manual queue with the CDN address as the page to
+    ///     download it from. That address is a folder of parts a browser cannot save, so the user was left waiting on a
+    ///     file they could never supply. A mirrored or patch file has no other page, so it is a failed download now,
+    ///     with its reason and a retry.
     /// </summary>
     [Fact]
-    public async Task CdnFailureIsAFailedDownloadNotAManualOne()
+    public async Task CdnFailureWithNoDownloadPageIsAFailedDownload()
     {
         var archive = await PreflightTestHost.ArchiveFor("cdn.7z", "cdn bytes",
-            new WabbajackCDN {Url = Url("cdn.7z", "authored-files.wabbajack.org")});
+            new WabbajackCDN {Url = Url("cdn.7z", "patches.wabbajack.org")});
         _host.Server.FailNext(archive.State, ArchiveDownloadPipeline.TransientAttempts,
             () => new Networking.Http.HttpException(503, "Service Unavailable"));
         var ctx = ContextWithMissing(archive);
@@ -263,6 +264,29 @@ public class AutomatedDownloadsCheckTests : IDisposable
         Assert.Empty(ctx.State.ManualQueue);
         Assert.Empty(_progress.ManualQueues);
         Assert.Equal(ArchiveState.Failed, _progress.LastStates()["cdn.7z"]);
+    }
+
+    /// <summary>
+    ///     A file a list author uploaded has a page on the build server that downloads it in a browser, so one that
+    ///     will not download here can still be fetched by hand, from that page rather than the CDN address.
+    /// </summary>
+    [Fact]
+    public async Task AuthoredFileFailureOffersItsDownloadPage()
+    {
+        var archive = await PreflightTestHost.ArchiveFor("authored.7z", "authored bytes",
+            new WabbajackCDN {Url = Url("authored.7z", "authored-files.wabbajack.org")});
+        _host.Server.FailNext(archive.State, ArchiveDownloadPipeline.TransientAttempts,
+            () => new Networking.Http.HttpException(503, "Service Unavailable"));
+        var ctx = ContextWithMissing(archive);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.NeedsUser, result.State);
+        var queued = QueueItem(ctx, "authored.7z");
+        Assert.Equal("build.wabbajack.org", queued.Target.Url.Host);
+        Assert.StartsWith("/authored_files/download/", queued.Target.Url.AbsolutePath);
+        Assert.Contains("503", queued.Reason);
+        Assert.Contains("503", Assert.Single(_progress.ManualQueues.Last()).Reason);
     }
 
     [Fact]
