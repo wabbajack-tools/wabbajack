@@ -459,6 +459,7 @@ public class FileExtractor
 
             
             job.Dispose();
+            if (!OperatingSystem.IsWindows()) MoveBackslashNamedFilesIntoFolders(dest.Path.ToString());
             var results = await dest.Path.EnumerateFiles()
                 .SelectAsync(async f =>
                 {
@@ -490,6 +491,28 @@ public class FileExtractor
         }
     }
     
+    /// <summary>
+    ///     Some zips made on Windows name their entries with backslashes (<c>BuildHost-net472\Host.exe.config</c>),
+    ///     which Windows reads as folders. Off Windows 7-Zip writes such an entry as a single file whose name holds
+    ///     the backslashes, and since paths here split on them, the file was then looked for in a folder that does
+    ///     not exist. So each is moved into the folders its name describes; where that file already exists, the
+    ///     archive held the same entry twice and the copy already in place is kept.
+    /// </summary>
+    internal static void MoveBackslashNamedFilesIntoFolders(string root)
+    {
+        foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
+                     .Where(f => Path.GetFileName(f).Contains('\\')).ToList())
+        {
+            var parts = Path.GetFileName(file).Split('\\', StringSplitOptions.RemoveEmptyEntries);
+            var target = Path.Combine([Path.GetDirectoryName(file)!, ..parts]);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            if (File.Exists(target))
+                File.Delete(file);
+            else
+                File.Move(file, target);
+        }
+    }
+
     public async Task<IDictionary<RelativePath, T>> GatheringExtractWithInnoExtract<T>(IStreamFactory sf,
         Predicate<RelativePath> shouldExtract,
         Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
