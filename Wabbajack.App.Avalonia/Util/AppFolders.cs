@@ -20,7 +20,9 @@ public static class AppFolders
         if (!Version.TryParse(entryPoint.FileName.ToString(), out _))
             return entryPoint;
 
-        if (!entryPoint.Parent.Combine("Wabbajack").WithExtension(new Extension(".exe")).FileExists())
+        // The launcher beside the version folders; it has no .exe off Windows.
+        var launcher = OperatingSystem.IsWindows() ? "Wabbajack.exe" : "Wabbajack";
+        if (!entryPoint.Parent.Combine(launcher).FileExists())
             return entryPoint;
 
         return entryPoint.Parent;
