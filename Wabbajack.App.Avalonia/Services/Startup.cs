@@ -22,28 +22,43 @@ namespace Wabbajack.App.Avalonia.Services;
 /// </summary>
 public sealed class SingleInstance : IDisposable
 {
-    private readonly Mutex _mutex;
+    private readonly Mutex? _mutex;
     private bool _owned;
 
     public SingleInstance()
     {
         const string name = "Wabbajack-{F8C1E8F0-3E3A-4B3D-9F4A-1E5C6D7E8F9A}";
-        _mutex = OperatingSystem.IsWindows()
-            ? new Mutex(true, name, out _owned)
-            : new Mutex(true, name, new NamedWaitHandleOptions {CurrentUserOnly = true, CurrentSessionOnly = false},
-                out _owned);
+        if (OperatingSystem.IsWindows())
+        {
+            _mutex = new Mutex(true, name, out _owned);
+            IsFirstInstance = _owned;
+            return;
+        }
+
+        try
+        {
+            _mutex = new Mutex(true, name,
+                new NamedWaitHandleOptions {CurrentUserOnly = true, CurrentSessionOnly = false}, out _owned);
+            IsFirstInstance = _owned;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // The mutex lives under $XDG_RUNTIME_DIR and belongs to whoever made it; "sudo -E" keeps the user's,
+            // and root is refused one it does not own. With no mutex this process is taken as the only one.
+            IsFirstInstance = true;
+        }
     }
 
-    public bool IsFirstInstance => _owned;
+    public bool IsFirstInstance { get; private set; }
 
     public void Dispose()
     {
         if (_owned)
         {
-            _mutex.ReleaseMutex();
+            _mutex!.ReleaseMutex();
             _owned = false;
         }
-        _mutex.Dispose();
+        _mutex?.Dispose();
     }
 }
 
@@ -135,7 +150,8 @@ public static class StartupChecks
 
     public static bool IsAdmin()
     {
-        if (!OperatingSystem.IsWindows()) return false;
+        // Off Windows the same mistake is running as root, which leaves the install owned by root.
+        if (!OperatingSystem.IsWindows()) return Environment.IsPrivilegedProcess;
 
         try
         {

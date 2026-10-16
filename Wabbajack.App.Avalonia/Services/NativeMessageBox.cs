@@ -13,8 +13,8 @@ namespace Wabbajack.App.Avalonia.Services;
 /// <summary>
 /// WPF's MessageBox.Show is the Windows message box, so on Windows this calls the same one: same look, same
 /// sounds, owned by the main window so it stays in front of it. Elsewhere there is no such box. Once the main
-/// window is up, the app's own floating pane does the job; before that (or after it has gone) the desktop's
-/// zenity or kdialog does, and failing both the message goes to stderr.
+/// window is up, the app's own floating pane does the job; before that (or after it has gone) the message goes
+/// to stderr and to the desktop's zenity or kdialog, whichever is installed.
 /// </summary>
 public static class NativeMessageBox
 {
@@ -41,11 +41,10 @@ public static class NativeMessageBox
             return;
         }
 
-        if (RunDialog("zenity", "--error", "--no-markup", "--title", title, "--text", message) ||
-            RunDialog("kdialog", "--title", title, "--error", message))
-            return;
-
+        // Also on stderr, since a dialog tool that is installed can still fail to reach the display.
         Console.Error.WriteLine($"{title}: {message}");
+        if (!RunDialog("zenity", "--error", "--no-markup", "--title", title, "--text", message))
+            RunDialog("kdialog", "--title", title, "--error", message);
     }
 
     /// <summary>MessageBox.Show with YesNo and the information icon; true when the answer is Yes.</summary>
