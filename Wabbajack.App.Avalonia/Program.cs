@@ -68,6 +68,8 @@ public static class Program
         // .wabbajack files and wabbajack:// links open this executable, wherever it now lives.
         if (OperatingSystem.IsWindows())
             Services.GetRequiredService<FileAssociationSelfHealService>().RegisterOrUpdate(enableProtocol: true);
+        else if (OperatingSystem.IsLinux())
+            Services.GetRequiredService<XdgFileAssociation>().RegisterOrUpdate();
 
         var opensUi = args.Length == 0
                       || StartupChecks.ProtocolPayload(args[0]) != null
@@ -136,6 +138,7 @@ public static class Program
         services.AddSingleton<ResourceMonitor>();
         if (OperatingSystem.IsWindows())
             services.AddSingleton<FileAssociationSelfHealService>();
+        services.AddSingleton<XdgFileAssociation>();
         services.AddSingleton<SystemParametersConstructor>();
         // One instance, held by MainWindowVM from the start: it listens for the modlist to load.
         services.AddTransient<InstallationVM>();
