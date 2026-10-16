@@ -1,4 +1,5 @@
 using System;
+using Wabbajack.Common;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
@@ -45,7 +46,7 @@ public class ListGames
                     continue;
                 }
 
-                var versionInfo = FileVersionInfo.GetVersionInfo(mainFile.ToString());
+                var versionInfo = ExecutableVersion.Read(mainFile.ToString());
                 
                 _logger.LogInformation("[X] {Game} {Version} -> Path: {Path}", game.Value.HumanFriendlyGameName, versionInfo.ProductVersion ?? versionInfo.FileVersion, location);
             }

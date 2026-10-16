@@ -79,7 +79,7 @@ public class HashGameFiles
         try
         {
             var mainExe = gameLocation.Combine(gameMeta.MainExecutable);
-            var info = FileVersionInfo.GetVersionInfo(mainExe.ToString());
+            var info = ExecutableVersion.Read(mainExe.ToString());
 
             var productVersion = info.ProductVersion?.Trim();
             var fileVersion = info.FileVersion?.Trim();

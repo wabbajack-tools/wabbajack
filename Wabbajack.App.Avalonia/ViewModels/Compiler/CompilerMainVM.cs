@@ -459,7 +459,7 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                     var mainFile = modList.GameType.MetaData().MainExecutable!.Value.RelativeTo(gamePath);
                     if (mainFile.FileExists())
                     {
-                        var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(mainFile.ToString());
+                        var versionInfo = Wabbajack.Common.ExecutableVersion.Read(mainFile.ToString());
                         _logger.LogInformation("Game version info: FileVersion={fv} ProductVersion={pv}",
                             versionInfo.FileVersion, versionInfo.ProductVersion);
 

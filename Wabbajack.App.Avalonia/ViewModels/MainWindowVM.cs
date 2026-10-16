@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -117,7 +118,9 @@ public partial class MainWindowVM : ViewModel
             .DisposeWith(CompositeDisposable);
 
         var location = Environment.ProcessPath ?? typeof(MainWindowVM).Assembly.Location;
-        var fileVersion = FileVersionInfo.GetVersionInfo(location).FileVersion;
+        // Off Windows the executable is a native host with no version resource; the assembly carries the same number.
+        var fileVersion = FileVersionInfo.GetVersionInfo(location).FileVersion
+                          ?? typeof(MainWindowVM).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
         Version = "v" + fileVersion;
 
         NavigateTo(ScreenType.Home);
