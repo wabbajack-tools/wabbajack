@@ -534,9 +534,13 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         var data = Encoding.UTF8.GetString(await LoadBytesFromPath(directive.SourceDataID));
 
         // These files are read by MO2 and the game's tools, which on Linux run under Wine and want Z:\ paths.
-        var gameFolder = _configuration.GameFolder.ToWindowsProgramPath();
-        var installFolder = _configuration.Install.ToWindowsProgramPath();
-        var downloadsFolder = _configuration.Downloads.ToWindowsProgramPath();
+        // Wabbajack's own compiler settings are the exception: the app reads those, natively.
+        Func<AbsolutePath, string> spell = IsReadByWabbajack(directive.To)
+            ? path => path.ToString()
+            : path => path.ToWindowsProgramPath();
+        var gameFolder = spell(_configuration.GameFolder);
+        var installFolder = spell(_configuration.Install);
+        var downloadsFolder = spell(_configuration.Downloads);
 
         data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, gameFolder);
         data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, gameFolder.Replace("\\", "\\\\"));
@@ -551,6 +555,12 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD, downloadsFolder.Replace("\\", "/"));
 
         await _configuration.Install.Combine(directive.To).WriteAllTextAsync(data);
+    }
+
+    /// <summary>A .compiler_settings file, which the app loads to compile the list again, rather than MO2.</summary>
+    public static bool IsReadByWabbajack(RelativePath file)
+    {
+        return file.Extension == Ext.CompilerSettings || file.Extension == new Extension(".mo2_compiler_settings");
     }
 
     public async Task GenerateZEditMerges(CancellationToken token)

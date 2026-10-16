@@ -188,6 +188,27 @@ public class CompileStepTests : IAsyncLifetime
     }
 
     /// <summary>
+    ///     A list's .compiler_settings is read by Wabbajack itself, to compile the list again from the install, so
+    ///     it gets this machine's own paths even where MO2's files get Wine's.
+    /// </summary>
+    [Fact]
+    public async Task CompilerSettings_NamingTheAuthorsFolder_GetsTheInstallsNativePath()
+    {
+        var source = _harness._source.ToString();
+        var mod = _harness.AddMod("Settings");
+        mod.EnabledIn.Add(_harness.ProfileFolder.FileName.ToString());
+        var settings = await mod.AddData("list.compiler_settings".ToRelativePath(),
+            $"{{\"Source\": \"{source.Replace("\\", "\\\\")}\"}}");
+
+        await Compile();
+
+        Assert.True(await _harness.Install());
+        var install = _harness.InstalledPath(_harness._source).ToString();
+        Assert.Equal($"{{\"Source\": \"{install.Replace("\\", "\\\\")}\"}}",
+            await _harness.InstalledPath(settings).ReadAllTextAsync());
+    }
+
+    /// <summary>
     ///     A folder as the install writes it into a config file. On Windows that is the folder. Elsewhere MO2 and
     ///     the game run under Wine, so it is written on Wine's root drive; and since a Unix path has no backslashes
     ///     for the compile to tell the spellings apart by, every spelling of it is shipped as the forward one.
