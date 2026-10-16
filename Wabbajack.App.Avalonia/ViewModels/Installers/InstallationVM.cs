@@ -482,9 +482,16 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         }
     }
 
-    /// <summary>A folder on the preferred drive named for the list, or null when no drive can be suggested.</summary>
+    /// <summary>
+    ///     A folder named for the list: on Windows on the preferred drive, or null when no drive can be suggested;
+    ///     elsewhere under the home folder.
+    /// </summary>
     private static string? GetSuggestedInstallFolder(ModlistMetadata x)
     {
+        if (!OperatingSystem.IsWindows())
+            return InstallFolderSuggestion.UnderHome(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                x.Title);
+
         // Get preferred installation drive (SSD with enough space). The drive's media type comes from WMI.
         var preferredPartition = OperatingSystem.IsWindows()
             ? DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata!.SizeOfInstalledFiles)
@@ -598,7 +605,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                         if (GetSuggestedInstallFolder(metadata!) is { } suggested)
                         {
                             SuggestedInstallFolder = suggested;
-                            SuggestedDownloadFolder = suggested + "\\downloads";
+                            SuggestedDownloadFolder = suggested + (OperatingSystem.IsWindows() ? "\\downloads" : "/downloads");
                         }
                     }
                 }

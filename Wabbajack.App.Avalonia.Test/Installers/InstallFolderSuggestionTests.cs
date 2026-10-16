@@ -24,4 +24,12 @@ public class InstallFolderSuggestionTests
     {
         Assert.Equal(expected, InstallFolderSuggestion.FolderName(title));
     }
+
+    [Theory]
+    [InlineData("/home/me", "Dust and Death", "/home/me/Modlists/DAD")]
+    [InlineData("/home/me/", "Lorerim", "/home/me/Modlists/Lorerim")]
+    public void OffWindows_ListsGoInTheHomeFoldersModlists(string home, string title, string expected)
+    {
+        Assert.Equal(expected, InstallFolderSuggestion.UnderHome(home, title));
+    }
 }
