@@ -90,8 +90,9 @@ public static class KnownFolders
 
     /// <summary>
     ///     The user's Downloads folder. On Windows this is the shell's known folder, which follows a user who
-    ///     has relocated it; elsewhere, and if the shell call fails, it is <c>Downloads</c> under the profile.
-    ///     Never throws; the folder may not exist.
+    ///     has relocated it; on Linux the desktop's XDG download folder, which does the same and is named in the
+    ///     user's language; failing either, <c>Downloads</c> under the profile. Never throws; the folder may not
+    ///     exist.
     /// </summary>
     public static AbsolutePath Downloads
     {
@@ -101,6 +102,10 @@ public static class KnownFolders
             {
                 var known = TryGetKnownFolder(FolderIdDownloads);
                 if (known != default) return known;
+            }
+            else if (XdgUserDirs.Get("DOWNLOAD") is { } xdg)
+            {
+                return xdg.ToAbsolutePath();
             }
 
             var profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
