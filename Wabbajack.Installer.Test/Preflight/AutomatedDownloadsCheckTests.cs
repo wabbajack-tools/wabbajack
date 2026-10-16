@@ -240,6 +240,31 @@ public class AutomatedDownloadsCheckTests : IDisposable
         Assert.Contains("503", QueueItem(ctx, "refused.7z").Reason);
     }
 
+    /// <summary>
+    ///     4.3.0.1 sent a CDN file that would not download to the manual queue, with the CDN address as the page to
+    ///     download it from. That address is a folder of parts a browser cannot save, so the user was left waiting
+    ///     on a file they could never supply. It is a failed download now, with its reason and a retry.
+    /// </summary>
+    [Fact]
+    public async Task CdnFailureIsAFailedDownloadNotAManualOne()
+    {
+        var archive = await PreflightTestHost.ArchiveFor("cdn.7z", "cdn bytes",
+            new WabbajackCDN {Url = Url("cdn.7z", "authored-files.wabbajack.org")});
+        _host.Server.FailNext(archive.State, ArchiveDownloadPipeline.TransientAttempts,
+            () => new Networking.Http.HttpException(503, "Service Unavailable"));
+        var ctx = ContextWithMissing(archive);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Failed, result.State);
+        Assert.Contains(PreflightAction.Retry, result.Actions!);
+        Assert.Contains("cdn.7z", result.Detail);
+        Assert.Contains("503", result.Detail);
+        Assert.Empty(ctx.State.ManualQueue);
+        Assert.Empty(_progress.ManualQueues);
+        Assert.Equal(ArchiveState.Failed, _progress.LastStates()["cdn.7z"]);
+    }
+
     [Fact]
     public async Task TransientFailureFollowedBySuccessDownloads()
     {

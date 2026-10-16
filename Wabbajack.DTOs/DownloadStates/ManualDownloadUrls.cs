@@ -39,9 +39,12 @@ public static class ManualDownloadUrls
             case Http http:
                 target = new ManualDownloadTarget(http.Url, "Direct download", DefaultInstructions);
                 return true;
-            case WabbajackCDN cdn:
-                target = new ManualDownloadTarget(cdn.Url, "Wabbajack CDN", DefaultInstructions);
-                return true;
+            case WabbajackCDN:
+                // The address is a definition and numbered parts, not a file: a browser opening it downloads nothing
+                // the user could hand back. A CDN file that will not download is a failed download with a retry, never a
+                // manual one.
+                target = null;
+                return false;
             case GoogleDrive googleDrive:
                 target = new ManualDownloadTarget(
                     new Uri($"https://drive.google.com/uc?id={googleDrive.Id}&export=download"),

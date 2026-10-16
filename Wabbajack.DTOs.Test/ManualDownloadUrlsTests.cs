@@ -47,7 +47,8 @@ public class ManualDownloadUrlsTests
             new object[]
             {
                 new WabbajackCDN {Url = new Uri("https://authored-files.wabbajack.org/Tonal%20Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f")},
-                "https://authored-files.wabbajack.org/Tonal Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f", "Wabbajack CDN", "Download the file from this page"
+                // A CDN address is a folder of numbered parts, which a browser cannot turn back into the file.
+                null, null, null
             },
             new object[]
             {

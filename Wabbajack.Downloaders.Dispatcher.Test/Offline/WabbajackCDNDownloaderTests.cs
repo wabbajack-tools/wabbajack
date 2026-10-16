@@ -14,6 +14,7 @@ using Wabbajack.DTOs.CDN;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Networking.Http;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -74,18 +75,33 @@ public class WabbajackCDNDownloaderTests : IAsyncLifetime
         };
     }
 
-    /// <summary>Serves <paramref name="data" />; <paramref name="spoil" /> can replace a part's bytes.</summary>
-    private async Task<FakeHttp> Cdn(byte[] data, Func<long, int, byte[], byte[]>? spoil = null)
+    /// <summary>
+    ///     Serves <paramref name="data" />; <paramref name="spoil" /> can replace a part's bytes, and
+    ///     <paramref name="refuse" /> can answer a request in the CDN's place, given its path and how many requests
+    ///     for that path came before it.
+    /// </summary>
+    private async Task<FakeHttp> Cdn(byte[] data, Func<long, int, byte[], byte[]>? spoil = null,
+        Func<string, int, HttpResponseMessage?>? refuse = null)
     {
         var definition = await Definition(data);
         using var gz = new MemoryStream();
         await using (var zip = new GZipStream(gz, CompressionLevel.Fastest, true))
             await _dtos.Serialize(definition, zip);
         var gzipped = gz.ToArray();
+        var seen = new Dictionary<string, int>();
 
         return new FakeHttp((request, n) =>
         {
             var path = request.RequestUri!.AbsolutePath;
+            int before;
+            lock (seen)
+            {
+                before = seen.GetValueOrDefault(path);
+                seen[path] = before + 1;
+            }
+
+            if (refuse?.Invoke(path, before) is { } refused)
+                return refused;
             if (path.EndsWith("/definition.json.gz"))
                 return FakeHttp.Ok(gzipped);
             var index = long.Parse(path[(path.LastIndexOf('/') + 1)..]);
@@ -98,7 +114,7 @@ public class WabbajackCDNDownloaderTests : IAsyncLifetime
     private WabbajackCDNDownloader Downloader(FakeHttp http)
     {
         return new WabbajackCDNDownloader(NullLogger<WabbajackCDNDownloader>.Instance, http.Client(),
-            new Resource<HttpClient>("cdn", 4), _dtos);
+            new Resource<HttpClient>("cdn", 4), _dtos) {RetryDelay = TimeSpan.FromMilliseconds(1)};
     }
 
     private static Archive Archive() => new() {Name = "archive.7z", Size = Data.Length, State = new WabbajackCDN {Url = Url}};
@@ -170,6 +186,58 @@ public class WabbajackCDNDownloaderTests : IAsyncLifetime
         var error = await Assert.ThrowsAnyAsync<Exception>(() => Download(http, _folder.Path.Combine("archive.7z")));
 
         Assert.Contains("Invalid part hash 2", error.Message);
+    }
+
+    private static bool IsDefinition(string path) => path.EndsWith("/definition.json.gz");
+
+    /// <summary>A busy CDN used to cost the whole file, which then went to the browser queue it cannot leave.</summary>
+    [Fact]
+    public async Task Download_DefinitionRefusedForAWhile_IsAskedForAgain()
+    {
+        var http = await Cdn(Data, refuse: (path, before) =>
+            IsDefinition(path) && before < 3 ? FakeHttp.Status(HttpStatusCode.ServiceUnavailable) : null);
+        var dest = _folder.Path.Combine("archive.7z");
+
+        var hash = await Download(http, dest);
+
+        Assert.Equal(await Data.Hash(), hash);
+        Assert.Equal(Data, await dest.ReadAllBytesAsync());
+    }
+
+    [Fact]
+    public async Task Download_PartRefusedForAWhile_IsAskedForAgain()
+    {
+        var http = await Cdn(Data, refuse: (path, before) =>
+            path.EndsWith("/parts/1") && before < 4 ? FakeHttp.Status(HttpStatusCode.TooManyRequests) : null);
+
+        var hash = await Download(http, _folder.Path.Combine("archive.7z"));
+
+        Assert.Equal(await Data.Hash(), hash);
+    }
+
+    [Fact]
+    public async Task Download_DefinitionAlwaysRefused_FailsWithTheServersAnswer()
+    {
+        var http = await Cdn(Data, refuse: (path, _) =>
+            IsDefinition(path) ? FakeHttp.Status(HttpStatusCode.ServiceUnavailable) : null);
+
+        var error = await Assert.ThrowsAsync<HttpException>(() => Download(http, _folder.Path.Combine("archive.7z")));
+
+        Assert.Equal(503, error.Code);
+        Assert.Equal(6, http.Requests.Count);
+    }
+
+    /// <summary>A file the CDN does not have is not there a minute later either.</summary>
+    [Fact]
+    public async Task Download_DefinitionNotFound_FailsWithoutRetrying()
+    {
+        var http = await Cdn(Data, refuse: (path, _) =>
+            IsDefinition(path) ? FakeHttp.Status(HttpStatusCode.NotFound) : null);
+
+        var error = await Assert.ThrowsAsync<HttpException>(() => Download(http, _folder.Path.Combine("archive.7z")));
+
+        Assert.Equal(404, error.Code);
+        Assert.Single(http.Requests);
     }
 
     [Fact]
