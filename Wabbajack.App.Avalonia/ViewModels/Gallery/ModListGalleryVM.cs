@@ -466,25 +466,8 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
             _logger.LogInformation("[Protocol] Found modlist '{title}' ({namespaced}), executing InstallCommand",
                 modlist.Metadata.Title, modlist.Metadata.NamespacedName);
 
-            // Check if the required game is installed
-            if (!_locator.IsInstalled(modlist.Metadata.Game))
-            {
-                var gameName = modlist.Metadata.Game.MetaData().HumanFriendlyGameName;
-                _logger.LogWarning("[Protocol] Cannot install modlist '{title}': Required game '{game}' is not installed",
-                    modlist.Metadata.Title, gameName);
-
-                var errorMessage = $"Cannot install '{modlist.Metadata.Title}': {gameName} is not installed on this PC. Please install {gameName} first.";
-                Error = ValidationResult.Fail(errorMessage);
-
-                // Show popup error
-                NativeMessageBox.ShowError(errorMessage, "Game Not Installed");
-
-                IsResolvingProtocol = false;
-                ProtocolStatusText = string.Empty;
-                ll.Fail();
-                return;
-            }
-
+            // Whether the game is installed is preflight's question, not this one's: a game that is not here can
+            // still be installed for, with its files fetched from Steam, and preflight is what offers that.
             if (!modlist.InstallCommand.CanExecute(null))
             {
                 _logger.LogWarning("[Protocol] Cannot install modlist: {name}", modlist.Metadata.Title);
