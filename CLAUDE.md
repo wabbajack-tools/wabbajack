@@ -30,9 +30,17 @@ offline lane stays trustworthy.
 Building from Linux or macOS needs `/p:EnableWindowsTargeting=true`, which is what the CI workflow passes.
 
 Releases come from the Create Release workflow. `release.ps1` builds, signs and zips the Windows app, CLI and
-launcher and creates the GitHub draft; `release-linux.sh` publishes the app and CLI for linux-x64 into a
-tarball (unsigned, no launcher, other platforms' tools left out), which the workflow attaches to that draft.
-Both read the version from the top of `CHANGELOG.md`.
+launcher and creates the GitHub draft; `release-linux.sh` publishes the app and CLI for linux-x64 into
+`{version}-linux-x64.tar.gz`, and the launcher into `Wabbajack-linux-x64.tar.gz` (unsigned, other platforms'
+tools left out), which the workflow attaches to that draft and uploads to Nexus once the repository variables
+`NEXUS_LINUX_FILE_ID` and `NEXUS_LINUX_LAUNCHER_FILE_ID` hold their file ids. Both read the version from the
+top of `CHANGELOG.md`.
+
+**Old launchers cannot be updated, so every release has to suit them.** On GitHub they take the highest tag
+that is exactly four numbers, prereleases included, and its `{tag}.zip`; on Nexus, the first file whose name
+ends in `.zip` and parses as a version. The Linux launcher takes only `{version}-linux-x64.tar.gz` from
+stable releases. Betas (the Create Beta Build workflow, `BETA=beta.N`) are handed out by hand: an unsigned
+prerelease tagged `{version}-beta.N`, which no launcher picks up, and never on Nexus.
 
 ### Credentials
 
