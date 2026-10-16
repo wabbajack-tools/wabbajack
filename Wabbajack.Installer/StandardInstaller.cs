@@ -122,6 +122,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         _configuration.Install.CreateDirectory();
         _configuration.Downloads.CreateDirectory();
 
+        UnifyPathCasing();
+
         var optimizeResult = await OptimizeModlist(token);
         if (!optimizeResult) return InstallResult.Cancelled;
         if (token.IsCancellationRequested) return InstallResult.Cancelled;

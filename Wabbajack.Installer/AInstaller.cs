@@ -366,6 +366,42 @@ public abstract class AInstaller<T>
 
 
     /// <summary>
+    ///     Gives every directive's destination one casing per folder and file, off Windows. A list built on Windows
+    ///     can name <c>Textures</c> and <c>textures</c> in the same place; a case-sensitive file system would make
+    ///     two folders of them, and a game reading through Wine would see only one. Whatever is already in the
+    ///     install folder sets the casing first, so a reinstall writes over its own files rather than beside them.
+    ///     The BSA staging folder is left as it is: the BSA builder finds staged files by the paths inside the BSA.
+    /// </summary>
+    protected void UnifyPathCasing()
+    {
+        if (OperatingSystem.IsWindows()) return;
+
+        var casing = new PathCasing();
+        var install = _configuration.Install;
+        if (install.DirectoryExists())
+        {
+            foreach (var folder in install.EnumerateDirectories())
+                casing.Unify(folder.RelativeTo(install));
+            foreach (var file in install.EnumerateFiles())
+                casing.Unify(file.RelativeTo(install));
+        }
+
+        var changed = 0;
+        foreach (var directive in ModList.Directives)
+        {
+            if (directive.To.InFolder(Consts.BSACreationDir)) continue;
+            var unified = casing.Unify(directive.To);
+            if (string.Equals(unified.ToString(), directive.To.ToString(), StringComparison.Ordinal)) continue;
+            directive.To = unified;
+            changed++;
+        }
+
+        if (changed > 0)
+            _logger.LogInformation("Gave {Count} paths the casing of a folder or file already named another way",
+                changed);
+    }
+
+    /// <summary>
     ///     The user may already have some files in the _configuration.Install. If so we can go through these and
     ///     figure out which need to be updated, deleted, or left alone.
     ///     Returns false if the user cancelled the operation (e.g. declined file deletion confirmation).
