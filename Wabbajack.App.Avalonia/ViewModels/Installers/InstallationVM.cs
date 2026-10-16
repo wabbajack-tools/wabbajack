@@ -777,9 +777,13 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 ProgressState = ProgressState.Normal;
             });
 
+            // A scope of its own, so the VFS context the installer indexes every archive into belongs to this
+            // install and goes with it. Resolved from the root provider it was cached for the life of the app,
+            // and with it the whole index of the largest list ever installed.
+            var scope = _serviceProvider.CreateAsyncScope();
             try
             {
-                StandardInstaller = StandardInstaller.Create(_serviceProvider, cfg);
+                StandardInstaller = StandardInstaller.Create(scope.ServiceProvider, cfg);
 
                 StandardInstaller.OnStatusUpdate = update =>
                 {
@@ -853,7 +857,16 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                     LaunchDiagnostics();
                 });
             }
+            finally
+            {
+                StandardInstaller = null!;
+                await scope.DisposeAsync();
+            }
         });
+
+        // Here rather than inside the run: until it has returned, its locals still reach the installer and the
+        // context it indexed into.
+        MemoryRelease.AfterLargeRun();
     }
 
     private class SavedInstallSettings
