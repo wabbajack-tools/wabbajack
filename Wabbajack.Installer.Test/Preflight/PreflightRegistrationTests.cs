@@ -35,12 +35,13 @@ public class PreflightRegistrationTests : IDisposable
         // asks about what this install still has left to do, so neither stops a user over something nobody
         // was going to touch. game-files also reads the inventory's hash map, which is how a repaired file
         // sitting in the downloads folder counts as present.
+        // steam-sandbox is Linux's own: only there does MO2 run under Proton, perhaps inside a sandboxed Steam.
         Assert.Equal(new[]
         {
-            PreflightCheckIds.GameInstalled, PreflightCheckIds.ArchiveInventory, PreflightCheckIds.GameFiles,
-            PreflightCheckIds.UnsupportedArchives, PreflightCheckIds.NexusLogin,
+            PreflightCheckIds.GameInstalled, PreflightCheckIds.SteamSandbox, PreflightCheckIds.ArchiveInventory,
+            PreflightCheckIds.GameFiles, PreflightCheckIds.UnsupportedArchives, PreflightCheckIds.NexusLogin,
             PreflightCheckIds.ManualDownloads, PreflightCheckIds.AutomatedDownloads, PreflightCheckIds.DiskSpace
-        }, ids);
+        }.Where(id => id != PreflightCheckIds.SteamSandbox || OperatingSystem.IsLinux()), ids);
     }
 
     [Fact]
@@ -58,7 +59,7 @@ public class PreflightRegistrationTests : IDisposable
     {
         var runner = PreflightRunner.Create(_provider, _host.Config, new PreflightOptions {SendMetrics = false});
 
-        Assert.Equal(8, runner.Checks.Count);
+        Assert.Equal(OperatingSystem.IsLinux() ? 9 : 8, runner.Checks.Count);
         Assert.NotNull(runner.Context.Acquirer);
         Assert.NotNull(runner.Context.DownloadLimiter);
     }
