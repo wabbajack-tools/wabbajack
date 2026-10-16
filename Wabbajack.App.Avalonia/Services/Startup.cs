@@ -114,12 +114,16 @@ public static class StartupChecks
 
     /// <summary>
     ///     The .wabbajack file an argument names, or null. WPF parsed any single argument as a path to find out,
-    ///     which threw for anything that is not one, so a lone "--version" took the process down.
+    ///     which threw for anything that is not one, so a lone "--version" took the process down. Linux file
+    ///     managers may hand the file over as a file:// URL, which the .desktop entry's %u allows.
     /// </summary>
     public static AbsolutePath? WabbajackFile(string arg)
     {
         try
         {
+            if (arg.StartsWith("file://", StringComparison.OrdinalIgnoreCase) &&
+                Uri.TryCreate(arg, UriKind.Absolute, out var uri) && uri.IsFile)
+                arg = uri.LocalPath;
             var path = arg.ToAbsolutePath();
             return path.FileExists() && path.Extension == Ext.Wabbajack ? path : null;
         }
