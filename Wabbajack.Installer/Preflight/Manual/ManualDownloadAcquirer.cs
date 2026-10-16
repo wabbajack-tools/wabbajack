@@ -13,6 +13,7 @@ using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Installer.Preflight.Checks;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -956,9 +957,8 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
             {
                 message = $"{name} was already present; {path.FileName} was left where it is.";
             }
-            else if (mayMove && !_options.ForceCopyPlacement && SameVolume(path, dest))
+            else if (mayMove && !_options.ForceCopyPlacement && await path.TryMoveWithinVolumeAsync(dest, token))
             {
-                await path.MoveToAsync(dest, true, token);
                 message = $"Moved {path.FileName} into place.";
             }
             else
@@ -1060,19 +1060,12 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         }
     }
 
-    private static bool SameVolume(AbsolutePath a, AbsolutePath b)
-    {
-        var rootA = Path.GetPathRoot(a.ToString());
-        var rootB = Path.GetPathRoot(b.ToString());
-        return string.Equals(rootA, rootB, StringComparison.OrdinalIgnoreCase);
-    }
-
     private static string DiskFullMessage(AbsolutePath dest, long size)
     {
         try
         {
-            var root = Path.GetPathRoot(dest.ToString()) ?? dest.ToString();
-            var free = new DriveInfo(root).AvailableFreeSpace;
+            // The fallback below says the same without the numbers.
+            var (root, free) = DiskSpaceCheck.FreeSpaceOf(dest.Parent) ?? throw new IOException("No volume found");
             var shortfall = Math.Max(0, size - free);
             return
                 $"Not enough space on {root} for {dest.FileName}: {size.ToFileSizeString()} needed, {free.ToFileSizeString()} free, {shortfall.ToFileSizeString()} short. Free some space and retry.";

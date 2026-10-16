@@ -48,25 +48,31 @@ public sealed class DiskSpaceCheck : IPreflightCheck
     {
         try
         {
-            if (!OperatingSystem.IsWindows())
-            {
-                // Every Unix path has the root "/", which says nothing about which file system it is on: the
-                // install's drive is the mount point the folder is under, the deepest one when they nest.
-                var drives = DriveInfo.GetDrives();
-                var mount = MountPointOf(folder.ToString(), drives.Select(d => d.RootDirectory.FullName));
-                if (mount == null) return null;
-                return (mount, drives.First(d => d.RootDirectory.FullName == mount).AvailableFreeSpace);
-            }
-
-            var root = Path.GetPathRoot(folder.ToString());
-            if (string.IsNullOrEmpty(root)) return null;
-            return (root, new DriveInfo(root).AvailableFreeSpace);
+            return FreeSpaceOf(folder);
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Could not read free space for {Folder}", folder);
             return null;
         }
+    }
+
+    /// <summary>The drive or mount point a folder is on and the space free there; null when there is none.</summary>
+    public static (string Root, long Free)? FreeSpaceOf(AbsolutePath folder)
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            // Every Unix path has the root "/", which says nothing about which file system it is on: the
+            // install's drive is the mount point the folder is under, the deepest one when they nest.
+            var drives = DriveInfo.GetDrives();
+            var mount = MountPointOf(folder.ToString(), drives.Select(d => d.RootDirectory.FullName));
+            if (mount == null) return null;
+            return (mount, drives.First(d => d.RootDirectory.FullName == mount).AvailableFreeSpace);
+        }
+
+        var root = Path.GetPathRoot(folder.ToString());
+        if (string.IsNullOrEmpty(root)) return null;
+        return (root, new DriveInfo(root).AvailableFreeSpace);
     }
 
     /// <summary>The deepest mount point a Unix path is under, or null when none of them holds it.</summary>
