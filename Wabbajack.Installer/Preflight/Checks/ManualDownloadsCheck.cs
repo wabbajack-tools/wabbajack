@@ -86,7 +86,7 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
         // Announced only once the acquirer holds the queue. The app draws its manual-downloads panel from the
         // acquirer when it hears this, and Start inventories the downloads folder first, which on a large list
         // takes a while: announced earlier, the panel came up empty and stayed that way.
-        progress.ManualQueue(queue.Select(q => (q.Archive, q.Target)).ToList());
+        progress.ManualQueue(queue);
         foreach (var item in queue)
             progress.Archive(item.Archive, ArchiveState.ManualRequired, item.Reason);
 

@@ -43,14 +43,23 @@
                     <Grid x:Name="CardBody" Grid.Row="1" Margin="0,8,0,0" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                         <TextBlock x:Name="FileNameText" Grid.Row="0" FontSize="14" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
 
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,8">
-                            <TextBlock Classes="dim" Text="from" FontSize="12" VerticalAlignment="Center" />
-                            <Border CornerRadius="4" Background="{StaticResource ComplementaryPrimary16Brush}" Padding="6,2"
-                                    Margin="8,0,0,0" VerticalAlignment="Center">
-                                <TextBlock x:Name="SiteNameText" FontSize="11" Foreground="{StaticResource ForegroundBrush}" />
-                            </Border>
-                            <TextBlock x:Name="InstructionsText" Classes="dim" FontSize="12" VerticalAlignment="Center"
-                                       Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
+                        <!--
+                            A grid rather than a horizontal StackPanel: a StackPanel hands its children all the width
+                            they ask for, so a long instruction ran past the card instead of trimming. The reason under
+                            it wraps, at most three lines, and the whole of it is in the tooltip.
+                        -->
+                        <StackPanel Grid.Row="1" Margin="0,4,0,8">
+                            <Grid ColumnDefinitions="Auto,Auto,*">
+                                <TextBlock Classes="dim" Text="from" FontSize="12" VerticalAlignment="Center" />
+                                <Border Grid.Column="1" CornerRadius="4" Background="{StaticResource ComplementaryPrimary16Brush}"
+                                        Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="SiteNameText" FontSize="11" Foreground="{StaticResource ForegroundBrush}" />
+                                </Border>
+                                <TextBlock x:Name="InstructionsText" Grid.Column="2" Classes="dim" FontSize="12"
+                                           VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                            <TextBlock x:Name="ReasonText" Classes="dim" FontSize="12" Margin="0,6,0,0"
+                                       TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis" IsVisible="False" />
                         </StackPanel>
 
                         <Grid Grid.Row="2" ColumnDefinitions="*,Auto">

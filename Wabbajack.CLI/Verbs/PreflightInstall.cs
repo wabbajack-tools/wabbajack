@@ -30,8 +30,8 @@ public static class PreflightInstall
         var runner = PreflightRunner.Create(provider, configuration,
             new PreflightOptions {WaitForManualDownloads = false});
 
-        IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> manual =
-            Array.Empty<(Archive, ManualDownloadTarget)>();
+        IReadOnlyList<ManualQueueItem> manual =
+            Array.Empty<ManualQueueItem>();
         var lastLogged = new Dictionary<string, (PreflightState State, string Message)>();
 
         runner.Changed += evt =>
@@ -83,16 +83,16 @@ public static class PreflightInstall
                 string.Join(", ", notRun.Select(c => c.Title)));
 
         if (manual.Count == 0)
-            manual = runner.Context.State.ManualQueue.Select(q => (q.Archive, q.Target)).ToList();
+            manual = runner.Context.State.ManualQueue.ToList();
 
         if (manual.Count > 0)
         {
             logger.LogError("{Count} files must be downloaded by hand into {Downloads} before installing:",
                 manual.Count, configuration.Downloads);
-            foreach (var (archive, target) in manual)
+            foreach (var (archive, target, reason) in manual)
             {
-                logger.LogError("{Name} ({Size})\n  {Url}\n  {Instructions}", archive.Name,
-                    archive.Size.ToFileSizeString(), target.Url, target.Instructions);
+                logger.LogError("{Name} ({Size}): {Reason}\n  {Url}\n  {Instructions}", archive.Name,
+                    archive.Size.ToFileSizeString(), reason, target.Url, target.Instructions);
             }
         }
 

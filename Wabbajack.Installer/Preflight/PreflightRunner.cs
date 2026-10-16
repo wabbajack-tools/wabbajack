@@ -547,9 +547,9 @@ public sealed class PreflightRunner
     ///     Records the page to open against each queued archive, so a host that only sees
     ///     <see cref="Archives" /> still knows where to send the user, then announces the queue itself.
     /// </summary>
-    private void ReportManualQueue(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> queue)
+    private void ReportManualQueue(IReadOnlyList<ManualQueueItem> queue)
     {
-        foreach (var (archive, target) in queue)
+        foreach (var (archive, target, _) in queue)
         {
             var key = archive.Name;
             _archives.TryGetValue(key, out var previous);
@@ -621,7 +621,7 @@ public sealed class PreflightRunner
             _runner.ReportArchive(archive, state, message, bytes);
         }
 
-        public void ManualQueue(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> queue)
+        public void ManualQueue(IReadOnlyList<ManualQueueItem> queue)
         {
             _runner.ReportManualQueue(queue);
         }
