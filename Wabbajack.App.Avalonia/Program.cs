@@ -43,8 +43,15 @@ public static class Program
         using var timerResolution = new TimerResolution(1);
         using var singleInstance = new SingleInstance();
 
+        var opensUi = args.Length == 0
+                      || StartupChecks.ProtocolPayload(args[0]) != null
+                      || (args.Length == 1 && StartupChecks.WabbajackFile(args[0]) != null);
+
         if (!singleInstance.IsFirstInstance)
         {
+            // A command line is the CLI's whether or not the app is open; the running window would ignore it.
+            if (!opensUi) return StartupChecks.RunCli(args);
+
             // The running instance takes a link from here; this one just leaves.
             if (args.Length > 0) ProtocolPipe.Send(args);
             return 0;
@@ -75,9 +82,6 @@ public static class Program
         else if (OperatingSystem.IsLinux())
             Services.GetRequiredService<XdgFileAssociation>().RegisterOrUpdate();
 
-        var opensUi = args.Length == 0
-                      || StartupChecks.ProtocolPayload(args[0]) != null
-                      || (args.Length == 1 && StartupChecks.WabbajackFile(args[0]) != null);
         if (!opensUi)
             return StartupChecks.RunCli(args);
 
