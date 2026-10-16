@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using Wabbajack.Networking.Bethesda.Steam;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
@@ -23,4 +25,17 @@ public static class AppFolders
 
         return entryPoint.Parent;
     });
+
+    /// <summary>The CLI ships in a "cli" folder beside the app when installed, and beside it in a build.</summary>
+    public static string CliFolder
+    {
+        get
+        {
+            var cliDir = Path.Combine(AppContext.BaseDirectory, "cli");
+            return Directory.Exists(cliDir) ? cliDir : AppContext.BaseDirectory;
+        }
+    }
+
+    /// <summary>The CLI's file name, which has no .exe off Windows.</summary>
+    public static string CliFileName => SteamAppTicketHelperLocator.ExecutableName;
 }

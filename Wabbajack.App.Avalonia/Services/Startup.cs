@@ -8,6 +8,7 @@ using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.App.Avalonia.Util;
 using Wabbajack.Common;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -214,11 +215,11 @@ public static class StartupChecks
     /// <summary>
     ///     Arguments that are neither a wabbajack:// link nor a single .wabbajack file are a command line. WPF ran
     ///     those in-process through the CLI project; that project cannot be referenced from here, so they go to the
-    ///     wabbajack-cli.exe every install ships in its cli folder, and its exit code comes back.
+    ///     wabbajack-cli every install ships in its cli folder, and its exit code comes back.
     /// </summary>
     public static int RunCli(string[] args)
     {
-        var cli = Path.Combine(AppContext.BaseDirectory, "cli", "wabbajack-cli.exe");
+        var cli = Path.Combine(AppContext.BaseDirectory, "cli", AppFolders.CliFileName);
         if (!File.Exists(cli))
         {
             NativeMessageBox.ShowError($"Command line arguments need the Wabbajack CLI, which was not found at {cli}.",
@@ -269,7 +270,7 @@ public static class StartupChecks
             var cliDir = Path.Combine(AppContext.BaseDirectory, "cli");
             Process.Start(new ProcessStartInfo
             {
-                FileName = Path.Combine(cliDir, "wabbajack-cli.exe"),
+                FileName = Path.Combine(cliDir, AppFolders.CliFileName),
                 Arguments = "restart",
                 WorkingDirectory = cliDir,
                 CreateNoWindow = true
