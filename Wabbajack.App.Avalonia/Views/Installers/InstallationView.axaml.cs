@@ -27,6 +27,10 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
     {
         InitializeComponent();
 
+        // The shortcut is a Windows .url file pointing at ModOrganizer.exe. Off Windows MO2 runs under Wine or
+        // Proton, started however the user set that up, so there is no one shortcut to make.
+        CreateShortcutButton.IsVisible = OperatingSystem.IsWindows();
+
         // Sizes WPF bound through MathConverter, rounded to the pixel as WPF's layout rounding did: the image
         // is 16:9 at its own width, and the header's toggles and buttons are fractions of the column.
         InstallDetailImage.GetObservable(BoundsProperty)
