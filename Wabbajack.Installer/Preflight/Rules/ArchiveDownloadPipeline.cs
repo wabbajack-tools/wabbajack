@@ -460,9 +460,13 @@ public sealed class ArchiveDownloadPipeline
 
     private static string ManualReason(IDownloadState state, ManualDownloadTarget target)
     {
-        return state is Nexus
-            ? "Nexus Mods only allows automated downloads for premium accounts"
-            : $"{target.SiteName} downloads need a browser";
+        // Shown on the manual download card, so each one reads as a sentence about this file.
+        return state switch
+        {
+            Nexus => "Nexus Mods only allows automated downloads for premium accounts",
+            Manual => "The list's author marked this file as one to download in a browser",
+            _ => $"{target.SiteName} downloads need a browser"
+        };
     }
 
     private static string SiteName(IDownloadState state)

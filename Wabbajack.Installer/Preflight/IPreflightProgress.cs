@@ -15,8 +15,9 @@ public interface IPreflightProgress
     void Archive(Archive archive, ArchiveState state, string? message = null, long? bytes = null);
 
     /// <summary>
-    ///     Publishes the archives the user has to fetch by hand, with the page to open for each. The runner
+    ///     Publishes the archives the user has to fetch by hand, with the page to open for each and why it could
+    ///     not be downloaded automatically. The runner
     ///     records the target against each archive and raises <see cref="ManualQueueChanged" />.
     /// </summary>
-    void ManualQueue(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> queue);
+    void ManualQueue(IReadOnlyList<ManualQueueItem> queue);
 }

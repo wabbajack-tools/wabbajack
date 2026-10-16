@@ -286,7 +286,7 @@ public class SteamGameFileRepairLiveTests : IDisposable
         {
         }
 
-        public void ManualQueue(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> queue)
+        public void ManualQueue(IReadOnlyList<ManualQueueItem> queue)
         {
         }
     }

@@ -53,6 +53,7 @@ public partial class ManualDownloadsVM : ViewModel
     private readonly SerialDisposable _doneBeat = new();
 
     private Dictionary<string, ManualDownloadTarget> _targets = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, string> _reasons = new(StringComparer.OrdinalIgnoreCase);
     private string? _shownKey;
     private bool _holdingDone;
 
@@ -65,6 +66,7 @@ public partial class ManualDownloadsVM : ViewModel
 
         WatchStatusText = string.Empty;
         Instructions = string.Empty;
+        Reason = string.Empty;
         SiteName = string.Empty;
         CurrentSizeText = string.Empty;
         NoticeText = string.Empty;
@@ -96,6 +98,7 @@ public partial class ManualDownloadsVM : ViewModel
             .Subscribe(q =>
             {
                 _targets = q.Queue.ToDictionary(e => e.Archive.Name, e => e.Target, StringComparer.OrdinalIgnoreCase);
+                _reasons = q.Queue.ToDictionary(e => e.Archive.Name, e => e.Reason, StringComparer.OrdinalIgnoreCase);
                 Reload();
             })
             .DisposeWith(CompositeDisposable);
@@ -178,6 +181,12 @@ public partial class ManualDownloadsVM : ViewModel
     [Reactive] public partial string WatchStatusText { get; set; }
     [Reactive] public partial bool IsWrongFile { get; set; }
     [Reactive] public partial string Instructions { get; set; }
+
+    /// <summary>
+    ///     Why the current file is not downloaded automatically: no login, a source that needs a browser, or a
+    ///     download that failed and how.
+    /// </summary>
+    [Reactive] public partial string Reason { get; set; }
     [Reactive] public partial string SiteName { get; set; }
     [Reactive] public partial string CurrentSizeText { get; set; }
     [Reactive] public partial string NoticeText { get; set; }
@@ -269,6 +278,7 @@ public partial class ManualDownloadsVM : ViewModel
             HeaderText = TotalCount == 0 ? "Manual downloads" : $"All {TotalCount} files are in place";
             WatchStatusText = string.Empty;
             Instructions = string.Empty;
+            Reason = string.Empty;
             SiteName = string.Empty;
             CurrentSizeText = string.Empty;
             return;
@@ -284,6 +294,7 @@ public partial class ManualDownloadsVM : ViewModel
         var target = Target(item.Key);
         SiteName = target?.SiteName ?? string.Empty;
         Instructions = target?.Instructions ?? string.Empty;
+        Reason = _reasons.TryGetValue(item.Key, out var reason) ? reason : string.Empty;
 
         WatchState = item.State;
         IsWrongFile = item.State == ManualDownloadState.WrongFile;

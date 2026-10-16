@@ -184,7 +184,7 @@ public class RepairGameFiles
                 _logger.LogInformation("{Name}: {Message}", archive.Name, message);
         }
 
-        public void ManualQueue(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> queue)
+        public void ManualQueue(IReadOnlyList<ManualQueueItem> queue)
         {
         }
     }
