@@ -194,7 +194,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         var iniData = iniFile.LoadIniFile();
         var settings = iniData["Settings"];
-        settings["download_directory"] = _configuration.Downloads.ToString().Replace("\\", "/");
+        settings["download_directory"] = _configuration.Downloads.ToWindowsProgramPath().Replace("\\", "/");
         iniData.SaveIniFile(iniFile);
         return Task.CompletedTask;
     }
@@ -531,22 +531,22 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     {
         var data = Encoding.UTF8.GetString(await LoadBytesFromPath(directive.SourceDataID));
 
-        var gameFolder = _configuration.GameFolder.ToString();
+        // These files are read by MO2 and the game's tools, which on Linux run under Wine and want Z:\ paths.
+        var gameFolder = _configuration.GameFolder.ToWindowsProgramPath();
+        var installFolder = _configuration.Install.ToWindowsProgramPath();
+        var downloadsFolder = _configuration.Downloads.ToWindowsProgramPath();
 
         data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, gameFolder);
         data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, gameFolder.Replace("\\", "\\\\"));
         data = data.Replace(Consts.GAME_PATH_MAGIC_FORWARD, gameFolder.Replace("\\", "/"));
 
-        data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, _configuration.Install.ToString());
-        data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK,
-            _configuration.Install.ToString().Replace("\\", "\\\\"));
-        data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, _configuration.Install.ToString().Replace("\\", "/"));
+        data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, installFolder);
+        data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, installFolder.Replace("\\", "\\\\"));
+        data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, installFolder.Replace("\\", "/"));
 
-        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_BACK, _configuration.Downloads.ToString());
-        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK,
-            _configuration.Downloads.ToString().Replace("\\", "\\\\"));
-        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD,
-            _configuration.Downloads.ToString().Replace("\\", "/"));
+        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_BACK, downloadsFolder);
+        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK, downloadsFolder.Replace("\\", "\\\\"));
+        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD, downloadsFolder.Replace("\\", "/"));
 
         await _configuration.Install.Combine(directive.To).WriteAllTextAsync(data);
     }
