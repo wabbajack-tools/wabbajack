@@ -19,7 +19,9 @@
         <!-- A beta build (BETA=beta.1) says so in its informational version, which is what is shown and reported;
              assembly and file versions keep the plain four numbers. (VERSION is Version: MSBuild ignores case.) -->
         <InformationalVersion Condition=" '$(BETA)' != ''">$(VERSION)-$(BETA)</InformationalVersion>
-        <!-- Stated outright, as the WPF app does, so GitInfo does not stamp a version from the git tags. -->
+        <!-- Stated outright, as the WPF app does, so GitInfo does not stamp a version from the git tags; it would
+             otherwise set Version and InformationalVersion (0.1.38+branch.sha), which the app shows. -->
+        <GitVersion>false</GitVersion>
         <AssemblyVersion>$(VERSION)</AssemblyVersion>
         <FileVersion>$(VERSION)</FileVersion>
         <!-- Required for source-generated [Reactive] partial properties that carry an initializer

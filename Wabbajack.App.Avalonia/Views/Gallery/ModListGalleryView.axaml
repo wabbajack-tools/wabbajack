@@ -138,7 +138,7 @@
                 <TextBlock Margin="0,16,0,0" TextAlignment="Center" FontSize="16" Foreground="White" TextWrapping="Wrap"
                            Text="{Binding ProtocolStatusText}" />
                 <TextBlock Margin="0,8,0,0" TextAlignment="Center" FontSize="12" Foreground="#CCFFFFFF"
-                           Text="Downloading modlist fileâ€¦" />
+                           Text="Downloading modlist file…" />
             </StackPanel>
         </Grid>
     </Grid>
