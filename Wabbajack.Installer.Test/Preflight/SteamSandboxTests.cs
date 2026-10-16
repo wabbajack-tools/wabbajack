@@ -1,3 +1,4 @@
+#nullable enable
 using Wabbajack.Installer.Preflight.Rules;
 using Xunit;
 
