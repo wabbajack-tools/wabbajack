@@ -59,7 +59,11 @@ public static class Program
             return 1;
         }
 
+        // The default content root is the working directory, watched recursively for appsettings changes. Off
+        // Windows nothing moves the working directory to the app's folder, so started from a desktop it was the
+        // home folder, with an inotify watch on every folder in it.
         var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+            .UseContentRoot(AppContext.BaseDirectory)
             .ConfigureLogging(AddLogging)
             .ConfigureServices((_, services) => ConfigureServices(services))
             .Build();
