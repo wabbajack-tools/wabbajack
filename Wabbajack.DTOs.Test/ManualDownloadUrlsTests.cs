@@ -47,7 +47,22 @@ public class ManualDownloadUrlsTests
             new object[]
             {
                 new WabbajackCDN {Url = new Uri("https://authored-files.wabbajack.org/Tonal%20Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f")},
-                "https://authored-files.wabbajack.org/Tonal Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f", "Wabbajack CDN", "Download the file from this page"
+                // A CDN address is a folder of numbered parts; an authored file's page on the build server is what
+                // turns them back into the file in a browser.
+                "https://build.wabbajack.org/authored_files/download/Tonal Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f",
+                "Wabbajack CDN", "Download the file from this page"
+            },
+            new object[]
+            {
+                new WabbajackCDN {Url = new Uri("https://wabbajack.b-cdn.net/636039181_MNCABC-FluffworksPatchv0.2.rar_6d2f8414-b3a5-4e1b-bd37-2a3c4f3ecde1")},
+                "https://build.wabbajack.org/authored_files/download/636039181_MNCABC-FluffworksPatchv0.2.rar_6d2f8414-b3a5-4e1b-bd37-2a3c4f3ecde1",
+                "Wabbajack CDN", "Download the file from this page"
+            },
+            new object[]
+            {
+                // Mirrored and patch files have no page to download them from.
+                new WabbajackCDN {Url = new Uri("https://mirror.wabbajack.org/7c2a1f6e4b3d9a80")},
+                null, null, null
             },
             new object[]
             {

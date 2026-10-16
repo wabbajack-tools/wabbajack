@@ -54,6 +54,17 @@ public partial class ManualDownloadView : ReactiveUserControl<ManualDownloadsVM>
                 .Subscribe(t => InstructionsText.Text = t)
                 .DisposeWith(dispose);
 
+            this.WhenAnyValue(x => x.ViewModel!.Reason)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(t =>
+                {
+                    ReasonText.Text = t;
+                    ReasonText.IsVisible = !string.IsNullOrWhiteSpace(t);
+                    // Three lines is the most the card gives it; the tooltip has the rest.
+                    ToolTip.SetTip(ReasonText, string.IsNullOrWhiteSpace(t) ? null : t);
+                })
+                .DisposeWith(dispose);
+
             this.WhenAnyValue(x => x.ViewModel!.HasCurrent)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(has => CardBody.IsVisible = has)

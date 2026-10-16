@@ -12,7 +12,7 @@ public sealed class RecordingProgress : IPreflightProgress
 {
     public ConcurrentQueue<(long Current, long Total, string? Text)> Reports { get; } = new();
     public ConcurrentQueue<(Archive Archive, ArchiveState State, string? Message, long? Bytes)> Archives { get; } = new();
-    public ConcurrentQueue<IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)>> ManualQueues { get; } = new();
+    public ConcurrentQueue<IReadOnlyList<ManualQueueItem>> ManualQueues { get; } = new();
 
     public void Report(long current, long total, string? text = null)
     {
@@ -27,7 +27,7 @@ public sealed class RecordingProgress : IPreflightProgress
     /// <summary>Called as the queue is announced, so a test can look at what else was true at that moment.</summary>
     public System.Action? OnManualQueue { get; set; }
 
-    public void ManualQueue(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> queue)
+    public void ManualQueue(IReadOnlyList<ManualQueueItem> queue)
     {
         ManualQueues.Enqueue(queue);
         OnManualQueue?.Invoke();

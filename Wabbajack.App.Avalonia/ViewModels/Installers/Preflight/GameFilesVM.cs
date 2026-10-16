@@ -460,7 +460,7 @@ public partial class GameFilesVM : ViewModel
             });
         }
 
-        public void ManualQueue(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> queue)
+        public void ManualQueue(IReadOnlyList<ManualQueueItem> queue)
         {
             // Game files are never routed to a browser: no page sells you an old build.
         }
