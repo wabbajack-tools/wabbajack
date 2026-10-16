@@ -17,6 +17,8 @@ namespace Wabbajack.App.Avalonia.Services;
 /// <summary>
 ///     One Wabbajack at a time, as in WPF: the first process owns a named mutex, and a later one hands its
 ///     arguments over the protocol pipe and exits. The names are the WPF app's, so the two never run together.
+///     Off Windows a named mutex is scoped to the login session unless told otherwise, and a browser or file
+///     manager launching a link is often in another one, so there it is scoped to the user instead.
 /// </summary>
 public sealed class SingleInstance : IDisposable
 {
@@ -25,7 +27,11 @@ public sealed class SingleInstance : IDisposable
 
     public SingleInstance()
     {
-        _mutex = new Mutex(true, "Wabbajack-{F8C1E8F0-3E3A-4B3D-9F4A-1E5C6D7E8F9A}", out _owned);
+        const string name = "Wabbajack-{F8C1E8F0-3E3A-4B3D-9F4A-1E5C6D7E8F9A}";
+        _mutex = OperatingSystem.IsWindows()
+            ? new Mutex(true, name, out _owned)
+            : new Mutex(true, name, new NamedWaitHandleOptions {CurrentUserOnly = true, CurrentSessionOnly = false},
+                out _owned);
     }
 
     public bool IsFirstInstance => _owned;
