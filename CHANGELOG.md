@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.3.0.2 - 10/16/2026
+* HOTFIX: Fixed Wabbajack CDN files being sent to the manual downloads list when their download failed. They are retried for longer now, and a file that still fails shows as a failed download with a retry button. The manual download card also says why each file has to be downloaded by hand PR #3088
+
 #### Version - 4.3.0.1 - 10/15/2026
 * HOTFIX: Fixed the manual downloads list sometimes coming up empty in preflight, leaving the install waiting on files it never showed PR #3085
 
