@@ -31,12 +31,18 @@ public static class KnownFolders
 
     public static bool IsInSpecialFolder(this AbsolutePath candidate, out Environment.SpecialFolder? specialFolder)
     {
+        // Off Windows several special folders are the home folder itself, and everything a user owns is under it,
+        // so there only the home folder proper is refused, not what is inside it.
+        var home = OperatingSystem.IsWindows()
+            ? default
+            : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).ToAbsolutePath();
         foreach (var val in Enum.GetValues<Environment.SpecialFolder>())
         {
             specialFolder = val;
             AbsolutePath specialPath = Environment.GetFolderPath(val).ToAbsolutePath();
+            var isHome = home != default && specialPath == home;
             if ((candidate.ToString().Length > 0 && candidate == specialPath)
-                || KnownFolders.IsSubDirectoryOf(candidate.ToString(), specialPath.ToString()))
+                || (!isHome && KnownFolders.IsSubDirectoryOf(candidate.ToString(), specialPath.ToString())))
             {
                 return true;
             }

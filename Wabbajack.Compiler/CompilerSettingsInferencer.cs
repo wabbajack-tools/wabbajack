@@ -97,8 +97,10 @@ public class CompilerSettingsInferencer
                         var taggedFiles = await file.ReadAllLinesAsync().ToArray();
                         foreach (var taggedFile in taggedFiles)
                         {
-                            var noMatchIncludeAsset =
-                                (AbsolutePath) file.ToString().Replace(file.FileName.ToString(), taggedFile);
+                            // A name typed into the tag file need not match the file's case on disk.
+                            var noMatchIncludeAsset = string.IsNullOrWhiteSpace(taggedFile)
+                                ? (AbsolutePath) file.ToString().Replace(file.FileName.ToString(), taggedFile)
+                                : file.Parent.FindIgnoringCase(taggedFile.ToRelativePath());
                             if (noMatchIncludeAsset.DirectoryExists())
                                 cs.NoMatchInclude = cs.NoMatchInclude.Add(noMatchIncludeAsset
                                 .RelativeTo(mo2Folder));

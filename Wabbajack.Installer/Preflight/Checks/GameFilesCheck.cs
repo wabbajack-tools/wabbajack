@@ -218,7 +218,7 @@ public sealed class GameFilesCheck : IPreflightCheck
         // build and needs no version index.
         if (root == default) return Outcome.Missing;
 
-        return state.GameFile.RelativeTo(root).FileExists() ? Outcome.Mismatch : Outcome.Missing;
+        return root.FindIgnoringCase(state.GameFile).FileExists() ? Outcome.Mismatch : Outcome.Missing;
     }
 
     private static string Summarise(IEnumerable<string> names)

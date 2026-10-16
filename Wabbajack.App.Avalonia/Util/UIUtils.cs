@@ -92,6 +92,13 @@ public static class UIUtils
     /// <summary>Opens Explorer on the file's folder with the file selected.</summary>
     public static void OpenFolderAndSelectFile(AbsolutePath pathToFile)
     {
+        // Selecting a file is Explorer's; elsewhere the folder holding it is as close as xdg-open gets.
+        if (!OperatingSystem.IsWindows())
+        {
+            OpenFolder(pathToFile.Parent);
+            return;
+        }
+
         Process.Start(new ProcessStartInfo { FileName = "explorer.exe ", Arguments = $"/select, \"{pathToFile}\"" });
     }
 

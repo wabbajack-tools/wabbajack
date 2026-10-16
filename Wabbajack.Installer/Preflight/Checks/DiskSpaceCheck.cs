@@ -48,6 +48,16 @@ public sealed class DiskSpaceCheck : IPreflightCheck
     {
         try
         {
+            if (!OperatingSystem.IsWindows())
+            {
+                // Every Unix path has the root "/", which says nothing about which file system it is on: the
+                // install's drive is the mount point the folder is under, the deepest one when they nest.
+                var drives = DriveInfo.GetDrives();
+                var mount = MountPointOf(folder.ToString(), drives.Select(d => d.RootDirectory.FullName));
+                if (mount == null) return null;
+                return (mount, drives.First(d => d.RootDirectory.FullName == mount).AvailableFreeSpace);
+            }
+
             var root = Path.GetPathRoot(folder.ToString());
             if (string.IsNullOrEmpty(root)) return null;
             return (root, new DriveInfo(root).AvailableFreeSpace);
@@ -57,5 +67,14 @@ public sealed class DiskSpaceCheck : IPreflightCheck
             logger.LogWarning(ex, "Could not read free space for {Folder}", folder);
             return null;
         }
+    }
+
+    /// <summary>The deepest mount point a Unix path is under, or null when none of them holds it.</summary>
+    public static string? MountPointOf(string path, IEnumerable<string> mountPoints)
+    {
+        return mountPoints
+            .Where(m => m == "/" || path == m.TrimEnd('/') || path.StartsWith(m.TrimEnd('/') + "/", StringComparison.Ordinal))
+            .OrderByDescending(m => m.Length)
+            .FirstOrDefault();
     }
 }
