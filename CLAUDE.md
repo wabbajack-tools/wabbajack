@@ -29,6 +29,11 @@ offline lane stays trustworthy.
 
 Building from Linux or macOS needs `/p:EnableWindowsTargeting=true`, which is what the CI workflow passes.
 
+Releases come from the Create Release workflow. `release.ps1` builds, signs and zips the Windows app, CLI and
+launcher and creates the GitHub draft; `release-linux.sh` publishes the app and CLI for linux-x64 into a
+tarball (unsigned, no launcher, other platforms' tools left out), which the workflow attaches to that draft.
+Both read the version from the top of `CHANGELOG.md`.
+
 ### Credentials
 
 `NEXUS_API_KEY` is read straight from the environment by `NexusApi.cs`. With it set, the `RequiresOAuth`

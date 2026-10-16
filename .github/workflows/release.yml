@@ -1,4 +1,4 @@
-name: Create Release (Windows)
+name: Create Release
 
 on:
   workflow_dispatch:
@@ -7,7 +7,37 @@ permissions:
   contents: write
 
 jobs:
+  # The Linux app and CLI, unsigned, as a tarball the Windows job attaches to the release it creates.
+  linux:
+    runs-on: ubuntu-latest
+
+    env:
+      PUBLISH_DIR: ${{ github.workspace }}/publish-wj-linux
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Build and package
+        id: build
+        run: ./release-linux.sh
+
+      - name: Keep the tarball for the release job
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: ${{ steps.build.outputs.tarball }}
+          if-no-files-found: error
+
   release:
+    needs: linux
     runs-on: windows-latest
 
     env:
@@ -47,6 +77,20 @@ jobs:
         id: build
         shell: pwsh
         run: ./release.ps1
+
+      - name: Fetch the Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-release
+          path: ${{ github.workspace }}\linux-release
+
+      - name: Attach the Linux build to the draft release
+        shell: pwsh
+        run: |
+          $tarball = Get-ChildItem "${{ github.workspace }}\linux-release\*.tar.gz" | Select-Object -First 1
+          if (-not $tarball) { throw "Linux tarball not found" }
+          gh release upload "${{ steps.build.outputs.version }}" $tarball.FullName
+          if ($LASTEXITCODE -ne 0) { throw "gh release upload failed" }
 
       # --- Nexus Mods uploads (official action) ---
 
