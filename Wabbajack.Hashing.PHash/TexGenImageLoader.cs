@@ -130,8 +130,12 @@ public class TexGenImageLoader : IImageLoader
 
     /// <summary>
     ///     Resize every face to <paramref name="width" /> x <paramref name="height" />, build
-    ///     <paramref name="mipMaps" /> levels (0 for a full chain, as texconv reads it) and encode them as
-    ///     <paramref name="format" />. A cubemap stays a cubemap.
+    ///     <paramref name="mipMaps" /> levels (0 for as many as the source has, as texconv reads it) and encode them
+    ///     as <paramref name="format" />. A cubemap stays a cubemap.
+    ///     <para>
+    ///         Colour and alpha are filtered separately. texconv as Wabbajack calls it does not, and darkens colour
+    ///         wherever alpha is low, which on a Skyrim normal map (specular in alpha) bends the normals.
+    ///     </para>
     /// </summary>
     private byte[] Recompress(byte[] data, int width, int height, int mipMaps, DXGI_FORMAT format,
         CancellationToken token)
@@ -144,7 +148,8 @@ public class TexGenImageLoader : IImageLoader
             Format = target,
             Width = width,
             Height = height,
-            MipLevels = mipMaps
+            // texconv with no mip count keeps the source's, and builds a full chain only for a source without mips.
+            MipLevels = mipMaps == 0 && meta.MipLevels > 1 ? meta.MipLevels : mipMaps
         };
         var floatTarget = target is DxgiFormat.BC6H_UF16 or DxgiFormat.BC6H_SF16
             || PixelConvert.IsFloatFormat(target);
