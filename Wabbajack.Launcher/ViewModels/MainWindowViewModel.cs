@@ -85,7 +85,8 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
 
-            if (_tokenProvider.HaveToken())
+            // Nexus carries the Windows build only as far as this launcher is concerned; Linux reads GitHub.
+            if (OperatingSystem.IsWindows() && _tokenProvider.HaveToken())
             {
                 try
                 {
@@ -118,9 +119,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         Status = "Looking for Updates";
 
-        var baseFolder = KnownFolders.CurrentDirectory.Combine(_version.Version.ToString());
+        var baseFolder = InstallRoot.Combine(_version.Version.ToString());
 
-        if (baseFolder.Combine("Wabbajack.exe").FileExists()) await FinishAndExit();
+        if (baseFolder.Combine(AppExecutable).FileExists()) await FinishAndExit();
 
         Status = $"Getting download Uri for {_version.Version}";
         var uri = await _version.Uri();
@@ -172,6 +173,21 @@ public partial class MainWindowViewModel : ViewModelBase
                 await FinishAndExit();
                 throw; // avoid unsigned variable 'data'
             }
+        }
+
+        if (!OperatingSystem.IsWindows())
+        {
+            try
+            {
+                Status = $"Extracting {_version.Version}";
+                LinuxReleases.Extract(new MemoryStream(data), baseFolder.ToString());
+            }
+            catch (Exception ex)
+            {
+                _errors.Add(ex.Message);
+            }
+
+            await FinishAndExit();
         }
 
         try
@@ -241,7 +257,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             Status = "Launching...";
-            var wjFolder = KnownFolders.CurrentDirectory.EnumerateDirectories(recursive:false)
+            var wjFolder = InstallRoot.EnumerateDirectories(recursive:false)
                 .OrderByDescending(v =>
                     Version.TryParse(v.FileName.ToString(), out var ver) ? ver : new Version(0, 0, 0, 0))
                 .FirstOrDefault();
@@ -252,16 +268,26 @@ public partial class MainWindowViewModel : ViewModelBase
                 throw new Exception("No WJ install found");
             }
 
-            var filename = wjFolder.Combine("Wabbajack.exe");
-            await CreateBatchFile(filename);
-            var info = new ProcessStartInfo
+            var filename = wjFolder.Combine(AppExecutable);
+            if (OperatingSystem.IsWindows())
             {
-                FileName = filename.ToString(),
-                Arguments = string.Join(" ",
-                    Environment.GetCommandLineArgs().Skip(1).Select(s => s.Contains(' ') ? '\"' + s + '\"' : s)),
-                WorkingDirectory = wjFolder.ToString()
-            };
-            Process.Start(info);
+                await CreateBatchFile(filename);
+                var info = new ProcessStartInfo
+                {
+                    FileName = filename.ToString(),
+                    Arguments = string.Join(" ",
+                        Environment.GetCommandLineArgs().Skip(1).Select(s => s.Contains(' ') ? '\"' + s + '\"' : s)),
+                    WorkingDirectory = wjFolder.ToString()
+                };
+                Process.Start(info);
+            }
+            else
+            {
+                await CreateCliScript(filename);
+                var info = new ProcessStartInfo(filename.ToString()) {WorkingDirectory = wjFolder.ToString()};
+                foreach (var arg in Environment.GetCommandLineArgs().Skip(1)) info.ArgumentList.Add(arg);
+                Process.Start(info);
+            }
         }
         catch (Exception ex)
         {
@@ -308,9 +334,52 @@ public partial class MainWindowViewModel : ViewModelBase
         Status = $"Downloading {what} ({e.ProgressPercentage}%)...";
     }
 
+    /// <summary>
+    ///     Where version folders go. On Windows the working directory, as it always was; a Linux desktop starts
+    ///     programs in the home folder, so there it is the launcher's own folder.
+    /// </summary>
+    private static AbsolutePath InstallRoot =>
+        OperatingSystem.IsWindows() ? KnownFolders.CurrentDirectory : KnownFolders.EntryPoint;
+
+    private static string AppExecutable => OperatingSystem.IsWindows() ? "Wabbajack.exe" : "Wabbajack";
+
+    /// <summary>The Linux counterpart of the .bat file: wabbajack-cli beside the launcher, running the newest CLI.</summary>
+    [System.Runtime.Versioning.UnsupportedOSPlatform("windows")]
+    private async Task CreateCliScript(AbsolutePath app)
+    {
+        try
+        {
+            var script = Path.Combine(InstallRoot.ToString(), "wabbajack-cli");
+            var cli = app.Parent.Combine("cli", "wabbajack-cli").ToString().Replace("'", "'\\''");
+            var data = $"#!/bin/sh\nexec '{cli}' \"$@\"\n";
+            if (!File.Exists(script) || await File.ReadAllTextAsync(script) != data)
+                await File.WriteAllTextAsync(script, data);
+            File.SetUnixFileMode(script, File.GetUnixFileMode(script) | UnixFileMode.UserExecute |
+                                         UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
+        }
+        catch (Exception ex)
+        {
+            _errors.Add($"Creating CLI script : {ex}");
+        }
+    }
+
     private async Task<(Version Version, long Size, Func<Task<Uri>> Uri)> GetGithubRelease(CancellationToken token)
     {
         var releases = await GetGithubReleases();
+
+        if (!OperatingSystem.IsWindows())
+        {
+            var linux = LinuxReleases.Pick(releases.Select(r => new ReleaseInfo(r.Tag, r.Prerelease,
+                r.Assets.Select(a => new ReleaseFile(a.Name, a.BrowserDownloadUrl, a.Size)).ToList())));
+            if (linux == null)
+            {
+                Status = "No release has a Linux build yet";
+                return default;
+            }
+
+            var (linuxVersion, file) = linux.Value;
+            return (linuxVersion, file.Size, async () => file.Url);
+        }
 
 
         var version = releases.Select(r =>
@@ -368,6 +437,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private partial class Release
     {
         [JsonPropertyName("tag_name")] public string Tag { get; set; }
+
+        [JsonPropertyName("prerelease")] public bool Prerelease { get; set; }
 
         [JsonPropertyName("assets")] public Asset[] Assets { get; set; }
     }
