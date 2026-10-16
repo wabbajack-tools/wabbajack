@@ -677,7 +677,9 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 ModList = freshModList,
                 ModlistArchive = WabbajackFileLocation.TargetPath,
                 // Screen size and video memory, for the MO2 and ENB settings the installer writes.
-                SystemParameters = OperatingSystem.IsWindows() ? _parametersConstructor.Create() : new SystemParameters(),
+                SystemParameters = OperatingSystem.IsWindows()
+                    ? _parametersConstructor.Create()
+                    : PortableSystemParameters.Create(),
                 // A game that cannot be found is the game-installed check's finding, not an exception here.
                 GameFolder = _gameLocator.TryFindLocation(freshModList.GameType, out var gameFolder) ? gameFolder : default,
                 Metadata = ModlistMetadata
