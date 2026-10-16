@@ -121,7 +121,10 @@ public partial class MainWindowVM : ViewModel
         // Off Windows the executable is a native host with no version resource; the assembly carries the same number.
         var fileVersion = FileVersionInfo.GetVersionInfo(location).FileVersion
                           ?? typeof(MainWindowVM).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-        Version = "v" + fileVersion;
+        // The informational version, which names a beta (4.4.0.0-beta.1), without the commit after its '+'.
+        var shown = typeof(MainWindowVM).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion.Split('+')[0];
+        Version = "v" + (string.IsNullOrEmpty(shown) ? fileVersion : shown);
 
         NavigateTo(ScreenType.Home);
 
@@ -141,6 +144,7 @@ public partial class MainWindowVM : ViewModel
 
             _logger.LogInformation("Wabbajack information:");
             _logger.LogInformation("    Version: {FileVersion}", fileVersion);
+            _logger.LogInformation("    Informational version: {Version}", Version.TrimStart('v'));
             _logger.LogInformation("    Build: {Sha}", ThisAssembly.Git.Sha);
             _logger.LogInformation("    Entry point: {EntryPoint}", KnownFolders.EntryPoint);
             _logger.LogInformation("    Assembly Location: {AssemblyLocation}", assemblyLocation);

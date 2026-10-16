@@ -16,6 +16,9 @@
         <ApplicationIcon>Assets\wabbajack.ico</ApplicationIcon>
         <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
         <Version>$(VERSION)</Version>
+        <!-- A beta build (BETA=beta.1) says so in its informational version, which is what is shown and reported;
+             assembly and file versions keep the plain four numbers. (VERSION is Version: MSBuild ignores case.) -->
+        <InformationalVersion Condition=" '$(BETA)' != ''">$(VERSION)-$(BETA)</InformationalVersion>
         <!-- Stated outright, as the WPF app does, so GitInfo does not stamp a version from the git tags. -->
         <AssemblyVersion>$(VERSION)</AssemblyVersion>
         <FileVersion>$(VERSION)</FileVersion>
