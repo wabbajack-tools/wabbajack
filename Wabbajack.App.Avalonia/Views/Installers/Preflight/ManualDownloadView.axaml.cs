@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using FluentIcons.Common;
 using ReactiveUI;
@@ -52,6 +53,28 @@ public partial class ManualDownloadView : ReactiveUserControl<ManualDownloadsVM>
             this.WhenAnyValue(x => x.ViewModel!.Instructions)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(t => InstructionsText.Text = t)
+                .DisposeWith(dispose);
+
+            this.WhenAnyValue(x => x.ViewModel!.OpenNextAutomatically)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(on => AutoOpenCheck.IsChecked = on)
+                .DisposeWith(dispose);
+
+            Observable.FromEventPattern<RoutedEventArgs>(AutoOpenCheck, nameof(CheckBox.IsCheckedChanged))
+                .Subscribe(_ =>
+                {
+                    if (ViewModel is { } vm && vm.OpenNextAutomatically != (AutoOpenCheck.IsChecked == true))
+                        vm.OpenNextAutomatically = AutoOpenCheck.IsChecked == true;
+                })
+                .DisposeWith(dispose);
+
+            this.WhenAnyValue(x => x.ViewModel!.AutoOpenText)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(t =>
+                {
+                    AutoOpenStatusText.Text = t;
+                    AutoOpenStatusText.IsVisible = !string.IsNullOrWhiteSpace(t);
+                })
                 .DisposeWith(dispose);
 
             this.WhenAnyValue(x => x.ViewModel!.Reason)

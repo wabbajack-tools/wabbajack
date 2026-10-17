@@ -407,7 +407,7 @@ public class AutomatedDownloadsCheckTests : IDisposable
         // the list, so it is worth pinning that it still reaches the browser as a file link and not as the
         // mod page.
         Assert.Equal(
-            $"https://www.nexusmods.com/skyrimspecialedition/mods/{mirror.ModID}?tab=files&file_id={mirror.FileID}",
+            $"https://www.nexusmods.com/Core/Libs/Common/Widgets/DownloadPopUp?id={mirror.FileID}&game_id=1704",
             item.Target.Url.AbsoluteUri);
         Assert.Contains("premium", item.Reason);
         Assert.Equal(ArchiveState.ManualRequired, _progress.LastStates()["rerouted.7z"]);
