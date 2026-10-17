@@ -21,6 +21,7 @@ using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
+using Wabbajack.Launcher.Platforms;
 using Wabbajack.Paths.IO;
 #pragma warning disable SYSLIB0014
 
@@ -85,8 +86,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
 
-            // Nexus carries the Windows build only as far as this launcher is concerned; Linux reads GitHub.
-            if (OperatingSystem.IsWindows() && _tokenProvider.HaveToken())
+            if (Platform.ChecksNexus && _tokenProvider.HaveToken())
             {
                 try
                 {
@@ -119,36 +119,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
         Status = "Looking for Updates";
 
-        var baseFolder = InstallRoot.Combine(_version.Version.ToString());
+        var baseFolder = Platform.InstallRoot.Combine(_version.Version.ToString());
 
-        if (baseFolder.Combine(AppExecutable).FileExists()) await FinishAndExit();
+        if (baseFolder.Combine(Platform.AppExecutable).FileExists()) await FinishAndExit();
 
         Status = $"Getting download Uri for {_version.Version}";
         var uri = await _version.Uri();
 
-        /*
-        var archive = new Archive()
-        {
-            Name = $"{_version.Version}.zip",
-            Size = _version.Size,
-            State = new Http {Url = uri}
-        };
-
-        await using var stream = await _downloader.GetChunkedSeekableStream(archive, CancellationToken.None);
-        var rdr = new ZipReader(stream, true);
-        var entries = (await rdr.GetFiles()).OrderBy(d => d.FileOffset).ToArray();
-        foreach (var file in  entries)
-        {
-            if (file.FileName.EndsWith("/") || file.FileName.EndsWith("\\")) continue;
-            var relPath = file.FileName.ToRelativePath();
-            Status = $"Extracting: {relPath.FileName}";
-            var outPath = baseFolder.Combine(relPath);
-            if (!outPath.Parent.DirectoryExists())
-                outPath.Parent.CreateDirectory();
-
-            await using var of = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await rdr.Extract(file, of, CancellationToken.None);
-        }*/
 
 
         var wc = new WebClient();
@@ -175,37 +152,10 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
 
-        if (!OperatingSystem.IsWindows())
-        {
-            try
-            {
-                Status = $"Extracting {_version.Version}";
-                LinuxReleases.Extract(new MemoryStream(data), baseFolder.ToString());
-            }
-            catch (Exception ex)
-            {
-                _errors.Add(ex.Message);
-            }
-
-            await FinishAndExit();
-        }
-
         try
         {
-            using var zip = new ZipArchive(new MemoryStream(data), ZipArchiveMode.Read);
-            foreach (var entry in zip.Entries)
-            {
-                Status = $"Extracting: {entry.Name}";
-                var outPath = baseFolder.Combine(entry.FullName.ToRelativePath());
-                if (!outPath.Parent.DirectoryExists())
-                    outPath.Parent.CreateDirectory();
-
-                if (entry.FullName.EndsWith("/") || entry.FullName.EndsWith("\\"))
-                    continue;
-                await using var o = entry.Open();
-                await using var of = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-                await o.CopyToAsync(of);
-            }
+            Status = $"Extracting {_version.Version}";
+            Platform.Unpack(data, baseFolder);
         }
         catch (Exception ex)
         {
@@ -257,7 +207,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             Status = "Launching...";
-            var wjFolder = InstallRoot.EnumerateDirectories(recursive:false)
+            var wjFolder = Platform.InstallRoot.EnumerateDirectories(recursive:false)
                 .OrderByDescending(v =>
                     Version.TryParse(v.FileName.ToString(), out var ver) ? ver : new Version(0, 0, 0, 0))
                 .FirstOrDefault();
@@ -268,26 +218,17 @@ public partial class MainWindowViewModel : ViewModelBase
                 throw new Exception("No WJ install found");
             }
 
-            var filename = wjFolder.Combine(AppExecutable);
-            if (OperatingSystem.IsWindows())
+            var app = wjFolder.Combine(Platform.AppExecutable);
+            try
             {
-                await CreateBatchFile(filename);
-                var info = new ProcessStartInfo
-                {
-                    FileName = filename.ToString(),
-                    Arguments = string.Join(" ",
-                        Environment.GetCommandLineArgs().Skip(1).Select(s => s.Contains(' ') ? '\"' + s + '\"' : s)),
-                    WorkingDirectory = wjFolder.ToString()
-                };
-                Process.Start(info);
+                await Platform.WriteCliShortcut(app);
             }
-            else
+            catch (Exception ex)
             {
-                await CreateCliScript(filename);
-                var info = new ProcessStartInfo(filename.ToString()) {WorkingDirectory = wjFolder.ToString()};
-                foreach (var arg in Environment.GetCommandLineArgs().Skip(1)) info.ArgumentList.Add(arg);
-                Process.Start(info);
+                _errors.Add($"Creating the CLI shortcut : {ex}");
             }
+
+            Process.Start(Platform.StartApp(app, Environment.GetCommandLineArgs().Skip(1).ToArray()));
         }
         catch (Exception ex)
         {
@@ -310,95 +251,26 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private async Task CreateBatchFile(AbsolutePath filename)
-    {
-        try
-        {
-            filename = filename.Parent.Combine("cli", "wabbajack-cli.exe");
-            var data = $"\"{filename}\" %*";
-            var file = Path.Combine(Directory.GetCurrentDirectory(), "wabbajack-cli.bat");
-            if (File.Exists(file) && await File.ReadAllTextAsync(file) == data) return;
-            var parent = Directory.GetParent(file)!.FullName;
-            if (!Directory.Exists(file))
-                Directory.CreateDirectory(parent);
-            await File.WriteAllTextAsync(file, data);
-        }
-        catch (Exception ex)
-        {
-            _errors.Add($"Creating Batch File : {ex}");
-        }
-    }
-
     private void UpdateProgress(string what, object sender, DownloadProgressChangedEventArgs e)
     {
         Status = $"Downloading {what} ({e.ProgressPercentage}%)...";
     }
 
-    /// <summary>
-    ///     Where version folders go. On Windows the working directory, as it always was; a Linux desktop starts
-    ///     programs in the home folder, so there it is the launcher's own folder.
-    /// </summary>
-    private static AbsolutePath InstallRoot =>
-        OperatingSystem.IsWindows() ? KnownFolders.CurrentDirectory : KnownFolders.EntryPoint;
-
-    private static string AppExecutable => OperatingSystem.IsWindows() ? "Wabbajack.exe" : "Wabbajack";
-
-    /// <summary>The Linux counterpart of the .bat file: wabbajack-cli beside the launcher, running the newest CLI.</summary>
-    [System.Runtime.Versioning.UnsupportedOSPlatform("windows")]
-    private async Task CreateCliScript(AbsolutePath app)
-    {
-        try
-        {
-            var script = Path.Combine(InstallRoot.ToString(), "wabbajack-cli");
-            var cli = app.Parent.Combine("cli", "wabbajack-cli").ToString().Replace("'", "'\\''");
-            var data = $"#!/bin/sh\nexec '{cli}' \"$@\"\n";
-            if (!File.Exists(script) || await File.ReadAllTextAsync(script) != data)
-                await File.WriteAllTextAsync(script, data);
-            File.SetUnixFileMode(script, File.GetUnixFileMode(script) | UnixFileMode.UserExecute |
-                                         UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
-        }
-        catch (Exception ex)
-        {
-            _errors.Add($"Creating CLI script : {ex}");
-        }
-    }
+    private static ILauncherPlatform Platform => LauncherPlatform.Current;
 
     private async Task<(Version Version, long Size, Func<Task<Uri>> Uri)> GetGithubRelease(CancellationToken token)
     {
         var releases = await GetGithubReleases();
-
-        if (!OperatingSystem.IsWindows())
+        var picked = Platform.PickGitHubRelease(releases.Select(r => new ReleaseInfo(r.Tag, r.Prerelease,
+            r.Assets.Select(a => new ReleaseFile(a.Name, a.BrowserDownloadUrl, a.Size)).ToList())).ToList(), out var whyNot);
+        if (picked == null)
         {
-            var linux = LinuxReleases.Pick(releases.Select(r => new ReleaseInfo(r.Tag, r.Prerelease,
-                r.Assets.Select(a => new ReleaseFile(a.Name, a.BrowserDownloadUrl, a.Size)).ToList())));
-            if (linux == null)
-            {
-                Status = "No release has a Linux build yet";
-                return default;
-            }
-
-            var (linuxVersion, file) = linux.Value;
-            return (linuxVersion, file.Size, async () => file.Url);
-        }
-
-
-        var version = releases.Select(r =>
-        {
-            if (r.Tag.Split(".").Length == 4 && Version.TryParse(r.Tag, out var v))
-                return (v, r);
-            return (new Version(0, 0, 0, 0), r);
-        })
-            .OrderByDescending(r => r.Item1)
-            .FirstOrDefault();
-
-        var asset = version.r.Assets.FirstOrDefault(a => a.Name == version.Item1 + ".zip");
-        if (asset == null)
-        {
-            Status = $"Error, no asset found for Github Release {version.r}";
+            Status = whyNot;
             return default;
         }
 
-        return (version.Item1, asset.Size, async () => asset!.BrowserDownloadUrl);
+        var (version, file) = picked.Value;
+        return (version, file.Size, async () => file.Url);
     }
 
     private async Task<Release[]> GetGithubReleases()

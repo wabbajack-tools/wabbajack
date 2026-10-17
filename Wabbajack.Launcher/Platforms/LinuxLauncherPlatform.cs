@@ -1,26 +1,43 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Formats.Tar;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.Versioning;
+using System.Threading.Tasks;
+using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
-namespace Wabbajack.Launcher;
-
-/// <summary>A release's tag, whether it is a prerelease, and its files by name.</summary>
-public record ReleaseInfo(string Tag, bool Prerelease, IReadOnlyList<ReleaseFile> Files);
-
-public record ReleaseFile(string Name, Uri Url, long Size);
+namespace Wabbajack.Launcher.Platforms;
 
 /// <summary>
-///     What the launcher does differently on Linux. A release carries the Windows build as <c>{version}.zip</c>
-///     and the Linux one as <c>{version}-linux-x64.tar.gz</c>; the Linux launcher takes only the second, so it
-///     never fetches a Windows build, and skips a release that has none, as every release before Linux builds
-///     existed does. Prereleases are skipped too: betas are handed out by hand, never through a launcher.
+///     The launcher on Linux. A release carries the Windows build as <c>{version}.zip</c> and the Linux one as
+///     <c>{version}-linux-x64.tar.gz</c>; this takes only the second, so it never fetches a Windows build, and skips
+///     a release that has none, as every release before Linux builds existed does. Prereleases are skipped too:
+///     betas are handed out by hand, never through a launcher. GitHub only, since Nexus carries no Linux build the
+///     launcher could tell apart.
 /// </summary>
-public static class LinuxReleases
+[UnsupportedOSPlatform("windows")]
+public sealed class LinuxLauncherPlatform : ILauncherPlatform
 {
+    public bool ChecksNexus => false;
+
+    // A desktop starts programs in the home folder, so version folders go beside the launcher instead.
+    public AbsolutePath InstallRoot => KnownFolders.EntryPoint;
+
+    public string AppExecutable => "Wabbajack";
+
     public static string AssetName(Version version) => $"{version}-linux-x64.tar.gz";
+
+    public (Version Version, ReleaseFile File)? PickGitHubRelease(IReadOnlyList<ReleaseInfo> releases,
+        out string whyNot)
+    {
+        var picked = Pick(releases);
+        whyNot = picked == null ? "No release has a Linux build yet" : "";
+        return picked;
+    }
 
     /// <summary>The newest stable release with a Linux build, or null when there is none.</summary>
     public static (Version Version, ReleaseFile File)? Pick(IEnumerable<ReleaseInfo> releases)
@@ -34,6 +51,11 @@ public static class LinuxReleases
             .OrderByDescending(r => r.Version)
             .Select(r => ((Version, ReleaseFile)?) (r.Version, r.File!))
             .FirstOrDefault();
+    }
+
+    public void Unpack(byte[] release, AbsolutePath versionFolder)
+    {
+        Extract(new MemoryStream(release), versionFolder.ToString());
     }
 
     /// <summary>
@@ -72,7 +94,7 @@ public static class LinuxReleases
                     case TarEntryType.RegularFile or TarEntryType.V7RegularFile:
                         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                         entry.ExtractToFile(path, true);
-                        if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(path, entry.Mode);
+                        File.SetUnixFileMode(path, entry.Mode);
                         break;
                 }
             }
@@ -80,5 +102,24 @@ public static class LinuxReleases
 
         if (Directory.Exists(destination)) Directory.Delete(destination, true);
         Directory.Move(partial, destination);
+    }
+
+    /// <summary>The counterpart of the Windows .bat: a wabbajack-cli script beside the launcher.</summary>
+    public async Task WriteCliShortcut(AbsolutePath app)
+    {
+        var script = InstallRoot.Combine("wabbajack-cli").ToString();
+        var cli = app.Parent.Combine("cli", "wabbajack-cli").ToString().Replace("'", "'\\''");
+        var data = $"#!/bin/sh\nexec '{cli}' \"$@\"\n";
+        if (!File.Exists(script) || await File.ReadAllTextAsync(script) != data)
+            await File.WriteAllTextAsync(script, data);
+        File.SetUnixFileMode(script, File.GetUnixFileMode(script) | UnixFileMode.UserExecute |
+                                     UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
+    }
+
+    public ProcessStartInfo StartApp(AbsolutePath app, IReadOnlyList<string> args)
+    {
+        var info = new ProcessStartInfo(app.ToString()) {WorkingDirectory = app.Parent.ToString()};
+        foreach (var arg in args) info.ArgumentList.Add(arg);
+        return info;
     }
 }
