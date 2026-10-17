@@ -48,20 +48,12 @@ public class CompilerSettingsInferencer
     /// </summary>
     private AbsolutePath FromProgramPath(string? written)
     {
-        var path = WindowsProgramPaths.FromWindowsProgramPath(written);
-        if (OperatingSystem.IsWindows() || path == default || path.PathFormat == PathFormat.Unix) return path;
-
-        var prefixes = WinePrefixes.Find();
-        if (WinePrefixes.Resolve(written, prefixes) is { } found)
-        {
-            _logger.LogInformation("{Written} is {Path}, through the Wine prefix {Prefix}", written, found.Path,
-                found.Prefix);
-            return found.Path;
-        }
-
-        _logger.LogWarning("{Written} is on a Windows drive none of the {Count} Wine prefixes found here has",
-            written, prefixes.Count);
-        return default;
+        var (path, prefix) = WinePrefixes.FromWindowsProgramPath(written);
+        if (prefix != default)
+            _logger.LogInformation("{Written} is {Path}, through the Wine prefix {Prefix}", written, path, prefix);
+        else if (path == default && !string.IsNullOrWhiteSpace(written))
+            _logger.LogWarning("{Written} is on a Windows drive none of the Wine prefixes found here has", written);
+        return path;
     }
 
     public async Task<CompilerSettings?> InferFromRootPath(AbsolutePath rootPath)

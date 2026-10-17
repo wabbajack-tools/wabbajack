@@ -49,6 +49,19 @@ public static partial class WinePrefixes
     }
 
     /// <summary>
+    ///     A path a Windows program such as MO2 wrote, as this machine names it. On Windows that is the path; under
+    ///     Wine a Z: path is a Unix one, and any other drive letter is looked up in the prefixes found here, which
+    ///     <see cref="WinePath.Prefix" /> then names. Default when it is on a drive no prefix has.
+    /// </summary>
+    public static WinePath FromWindowsProgramPath(string? written)
+    {
+        var path = WindowsProgramPaths.FromWindowsProgramPath(written);
+        if (OperatingSystem.IsWindows() || path == default || path.PathFormat == PathFormat.Unix)
+            return new WinePath(path, default);
+        return Resolve(written, Find()) ?? default;
+    }
+
+    /// <summary>
     ///     <paramref name="windowsPath" /> as it is on this machine, through whichever of
     ///     <paramref name="prefixes" /> has it; null when it is not a drive path, or no prefix has it. Where
     ///     several do, as every prefix has a C:\users\steamuser\Downloads, one where it holds something wins over

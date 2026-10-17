@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Wabbajack.Networking.Bethesda.Steam;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
@@ -20,9 +19,8 @@ public static class AppFolders
         if (!Version.TryParse(entryPoint.FileName.ToString(), out _))
             return entryPoint;
 
-        // The launcher beside the version folders; it has no .exe off Windows.
-        var launcher = OperatingSystem.IsWindows() ? "Wabbajack.exe" : "Wabbajack";
-        if (!entryPoint.Parent.Combine(launcher).FileExists())
+        // The launcher beside the version folders.
+        if (!entryPoint.Parent.Combine(PlatformExecutable.Name("Wabbajack")).FileExists())
             return entryPoint;
 
         return entryPoint.Parent;
@@ -38,6 +36,5 @@ public static class AppFolders
         }
     }
 
-    /// <summary>The CLI's file name, which has no .exe off Windows.</summary>
-    public static string CliFileName => SteamAppTicketHelperLocator.ExecutableName;
+    public static string CliFileName => PlatformExecutable.Name("wabbajack-cli");
 }

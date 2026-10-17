@@ -1,4 +1,5 @@
 using Wabbajack.App.Avalonia.ViewModels.Installers;
+using Wabbajack.Paths;
 using Xunit;
 
 namespace Wabbajack.App.Avalonia.Test.Installers;
@@ -27,9 +28,9 @@ public class InstallFolderSuggestionTests
 
     [Theory]
     [InlineData("/home/me", "Dust and Death", "/home/me/Modlists/DAD")]
-    [InlineData("/home/me/", "Lorerim", "/home/me/Modlists/Lorerim")]
-    public void OffWindows_ListsGoInTheHomeFoldersModlists(string home, string title, string expected)
+    [InlineData(@"D:\", "Lorerim", @"D:\Modlists\Lorerim")]
+    public void AListGoesInAModlistsFolderUnderTheRoot(string root, string title, string expected)
     {
-        Assert.Equal(expected, InstallFolderSuggestion.UnderHome(home, title));
+        Assert.Equal(expected.ToAbsolutePath(), InstallFolderSuggestion.Folder(root.ToAbsolutePath(), title));
     }
 }

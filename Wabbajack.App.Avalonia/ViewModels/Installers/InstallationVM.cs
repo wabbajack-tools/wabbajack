@@ -486,19 +486,21 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     ///     A folder named for the list: on Windows on the preferred drive, or null when no drive can be suggested;
     ///     elsewhere under the home folder.
     /// </summary>
-    private static string? GetSuggestedInstallFolder(ModlistMetadata x)
+    private static AbsolutePath? GetSuggestedInstallFolder(ModlistMetadata x)
+    {
+        return ModlistsRoot(x) is { } root ? InstallFolderSuggestion.Folder(root, x.Title) : null;
+    }
+
+    /// <summary>
+    ///     Where Modlists goes: on Windows the root of the preferred drive (an SSD with room, its media type read
+    ///     through WMI), or null when there is none; elsewhere the home folder.
+    /// </summary>
+    private static AbsolutePath? ModlistsRoot(ModlistMetadata x)
     {
         if (!OperatingSystem.IsWindows())
-            return InstallFolderSuggestion.UnderHome(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                x.Title);
-
-        // Get preferred installation drive (SSD with enough space). The drive's media type comes from WMI.
-        var preferredPartition = OperatingSystem.IsWindows()
-            ? DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata!.SizeOfInstalledFiles)
-            : null;
-        if (preferredPartition == null) return null;
-
-        return $"{preferredPartition.Name}Modlists\\{InstallFolderSuggestion.FolderName(x.Title)}\\";
+            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).ToAbsolutePath();
+        return DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata!.SizeOfInstalledFiles)?.RootDirectory
+            .FullName.ToAbsolutePath();
     }
 
     private async void CancelInstall()
@@ -604,8 +606,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                     {
                         if (GetSuggestedInstallFolder(metadata!) is { } suggested)
                         {
-                            SuggestedInstallFolder = suggested;
-                            SuggestedDownloadFolder = suggested + (OperatingSystem.IsWindows() ? "\\downloads" : "/downloads");
+                            SuggestedInstallFolder = suggested.ToString();
+                            SuggestedDownloadFolder = suggested.Combine("downloads").ToString();
                         }
                     }
                 }
