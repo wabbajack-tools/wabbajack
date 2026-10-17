@@ -23,8 +23,8 @@ public class ExecutableVersionTests
     {
         var version = ExecutableVersion.ReadPortable(Tool("7z.exe"));
 
-        Assert.Equal("20.02 alpha", version.FileVersion);
-        Assert.Equal("20.02 alpha", version.ProductVersion);
+        Assert.Equal("26.01", version.FileVersion);
+        Assert.Equal("26.01", version.ProductVersion);
     }
 
     [Fact]
