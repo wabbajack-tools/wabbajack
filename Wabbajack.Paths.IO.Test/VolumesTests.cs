@@ -7,15 +7,15 @@ using Xunit;
 namespace Wabbajack.Paths.IO.Test;
 
 /// <summary>
-///     <see cref="VolumeMove.TryMoveWithinVolumeAsync" />: a move within a volume renames, and one across volumes
+///     <see cref="Volumes.TryMoveWithinVolumeAsync" />: a move within a volume renames, and one across volumes
 ///     touches nothing. The second needs two file systems; off Windows /dev/shm is a tmpfs nearly everywhere.
 /// </summary>
-public class VolumeMoveTests : IDisposable
+public class VolumesTests : IDisposable
 {
     private readonly AbsolutePath _root = KnownFolders.EntryPoint.Combine("volumemove-" + Guid.NewGuid());
     private readonly AbsolutePath _otherVolume = "/dev/shm".ToAbsolutePath().Combine("wj-volumemove-" + Guid.NewGuid());
 
-    public VolumeMoveTests()
+    public VolumesTests()
     {
         _root.CreateDirectory();
     }

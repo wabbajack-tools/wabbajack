@@ -13,7 +13,6 @@ using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
 using Wabbajack.Hashing.xxHash64;
-using Wabbajack.Installer.Preflight.Checks;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -1065,7 +1064,7 @@ public sealed class ManualDownloadAcquirer : IManualDownloadAcquirer, IDisposabl
         try
         {
             // The fallback below says the same without the numbers.
-            var (root, free) = DiskSpaceCheck.FreeSpaceOf(dest.Parent) ?? throw new IOException("No volume found");
+            var (root, free) = Volumes.FreeSpace(dest.Parent) ?? throw new IOException("No volume found");
             var shortfall = Math.Max(0, size - free);
             return
                 $"Not enough space on {root} for {dest.FileName}: {size.ToFileSizeString()} needed, {free.ToFileSizeString()} free, {shortfall.ToFileSizeString()} short. Free some space and retry.";

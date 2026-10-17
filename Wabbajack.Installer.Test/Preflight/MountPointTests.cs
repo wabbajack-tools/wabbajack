@@ -1,4 +1,4 @@
-using Wabbajack.Installer.Preflight.Checks;
+using Wabbajack.Paths.IO;
 using Xunit;
 
 namespace Wabbajack.Installer.Test.Preflight;
@@ -17,12 +17,12 @@ public class MountPointTests
     [InlineData("/opt/Wabbajack", "/")]
     public void TheDeepestMountPointHoldingTheFolderWins(string folder, string expected)
     {
-        Assert.Equal(expected, DiskSpaceCheck.MountPointOf(folder, Mounts));
+        Assert.Equal(expected, Volumes.MountPointOf(folder, Mounts));
     }
 
     [Fact]
     public void ATrailingSlashOnAMountPointIsIgnored()
     {
-        Assert.Equal("/home/", DiskSpaceCheck.MountPointOf("/home/me", new[] {"/", "/home/"}));
+        Assert.Equal("/home/", Volumes.MountPointOf("/home/me", new[] {"/", "/home/"}));
     }
 }
