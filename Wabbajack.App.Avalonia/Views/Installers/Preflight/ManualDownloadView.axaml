@@ -41,7 +41,19 @@
                     </Grid>
 
                     <Grid x:Name="CardBody" Grid.Row="1" Margin="0,8,0,0" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
-                        <TextBlock x:Name="FileNameText" Grid.Row="0" FontSize="14" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                        <!--
+                            Left-aligned with a star column, so the copy button sits right after the name and the
+                            name still trims when it is wider than the card.
+                        -->
+                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" HorizontalAlignment="Left">
+                            <TextBlock x:Name="FileNameText" FontSize="14" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                                       VerticalAlignment="Center" />
+                            <Button x:Name="CopyNameButton" Grid.Column="1" Classes="main" Background="Transparent"
+                                    BorderThickness="0" Padding="4" Margin="6,0,0,0" VerticalAlignment="Center"
+                                    ToolTip.Tip="Copy the file name, to search for it on the download page">
+                                <ic:SymbolIcon x:Name="CopyNameIcon" Symbol="Copy" FontSize="16" />
+                            </Button>
+                        </Grid>
 
                         <!--
                             A grid rather than a horizontal StackPanel: a StackPanel hands its children all the width
