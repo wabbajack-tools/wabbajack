@@ -149,23 +149,6 @@ public static class StartupChecks
         }
     }
 
-    public static bool IsAdmin()
-    {
-        // Off Windows the same mistake is running as root, which leaves the install owned by root.
-        if (!OperatingSystem.IsWindows()) return Environment.IsPrivilegedProcess;
-
-        try
-        {
-            var identity = WindowsIdentity.GetCurrent();
-            if (identity.Owner is { } owner) return owner.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
-            return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
     /// <summary>
     ///     Refuses to run from inside the Windows folder, and runs from the executable's folder whatever the working
     ///     directory was: a shortcut or a file association can start it in System32, and relative paths then land

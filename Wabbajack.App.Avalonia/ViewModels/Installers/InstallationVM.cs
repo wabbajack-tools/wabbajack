@@ -126,7 +126,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     private readonly ILogger<InstallationVM> _logger;
     private readonly SettingsManager _settingsManager;
     private readonly IServiceProvider _serviceProvider;
-    private readonly SystemParametersConstructor _parametersConstructor;
     private readonly IGameLocator _gameLocator;
     private readonly ResourceMonitor _resourceMonitor;
     private readonly OSConfiguration _configuration;
@@ -179,7 +178,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     public ICommand CreateShortcutCommand { get; }
 
     public InstallationVM(ILogger<InstallationVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
-        IServiceProvider serviceProvider, SystemParametersConstructor parametersConstructor, IGameLocator gameLocator,
+        IServiceProvider serviceProvider, IGameLocator gameLocator,
         LogStream loggerProvider, ResourceMonitor resourceMonitor, OSConfiguration configuration, HttpClient client,
         NexusLoginManager nexusLoginManager, Navigator navigator)
     {
@@ -189,7 +188,6 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         _settingsManager = settingsManager;
         _dtos = dtos;
         _serviceProvider = serviceProvider;
-        _parametersConstructor = parametersConstructor;
         _gameLocator = gameLocator;
         _resourceMonitor = resourceMonitor;
         _client = client;
@@ -353,16 +351,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
     private void CreateDesktopShortcut()
     {
-        var deskDir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-
-        using var writer = new StreamWriter(deskDir + "\\" + ModList.Name + ".url");
-
-        var path = Installer.Location.TargetPath.Combine("ModOrganizer.exe").ToString();
-        writer.WriteLine("[InternetShortcut]");
-        writer.WriteLine("URL=file:///" + path);
-        writer.WriteLine("IconIndex=0");
-        var icon = path.Replace('\\', '/');
-        writer.WriteLine("IconFile=" + icon);
+        Desktop.Current.CreateDesktopShortcut(ModList.Name, Installer.Location.TargetPath.Combine("ModOrganizer.exe"));
     }
 
     private void LaunchDiagnostics()
@@ -488,19 +477,9 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     /// </summary>
     private static AbsolutePath? GetSuggestedInstallFolder(ModlistMetadata x)
     {
-        return ModlistsRoot(x) is { } root ? InstallFolderSuggestion.Folder(root, x.Title) : null;
-    }
-
-    /// <summary>
-    ///     Where Modlists goes: on Windows the root of the preferred drive (an SSD with room, its media type read
-    ///     through WMI), or null when there is none; elsewhere the home folder.
-    /// </summary>
-    private static AbsolutePath? ModlistsRoot(ModlistMetadata x)
-    {
-        if (!OperatingSystem.IsWindows())
-            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).ToAbsolutePath();
-        return DriveHelper.GetPreferredInstallationDrive(x.DownloadMetadata!.SizeOfInstalledFiles)?.RootDirectory
-            .FullName.ToAbsolutePath();
+        return Desktop.Current.ModlistsRoot(x.DownloadMetadata!.SizeOfInstalledFiles) is { } root
+            ? InstallFolderSuggestion.Folder(root, x.Title)
+            : null;
     }
 
     private async void CancelInstall()
@@ -686,9 +665,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 ModList = freshModList,
                 ModlistArchive = WabbajackFileLocation.TargetPath,
                 // Screen size and video memory, for the MO2 and ENB settings the installer writes.
-                SystemParameters = OperatingSystem.IsWindows()
-                    ? _parametersConstructor.Create()
-                    : PortableSystemParameters.Create(),
+                SystemParameters = Desktop.Current.SystemParameters(_serviceProvider),
                 // A game that cannot be found is the game-installed check's finding, not an exception here.
                 GameFolder = _gameLocator.TryFindLocation(freshModList.GameType, out var gameFolder) ? gameFolder : default,
                 Metadata = ModlistMetadata

@@ -151,7 +151,7 @@ public partial class MainWindowVM : ViewModel
             _logger.LogInformation("    Process Location: {ProcessLocation}", processLocation);
 
             _logger.LogInformation("General information:");
-            _logger.LogInformation("    Windows version: {Version}", Environment.OSVersion.VersionString);
+            _logger.LogInformation("    OS version: {Version}", Environment.OSVersion.VersionString);
 
             // The machine and drive queries are Windows APIs, as they were in the WPF app.
             if (OperatingSystem.IsWindows())

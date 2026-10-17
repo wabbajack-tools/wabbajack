@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.App.Avalonia.ViewModels;
 using Wabbajack.Paths.IO;
+using Wabbajack.App.Avalonia.Services;
 
 namespace Wabbajack.App.Avalonia.Views;
 
@@ -23,9 +24,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Extending into the title bar is a Windows and macOS feature; on Linux the window manager kept its own
-        // bar above the one the window draws. There the system bar is turned off, leaving the border to resize by.
-        if (OperatingSystem.IsLinux()) SystemDecorations = SystemDecorations.BorderOnly;
+        SystemDecorations = Desktop.Current.WindowDecorations;
 
         TitleBar.PointerPressed += TitleBar_PointerPressed;
         FloatingWindowBackground.PointerPressed += FloatingWindowBackground_PointerPressed;

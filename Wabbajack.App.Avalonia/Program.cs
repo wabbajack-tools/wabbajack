@@ -60,7 +60,7 @@ public static class Program
         if (!StartupChecks.EnsureSafeWorkingDirectory())
             return 1;
 
-        if (StartupChecks.IsAdmin())
+        if (Desktop.Current.IsElevated)
         {
             NativeMessageBox.ShowError("Don't run Wabbajack as Admin!", "Error");
             return 1;
@@ -77,10 +77,7 @@ public static class Program
         Services = host.Services;
 
         // .wabbajack files and wabbajack:// links open this executable, wherever it now lives.
-        if (OperatingSystem.IsWindows())
-            Services.GetRequiredService<FileAssociationSelfHealService>().RegisterOrUpdate(enableProtocol: true);
-        else if (OperatingSystem.IsLinux())
-            Services.GetRequiredService<XdgFileAssociation>().RegisterOrUpdate();
+        Desktop.Current.RegisterFileAssociations(Services);
 
         if (!opensUi)
             return StartupChecks.RunCli(args);
@@ -144,9 +141,6 @@ public static class Program
         services.AddSingleton<NexusCollectionDownloader>();
         services.AddSingleton<FilePicker>();
         services.AddSingleton<ResourceMonitor>();
-        if (OperatingSystem.IsWindows())
-            services.AddSingleton<FileAssociationSelfHealService>();
-        services.AddSingleton<XdgFileAssociation>();
         services.AddSingleton<SystemParametersConstructor>();
         // One instance, held by MainWindowVM from the start: it listens for the modlist to load.
         services.AddTransient<InstallationVM>();

@@ -100,20 +100,7 @@ public partial class SettingsVM : ViewModel
     {
         try
         {
-            if (OperatingSystem.IsWindows())
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    WorkingDirectory = AppFolders.CliFolder,
-                    Arguments = "/k \"wabbajack-cli.exe -h\""
-                });
-            }
-            else if (!OpenTerminalWithCliHelp())
-            {
-                // No terminal to be found; the folder is where the user would start it from.
-                UIUtils.OpenFolder(AppFolders.CliFolder.ToAbsolutePath());
-            }
+            Desktop.Current.OpenCliTerminal(AppFolders.CliFolder, AppFolders.CliFileName);
         }
         catch (Exception ex)
         {
@@ -121,30 +108,6 @@ public partial class SettingsVM : ViewModel
         }
 
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    ///     What cmd /k does on Windows: a terminal in the CLI's folder showing its help, left open for the user.
-    ///     xdg-terminal-exec is the desktop-neutral way to ask for one; false when it is not installed.
-    /// </summary>
-    private static bool OpenTerminalWithCliHelp()
-    {
-        var info = new ProcessStartInfo("xdg-terminal-exec")
-        {
-            UseShellExecute = false,
-            WorkingDirectory = AppFolders.CliFolder
-        };
-        foreach (var arg in new[] {"sh", "-c", $"./{AppFolders.CliFileName} -h; exec \"${{SHELL:-sh}}\""})
-            info.ArgumentList.Add(arg);
-        try
-        {
-            Process.Start(info)?.Dispose();
-            return true;
-        }
-        catch (System.ComponentModel.Win32Exception)
-        {
-            return false;
-        }
     }
 }
 
