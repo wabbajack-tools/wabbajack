@@ -90,6 +90,24 @@ Logs are written to a `logs` folder next to the executable, configured in the Av
 - Files are CRLF. Some shell tools rewrite a whole file to LF, which buries a small change in a whole-file
   diff, so check `git diff --stat` after editing outside an editor.
 
+## Windows and Linux
+
+The app and the CLI run on both. A platform difference belongs in the one place that owns it, not in an
+`OperatingSystem.IsWindows()` check where it is used:
+
+- **The user's desktop** (message boxes, the file manager, a terminal, shortcuts, file associations, the window
+  frame, screen and VRAM, where Modlists goes): `IDesktop` in `Wabbajack.App.Avalonia/Services/Desktop`, with
+  `WindowsDesktop` and `LinuxDesktop`; `Desktop.Current` is chosen once.
+- **The launcher**: `ILauncherPlatform` in `Wabbajack.Launcher/Platforms`. The Windows one must keep behaving as
+  launchers already installed do, since they cannot be updated.
+- **Paths and files**: `WindowsProgramPaths` and `WinePrefixes` (paths as MO2 and the game see them under Wine),
+  `CaseInsensitiveLookup` and `PathCasing` (Windows casing on a case-sensitive file system), `Volumes` (which
+  volume, free space, moving within one), `PlatformExecutable` (a program's file name), `KnownFolders`.
+- **Smaller primitives** keep their own check inside them: `ProcessHelper`, `TimerResolution`,
+  `ChildProcessTracker`, `ExecutableVersion`, `ProtectedData`, the extractor's 7-Zip arguments.
+
+Anything that is not Windows is treated as Linux; macOS has no desktop or launcher platform of its own yet.
+
 ## Things worth knowing before changing them
 
 **Deleting the user's files.** `FileDeletionRules.ShouldDeleteExistingFile` decides which existing files an
