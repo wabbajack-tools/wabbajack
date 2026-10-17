@@ -24,6 +24,8 @@ public class OpenWebsiteTests
     [Theory]
     // The shape the owner asked for: the query string is the only part that names the file.
     [InlineData("https://www.nexusmods.com/skyrimspecialedition/mods/266?tab=files&file_id=209150")]
+    // Nexus's download page for one file, which manual downloads open now; both ids have to arrive.
+    [InlineData("https://www.nexusmods.com/Core/Libs/Common/Widgets/DownloadPopUp?id=209150&game_id=1704")]
     [InlineData("https://drive.google.com/uc?id=1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_&export=download")]
     [InlineData("https://www.loverslab.com/applications/core/interface/file/attachment.php?id=853295")]
     [InlineData("https://mega.nz/file/CsMSFaaJ#-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k")]

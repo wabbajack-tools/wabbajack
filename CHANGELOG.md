@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 4.3.1.0 - 10/17/2026
+* Nexus manual downloads open the file's download page directly, so only Slow download is left to press (PR #3089)
+* Added "Open the next one automatically" to manual downloads: once a file starts arriving, the next file's page opens on its own (PR #3089)
+
 #### Version - 4.3.0.2 - 10/16/2026
 * HOTFIX: Fixed Wabbajack CDN files that failed to download being sent to the manual downloads list with a link that could not download them. CDN downloads are retried for longer now; an author's file that still fails links to its download page on the Wabbajack site, and anything else shows as a failed download with a retry button. The manual download card also says why each file has to be downloaded by hand PR #3088
 
