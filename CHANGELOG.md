@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 4.3.1.0 - TBD
+#### Version - 4.3.1.0 - 10/17/2026
 * Nexus manual downloads open the file's download page directly, so only Slow download is left to press (PR #3089)
 * Added "Open the next one automatically" to manual downloads: once a file starts arriving, the next file's page opens on its own (PR #3089)
 
