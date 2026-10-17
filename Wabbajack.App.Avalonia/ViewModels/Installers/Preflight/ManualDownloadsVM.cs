@@ -19,6 +19,7 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
+using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.App.Avalonia.ViewModels.Installers.Preflight;
 
@@ -57,12 +58,21 @@ public partial class ManualDownloadsVM : ViewModel
     private string? _shownKey;
     private bool _holdingDone;
 
+    /// <summary>Where "open the next one automatically" is remembered between installs.</summary>
+    public const string SettingsKey = "manual-downloads";
+
+    private readonly AutoOpenPlanner _planner = new();
+    private readonly SettingsManager? _settings;
+    private bool _settingsLoaded;
+
     public ManualDownloadsVM(IManualDownloadAcquirer acquirer, IObservable<ManualQueueChanged> queue,
-        CancellationToken token, ILogger logger)
+        CancellationToken token, ILogger logger, SettingsManager? settings = null)
     {
         _acquirer = acquirer;
         _logger = logger;
         _token = token;
+        _settings = settings;
+        AutoOpenText = string.Empty;
 
         WatchStatusText = string.Empty;
         Instructions = string.Empty;
@@ -128,13 +138,28 @@ public partial class ManualDownloadsVM : ViewModel
         var hasCurrent = this.WhenAnyValue(x => x.HasCurrent);
         OpenPageCommand = ReactiveCommand.Create(() =>
         {
-            if (Current?.Url is { } url) UIUtils.OpenWebsite(url);
+            if (Current?.Url is not { } url) return;
+            UIUtils.OpenWebsite(url);
+            _planner.Opened(Current.Key);
         }, this.WhenAnyValue(x => x.Current).Select(c => c?.Url != null));
 
         SkipCommand = ReactiveCommand.Create(() =>
         {
-            if (Current is { } current) acquirer.Skip(current.Key);
+            if (Current is not { } current) return;
+            _planner.Released(current.Key);
+            acquirer.Skip(current.Key);
         }, hasCurrent);
+
+        this.WhenAnyValue(x => x.OpenNextAutomatically)
+            .Skip(1)
+            .Subscribe(on =>
+            {
+                if (_settingsLoaded) SaveSettings(on);
+                if (on) MaybeOpenNext();
+                else AutoOpenText = string.Empty;
+            })
+            .DisposeWith(CompositeDisposable);
+        LoadSettings();
 
         PickFileCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -172,6 +197,12 @@ public partial class ManualDownloadsVM : ViewModel
     /// <summary>The row for the file the user should fetch next; the same instance the list shows.</summary>
     [Reactive] public partial ArchiveRowVM? Current { get; set; }
 
+    /// <summary>Open the next file's page as soon as the current file starts arriving.</summary>
+    [Reactive] public partial bool OpenNextAutomatically { get; set; }
+
+    /// <summary>What the automatic opening is about to do or just did; empty when it has nothing to say.</summary>
+    [Reactive] public partial string AutoOpenText { get; set; }
+
     [Reactive] public partial bool HasCurrent { get; set; }
     [Reactive] public partial int CurrentIndex { get; set; }
     [Reactive] public partial int TotalCount { get; set; }
@@ -207,6 +238,7 @@ public partial class ManualDownloadsVM : ViewModel
     private void OnEvents(IList<ManualDownloadEvent> batch)
     {
         Reload();
+        MaybeOpenNext();
 
         // Let "Done" sit on screen for a beat before the card moves on to the next file.
         if (!_holdingDone && _shownKey != null &&
@@ -255,6 +287,50 @@ public partial class ManualDownloadsVM : ViewModel
         MovedCount = counts.Moved;
         RefreshWatchFolder();
         if (!_holdingDone) RefreshCurrent();
+    }
+
+    /// <summary>
+    ///     Opens the next file's page when <see cref="AutoOpenPlanner" /> says one should open. That is only ever
+    ///     right after a file the user was downloading starts arriving, so they are at the browser already.
+    /// </summary>
+    private void MaybeOpenNext()
+    {
+        if (!OpenNextAutomatically) return;
+        if (_planner.Next(_acquirer.Snapshot()) is not { } key) return;
+
+        _planner.Opened(key);
+        if (Target(key)?.Url is { } url) UIUtils.OpenWebsite(url);
+        AutoOpenText = $"Opened the page for {key}";
+    }
+
+    private async void LoadSettings()
+    {
+        try
+        {
+            if (_settings != null)
+                OpenNextAutomatically = (await _settings.Load<ManualDownloadSettings>(SettingsKey)).OpenNextAutomatically;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not load the manual download settings");
+        }
+        finally
+        {
+            _settingsLoaded = true;
+        }
+    }
+
+    private async void SaveSettings(bool openNextAutomatically)
+    {
+        try
+        {
+            if (_settings != null)
+                await _settings.Save(SettingsKey, new ManualDownloadSettings {OpenNextAutomatically = openNextAutomatically});
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not save the manual download settings");
+        }
     }
 
     private void RefreshWatchFolder()
