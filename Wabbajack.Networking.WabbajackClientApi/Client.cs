@@ -118,6 +118,18 @@ public class Client
         return JsonSerializer.Deserialize<Archive[]>(str, _dtos.Options) ?? [];
     }
 
+    /// <summary>
+    ///     The list of files the proxy holds. It is one small file the CDN caches, read once per run, so asking
+    ///     whether an archive is proxied costs no request of its own.
+    /// </summary>
+    public async Task<ProxyIndex> LoadProxyIndex(CancellationToken token)
+    {
+        var index = await _client.GetFromJsonAsync<ProxyIndex>(new Uri(_configuration.ProxyUrl, "index.json"), token)
+                    ?? new ProxyIndex();
+        index.BaseUrl = _configuration.ProxyUrl;
+        return index;
+    }
+
     public async Task<ServerAllowList> LoadMirrorAllowList()
     {
         var str = await _client.GetStringAsync(_configuration.MirrorAllowList);

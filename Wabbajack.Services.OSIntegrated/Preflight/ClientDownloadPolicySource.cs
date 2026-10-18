@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.CDN;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer.Preflight;
@@ -30,5 +31,10 @@ public class ClientDownloadPolicySource : IDownloadPolicySource
     public async Task<ILookup<Hash, Archive>> Mirrors(CancellationToken token)
     {
         return (await _client.LoadMirrors()).ToLookup(m => m.Hash);
+    }
+
+    public Task<ProxyIndex> ProxyIndex(CancellationToken token)
+    {
+        return _client.LoadProxyIndex(token);
     }
 }

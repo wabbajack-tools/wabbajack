@@ -97,6 +97,9 @@ public sealed record DownloadPlan(
             pipeline.SendMetric("rerouted", archive.Hash.ToString());
         }
 
+        // What the proxy is worth is counted per file once each one arrives; see ArchiveDownloadPipeline.Placed.
+        ArchiveDownloadPipeline.Proxy(missing, policy.Proxy, ctx.State.Proxied, ctx.Logger);
+
         var premium = await pipeline.NexusPremium(missing, token);
         var split = ArchiveDownloadPipeline.Split(missing, premium);
 
