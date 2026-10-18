@@ -134,12 +134,31 @@ public class GameInstalledCheckTests : IDisposable
     }
 
     /// <summary>
-    ///     Every answer that is not "the account owns it" leaves the run stopped exactly as it was before,
-    ///     with the source's sentence underneath: not logged in, does not own it, and a store that would not
-    ///     say - which is deliberately not treated as a no, but is not enough to install on either.
+    ///     Not logged in is the ordinary first run for someone who means to let Wabbajack fetch the game, so
+    ///     the row leads with the login and offers it as its first action, ahead of locating the game.
+    /// </summary>
+    [Fact]
+    public async Task ANotInstalledGameWithNoStoreLoginOffersTheLogin()
+    {
+        _host.Locator.Games.Clear();
+        _host.Restorer = Sourcing(GameSourceOutcome.NotReady, "Log into Steam and Wabbajack can fetch");
+        var ctx = _host.Context();
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Failed, result.State);
+        Assert.Contains("is not installed. Log in so Wabbajack can download", result.Message);
+        Assert.Contains("Log into Steam and Wabbajack can fetch", result.Detail);
+        Assert.Equal(new[] {PreflightAction.StoreLogin, PreflightAction.BrowseGameFolder}, result.Actions);
+        Assert.Empty(ctx.State.SourcedGames);
+    }
+
+    /// <summary>
+    ///     Every other answer that is not "the account owns it" leaves the run stopped exactly as it was
+    ///     before, with the source's sentence underneath: does not own it, and a store that would not say -
+    ///     which is deliberately not treated as a no, but is not enough to install on either.
     /// </summary>
     [Theory]
-    [InlineData(GameSourceOutcome.NotReady, "Log into Steam")]
     [InlineData(GameSourceOutcome.NotOwned, "holds no licence")]
     [InlineData(GameSourceOutcome.Unconfirmed, "did not say")]
     public async Task ASourceThatCannotSupplyTheGameLeavesTheFailure(GameSourceOutcome outcome, string reason)

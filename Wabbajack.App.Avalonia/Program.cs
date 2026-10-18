@@ -43,8 +43,15 @@ public static class Program
         using var timerResolution = new TimerResolution(1);
         using var singleInstance = new SingleInstance();
 
+        var opensUi = args.Length == 0
+                      || StartupChecks.ProtocolPayload(args[0]) != null
+                      || (args.Length == 1 && StartupChecks.WabbajackFile(args[0]) != null);
+
         if (!singleInstance.IsFirstInstance)
         {
+            // A command line is the CLI's whether or not the app is open; the running window would ignore it.
+            if (!opensUi) return StartupChecks.RunCli(args);
+
             // The running instance takes a link from here; this one just leaves.
             if (args.Length > 0) ProtocolPipe.Send(args);
             return 0;
@@ -53,25 +60,25 @@ public static class Program
         if (!StartupChecks.EnsureSafeWorkingDirectory())
             return 1;
 
-        if (StartupChecks.IsAdmin())
+        if (Desktop.Current.IsElevated)
         {
             NativeMessageBox.ShowError("Don't run Wabbajack as Admin!", "Error");
             return 1;
         }
 
+        // The default content root is the working directory, watched recursively for appsettings changes. Off
+        // Windows nothing moves the working directory to the app's folder, so started from a desktop it was the
+        // home folder, with an inotify watch on every folder in it.
         var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+            .UseContentRoot(AppContext.BaseDirectory)
             .ConfigureLogging(AddLogging)
             .ConfigureServices((_, services) => ConfigureServices(services))
             .Build();
         Services = host.Services;
 
         // .wabbajack files and wabbajack:// links open this executable, wherever it now lives.
-        if (OperatingSystem.IsWindows())
-            Services.GetRequiredService<FileAssociationSelfHealService>().RegisterOrUpdate(enableProtocol: true);
+        Desktop.Current.RegisterFileAssociations(Services);
 
-        var opensUi = args.Length == 0
-                      || StartupChecks.ProtocolPayload(args[0]) != null
-                      || (args.Length == 1 && StartupChecks.WabbajackFile(args[0]) != null);
         if (!opensUi)
             return StartupChecks.RunCli(args);
 
@@ -134,8 +141,6 @@ public static class Program
         services.AddSingleton<NexusCollectionDownloader>();
         services.AddSingleton<FilePicker>();
         services.AddSingleton<ResourceMonitor>();
-        if (OperatingSystem.IsWindows())
-            services.AddSingleton<FileAssociationSelfHealService>();
         services.AddSingleton<SystemParametersConstructor>();
         // One instance, held by MainWindowVM from the start: it listens for the modlist to load.
         services.AddTransient<InstallationVM>();

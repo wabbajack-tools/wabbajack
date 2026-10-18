@@ -22,6 +22,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Get App Version from CHANGELOG.md
         shell: bash
@@ -102,6 +104,8 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4

@@ -285,7 +285,10 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
 
                 Settings.UseGamePaths = true;
 
-                var compiler = MO2Compiler.Create(_serviceProvider, Settings.ToCompilerSettings());
+                // A scope of its own, as an install has: the VFS context the compiler indexes every archive into
+                // was otherwise cached by the root provider for the life of the app.
+                var scope = _serviceProvider.CreateAsyncScope();
+                var compiler = MO2Compiler.Create(scope.ServiceProvider, Settings.ToCompilerSettings());
 
                 var events = Observable.FromEventPattern<StatusUpdate>(h => compiler.OnStatusUpdate += h,
                         h => compiler.OnStatusUpdate -= h)
@@ -310,6 +313,7 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                 {
                     events.Dispose();
                     CancellationTokenSource.Dispose();
+                    await scope.DisposeAsync();
                 }
 
                 _logger.LogInformation("Compiler Finished");
@@ -357,6 +361,10 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
         });
 
         await tsk;
+
+        // Here rather than inside the run: until it has returned, its locals still reach the compiler and the
+        // context it indexed into.
+        MemoryRelease.AfterLargeRun();
     }
 
     /// <summary>
@@ -459,7 +467,7 @@ public partial class CompilerMainVM : BaseCompilerVM, ICanGetHelpVM, ICpuStatusV
                     var mainFile = modList.GameType.MetaData().MainExecutable!.Value.RelativeTo(gamePath);
                     if (mainFile.FileExists())
                     {
-                        var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(mainFile.ToString());
+                        var versionInfo = Wabbajack.Common.ExecutableVersion.Read(mainFile.ToString());
                         _logger.LogInformation("Game version info: FileVersion={fv} ProductVersion={pv}",
                             versionInfo.FileVersion, versionInfo.ProductVersion);
 

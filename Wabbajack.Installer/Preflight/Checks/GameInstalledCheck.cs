@@ -92,6 +92,21 @@ public sealed class GameInstalledCheck : IPreflightCheck
         if (notFound != null)
         {
             source = await CanSource(ctx, game, token);
+
+            // Not installed, and the store could hand the files over but has not been logged into. That is
+            // the ordinary first run for somebody who means to let Wabbajack fetch the game rather than
+            // install it, so the login is the first thing offered, not a hint in the details.
+            if (source.Outcome == GameSourceOutcome.NotReady)
+            {
+                ctx.Logger.LogInformation("{Game} is not installed and {Source} is not logged in",
+                    meta.HumanFriendlyGameName, ctx.GameFileRestorer!.SourceName);
+                return PreflightResult.Failed(
+                    $"{meta.HumanFriendlyGameName} is not installed. Log in so Wabbajack can download the game " +
+                    $"files this list needs from {ctx.GameFileRestorer.SourceName}, or locate the game if it is installed",
+                    Join(source.Reason, notFound),
+                    new[] {PreflightAction.StoreLogin, PreflightAction.BrowseGameFolder});
+            }
+
             if (!source.Available)
             {
                 ctx.Logger.LogError("{Message}", notFound);

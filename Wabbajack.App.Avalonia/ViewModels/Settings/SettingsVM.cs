@@ -15,6 +15,7 @@ using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.Services;
 using Wabbajack.App.Avalonia.Util;
 using Wabbajack.DTOs.Logins;
+using Wabbajack.Paths;
 using Wabbajack.Services.OSIntegrated;
 using Wabbajack.Services.OSIntegrated.TokenProviders;
 
@@ -73,24 +74,17 @@ public partial class SettingsVM : ViewModel
 
     private static void OpenFileUpload() => ShowFloatingWindow.Send(FloatingScreenType.FileUpload);
 
-    /// <summary>The CLI ships in a "cli" folder beside the app when installed, and beside it in a build.</summary>
-    private static string CliFolder()
-    {
-        var currentPath = AppContext.BaseDirectory;
-        var cliDir = Path.Combine(currentPath, "cli");
-        return Directory.Exists(cliDir) ? cliDir : currentPath;
-    }
 
     private void Reset()
     {
         try
         {
             _logger.LogInformation("Resetting Wabbajack!");
-            var workingDir = CliFolder();
+            var workingDir = AppFolders.CliFolder;
             _logger.LogInformation("Launching CLI from directory {workingDir}", workingDir);
             Process.Start(new ProcessStartInfo
             {
-                FileName = Path.Combine(workingDir, "wabbajack-cli.exe"),
+                FileName = Path.Combine(workingDir, AppFolders.CliFileName),
                 Arguments = "reset",
                 CreateNoWindow = true,
                 WorkingDirectory = workingDir
@@ -106,12 +100,7 @@ public partial class SettingsVM : ViewModel
     {
         try
         {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                WorkingDirectory = CliFolder(),
-                Arguments = "/k \"wabbajack-cli.exe -h\""
-            });
+            Desktop.Current.OpenCliTerminal(AppFolders.CliFolder, AppFolders.CliFileName);
         }
         catch (Exception ex)
         {

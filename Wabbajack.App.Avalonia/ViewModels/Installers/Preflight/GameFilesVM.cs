@@ -252,6 +252,24 @@ public partial class GameFilesVM : ViewModel
     }
 
     /// <summary>
+    ///     The Steam login pane on its own, for game-installed's Log in to Steam: the same pane the repair
+    ///     uses, without this card's status line, which is not on screen that early in the checklist.
+    /// </summary>
+    public async Task<bool> LogInToStore(CancellationToken token)
+    {
+        var pane = _services.GetRequiredService<SteamLoginVM>();
+        try
+        {
+            await using var registration = token.Register(() => pane.CloseCommand.Execute(null));
+            return await ShowSteamLogin.Send(pane);
+        }
+        finally
+        {
+            pane.Dispose();
+        }
+    }
+
+    /// <summary>
     ///     Puts the login pane in front of the user and waits. False when they closed it without logging in,
     ///     which is a perfectly good answer: their account is theirs to hand over or not.
     /// </summary>

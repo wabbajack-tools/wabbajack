@@ -136,6 +136,7 @@ public class CompileStepTests : IAsyncLifetime
             $"gameDouble={game.Replace("\\", "\\\\")}\\\\Data",
             $"gameForward={game.Replace("\\", "/")}/Data",
             $"gameUpper={game.ToUpperInvariant()}\\Data",
+            $"gameWine={_locator.GameLocation(Game.SkyrimSpecialEdition).ToWindowsProgramPath()}\\Data",
             $"mo2Back={source}\\mods",
             $"mo2Forward={source.Replace("\\", "/")}/mods",
             "plain=value"));
@@ -144,8 +145,8 @@ public class CompileStepTests : IAsyncLifetime
 
         Assert.IsType<RemappedInlineFile>(DirectiveFor(config));
         Assert.True(await _harness.Install());
-        var installGame = _harness.InstallGameFolder.ToString();
-        var install = _harness.InstalledPath(_harness._source).ToString();
+        var installGame = AsWritten(_harness.InstallGameFolder);
+        var install = AsWritten(_harness.InstalledPath(_harness._source));
         var lines = (await _harness.InstalledPath(config).ReadAllTextAsync()).Split("\r\n");
         Assert.Equal(new[]
         {
@@ -153,6 +154,7 @@ public class CompileStepTests : IAsyncLifetime
             $"gameDouble={installGame.Replace("\\", "\\\\")}\\\\Data",
             $"gameForward={installGame.Replace("\\", "/")}/Data",
             $"gameUpper={installGame}\\Data",
+            $"gameWine={_harness.InstallGameFolder.ToWindowsProgramPath()}\\Data",
             $"mo2Back={install}\\mods",
             $"mo2Forward={install.Replace("\\", "/")}/mods",
             "plain=value"
@@ -177,12 +179,43 @@ public class CompileStepTests : IAsyncLifetime
         await Compile(s => s.Downloads = downloads);
 
         Assert.True(await _harness.Install());
-        var installDownloads = _harness.InstallDownloadPath("x").Parent.ToString();
+        var installDownloads = AsWritten(_harness.InstallDownloadPath("x").Parent);
         Assert.Equal(new[]
         {
             $"archiveBack={installDownloads}\\SkyUI.7z",
             $"archiveForward={installDownloads.Replace("\\", "/")}/SkyUI.7z"
         }, (await _harness.InstalledPath(config).ReadAllTextAsync()).Split("\r\n"));
+    }
+
+    /// <summary>
+    ///     A list's .compiler_settings is read by Wabbajack itself, to compile the list again from the install, so
+    ///     it gets this machine's own paths even where MO2's files get Wine's.
+    /// </summary>
+    [Fact]
+    public async Task CompilerSettings_NamingTheAuthorsFolder_GetsTheInstallsNativePath()
+    {
+        var source = _harness._source.ToString();
+        var mod = _harness.AddMod("Settings");
+        mod.EnabledIn.Add(_harness.ProfileFolder.FileName.ToString());
+        var settings = await mod.AddData("list.compiler_settings".ToRelativePath(),
+            $"{{\"Source\": \"{source.Replace("\\", "\\\\")}\"}}");
+
+        await Compile();
+
+        Assert.True(await _harness.Install());
+        var install = _harness.InstalledPath(_harness._source).ToString();
+        Assert.Equal($"{{\"Source\": \"{install.Replace("\\", "\\\\")}\"}}",
+            await _harness.InstalledPath(settings).ReadAllTextAsync());
+    }
+
+    /// <summary>
+    ///     A folder as the install writes it into a config file. On Windows that is the folder. Elsewhere MO2 and
+    ///     the game run under Wine, so it is written on Wine's root drive; and since a Unix path has no backslashes
+    ///     for the compile to tell the spellings apart by, every spelling of it is shipped as the forward one.
+    /// </summary>
+    private static string AsWritten(AbsolutePath folder)
+    {
+        return OperatingSystem.IsWindows() ? folder.ToString() : folder.ToWindowsProgramPath().Replace('\\', '/');
     }
 
     [Fact]

@@ -64,6 +64,12 @@ public class FileExtractor
 
     private readonly IResource<FileExtractor> _limiter;
     private readonly ILogger<FileExtractor> _logger;
+
+    /// <summary>
+    ///     7-Zip matches a file list by case on Linux and macOS. The list's names come from a VFS built on Windows,
+    ///     which may spell a folder differently from the archive, so matching is made case-insensitive there.
+    /// </summary>
+    private static readonly string[] CaseInsensitive = OperatingSystem.IsWindows() ? [] : ["-ssc-"];
     private readonly TemporaryFileManager _manager;
 
     private readonly ParallelOptions _parallelOptions;
@@ -389,12 +395,12 @@ public class FileExtractor
                     token);
                 process.Arguments =
                 [
-                    "x", "-bsp1", "-y", $"-o\"{dest}\"", source, $"@\"{tmpFile.Value.ToString()}\"", "-mmt=off"
+                    "x", "-bsp1", "-y", $"-o\"{dest}\"", source, $"@\"{tmpFile.Value.ToString()}\"", "-mmt=off", ..CaseInsensitive
                 ];
             }
             else
             {
-                process.Arguments = ["x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off"];
+                process.Arguments = ["x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off", ..CaseInsensitive];
             }
 
             _logger.LogTrace("{prog} {args}", process.Path, process.Arguments);
@@ -453,6 +459,7 @@ public class FileExtractor
 
             
             job.Dispose();
+            if (!OperatingSystem.IsWindows()) MoveBackslashNamedFilesIntoFolders(dest.Path.ToString());
             var results = await dest.Path.EnumerateFiles()
                 .SelectAsync(async f =>
                 {
@@ -464,7 +471,7 @@ public class FileExtractor
                     return (path, mapResult);
                 })
                 .Where(d => d.Item1 != default)
-                .ToDictionary(d => d.Item1, d => d.Item2);
+                .ToDictionaryFirstWins(d => d.Item1, d => d.Item2, sf.Name, _logger);
 
             // The same count check GatheringExtract performs, done here so the report can say what 7-Zip
             // reported and what was asked of it. Reaching the generic check would lose both.
@@ -484,6 +491,28 @@ public class FileExtractor
         }
     }
     
+    /// <summary>
+    ///     Some zips made on Windows name their entries with backslashes (<c>BuildHost-net472\Host.exe.config</c>),
+    ///     which Windows reads as folders. Off Windows 7-Zip writes such an entry as a single file whose name holds
+    ///     the backslashes, and since paths here split on them, the file was then looked for in a folder that does
+    ///     not exist. So each is moved into the folders its name describes; where that file already exists, the
+    ///     archive held the same entry twice and the copy already in place is kept.
+    /// </summary>
+    internal static void MoveBackslashNamedFilesIntoFolders(string root)
+    {
+        foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
+                     .Where(f => Path.GetFileName(f).Contains('\\')).ToList())
+        {
+            var parts = Path.GetFileName(file).Split('\\', StringSplitOptions.RemoveEmptyEntries);
+            var target = Path.Combine([Path.GetDirectoryName(file)!, ..parts]);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            if (File.Exists(target))
+                File.Delete(file);
+            else
+                File.Move(file, target);
+        }
+    }
+
     public async Task<IDictionary<RelativePath, T>> GatheringExtractWithInnoExtract<T>(IStreamFactory sf,
         Predicate<RelativePath> shouldExtract,
         Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
@@ -593,7 +622,7 @@ public class FileExtractor
                     return (path, mapResult);
                 })
                 .Where(d => d.Item1 != default)
-                .ToDictionary(d => d.Item1, d => d.Item2);
+                .ToDictionaryFirstWins(d => d.Item1, d => d.Item2, sf.Name, _logger);
             
             return results;
         }
@@ -619,5 +648,24 @@ public class FileExtractor
             await abs.WriteAllAsync(stream, token);
             return 0;
         }, token, progressFunction: updateProgress);
+    }
+}
+
+internal static class ExtractionResults
+{
+    /// <summary>
+    ///     Collects what an extractor wrote, keyed by path without case. On a case-sensitive file system an archive
+    ///     holding Textures/a.dds and textures/a.dds extracts both, where Windows kept one; the first is kept here
+    ///     the same way, and the other is logged.
+    /// </summary>
+    public static async Task<IDictionary<RelativePath, TV>> ToDictionaryFirstWins<T, TV>(
+        this IAsyncEnumerable<T> items, Func<T, RelativePath> key, Func<T, TV> value, IPath archive, ILogger logger)
+    {
+        var results = new Dictionary<RelativePath, TV>();
+        await foreach (var item in items)
+            if (!results.TryAdd(key(item), value(item)))
+                logger.LogWarning("{Archive} holds {Path} more than once under different casing; keeping the first",
+                    archive, key(item));
+        return results;
     }
 }

@@ -29,6 +29,31 @@ offline lane stays trustworthy.
 
 Building from Linux or macOS needs `/p:EnableWindowsTargeting=true`, which is what the CI workflow passes.
 
+Releases come from the Create Release workflow. `release.ps1` builds, signs and zips the Windows app, CLI and
+launcher and creates the GitHub draft; `release-linux.sh` publishes the app and CLI for linux-x64 into
+`{version}-linux-x64.tar.gz`, and the launcher into `Wabbajack-linux-x64.tar.gz` (unsigned, other platforms'
+tools left out). The Windows job is untouched by Linux: the Linux tarballs are built in a job of their own and
+attached, and uploaded to Nexus once the repository variables `NEXUS_LINUX_FILE_ID` and
+`NEXUS_LINUX_LAUNCHER_FILE_ID` hold their file ids, by a job that runs only after the Windows release is
+published. Both scripts read the version from the top of `CHANGELOG.md`.
+
+**The launcher updates the app, and the app updates the launcher.** `LauncherUpdater` replaces the launcher
+beside a launcher-laid-out install with the newest stable release's (`Wabbajack.exe`, or the launcher in
+`Wabbajack-linux-x64.tar.gz`), compared by the SHA-256 digest GitHub publishes for each asset, since launchers
+carry no Wabbajack version. From 3.0 until this was rewritten the WPF updater never replaced one (it read the
+release list with Newtonsoft attributes through System.Text.Json), so launchers going back to 2021 are still in
+use, and every launcher runs before the app that would replace it.
+
+**So every release has to suit the old launchers.** On GitHub they take the highest tag
+that is exactly four numbers, prereleases included, and its `{tag}.zip`; on Nexus, the first file whose name
+ends in `.zip` and parses as a version. The Linux launcher asks Nexus first too, with a premium login, and
+takes only `{version}-linux-x64.tar.gz`, from Nexus or from stable GitHub releases, so Linux downloads count on
+the mod page as Windows ones do. Betas (the Create Beta Build workflow, `BETA=beta.N`) are handed out by hand: an unsigned
+prerelease tagged `{version}-beta.N`, which no launcher picks up, and never on Nexus.
+`Wabbajack.Launcher.Test` holds those rules, the old launchers' selection code included, against a release
+shaped as the workflows publish it; `WABBAJACK_LAUNCHER_RELEASES` points a launcher at another release list to
+try one against releases that are not published.
+
 ### Credentials
 
 `NEXUS_API_KEY` is read straight from the environment by `NexusApi.cs`. With it set, the `RequiresOAuth`
@@ -76,6 +101,24 @@ Logs are written to a `logs` folder next to the executable, configured in the Av
 - Most projects set `<Nullable>enable</Nullable>` while suppressing several nullable warnings via `NoWarn`.
 - Files are CRLF. Some shell tools rewrite a whole file to LF, which buries a small change in a whole-file
   diff, so check `git diff --stat` after editing outside an editor.
+
+## Windows and Linux
+
+The app and the CLI run on both. A platform difference belongs in the one place that owns it, not in an
+`OperatingSystem.IsWindows()` check where it is used:
+
+- **The user's desktop** (message boxes, the file manager, a terminal, shortcuts, file associations, the window
+  frame, screen and VRAM, where Modlists goes): `IDesktop` in `Wabbajack.App.Avalonia/Services/Desktop`, with
+  `WindowsDesktop` and `LinuxDesktop`; `Desktop.Current` is chosen once.
+- **The launcher**: `ILauncherPlatform` in `Wabbajack.Launcher/Platforms`. The Windows one must keep behaving as
+  launchers already installed do, since each runs before the app that would replace it.
+- **Paths and files**: `WindowsProgramPaths` and `WinePrefixes` (paths as MO2 and the game see them under Wine),
+  `CaseInsensitiveLookup` and `PathCasing` (Windows casing on a case-sensitive file system), `Volumes` (which
+  volume, free space, moving within one), `PlatformExecutable` (a program's file name), `KnownFolders`.
+- **Smaller primitives** keep their own check inside them: `ProcessHelper`, `TimerResolution`,
+  `ChildProcessTracker`, `ExecutableVersion`, `ProtectedData`, the extractor's 7-Zip arguments.
+
+Anything that is not Windows is treated as Linux; macOS has no desktop or launcher platform of its own yet.
 
 ## Things worth knowing before changing them
 

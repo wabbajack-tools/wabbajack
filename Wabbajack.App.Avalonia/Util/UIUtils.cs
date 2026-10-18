@@ -11,6 +11,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Wabbajack.App.Avalonia.Models;
 using Wabbajack.Paths;
+using Wabbajack.App.Avalonia.Services;
 
 namespace Wabbajack.App.Avalonia.Util;
 
@@ -92,7 +93,7 @@ public static class UIUtils
     /// <summary>Opens Explorer on the file's folder with the file selected.</summary>
     public static void OpenFolderAndSelectFile(AbsolutePath pathToFile)
     {
-        Process.Start(new ProcessStartInfo { FileName = "explorer.exe ", Arguments = $"/select, \"{pathToFile}\"" });
+        Desktop.Current.ShowInFolder(pathToFile);
     }
 
     /// <summary>Opens a file with whatever the shell has registered for it.</summary>

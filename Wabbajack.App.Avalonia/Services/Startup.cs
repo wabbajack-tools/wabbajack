@@ -8,6 +8,7 @@ using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Wabbajack.App.Avalonia.Util;
 using Wabbajack.Common;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -17,27 +18,48 @@ namespace Wabbajack.App.Avalonia.Services;
 /// <summary>
 ///     One Wabbajack at a time, as in WPF: the first process owns a named mutex, and a later one hands its
 ///     arguments over the protocol pipe and exits. The names are the WPF app's, so the two never run together.
+///     Off Windows a named mutex is scoped to the login session unless told otherwise, and a browser or file
+///     manager launching a link is often in another one, so there it is scoped to the user instead.
 /// </summary>
 public sealed class SingleInstance : IDisposable
 {
-    private readonly Mutex _mutex;
+    private readonly Mutex? _mutex;
     private bool _owned;
 
     public SingleInstance()
     {
-        _mutex = new Mutex(true, "Wabbajack-{F8C1E8F0-3E3A-4B3D-9F4A-1E5C6D7E8F9A}", out _owned);
+        const string name = "Wabbajack-{F8C1E8F0-3E3A-4B3D-9F4A-1E5C6D7E8F9A}";
+        if (OperatingSystem.IsWindows())
+        {
+            _mutex = new Mutex(true, name, out _owned);
+            IsFirstInstance = _owned;
+            return;
+        }
+
+        try
+        {
+            _mutex = new Mutex(true, name,
+                new NamedWaitHandleOptions {CurrentUserOnly = true, CurrentSessionOnly = false}, out _owned);
+            IsFirstInstance = _owned;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // The mutex lives under $XDG_RUNTIME_DIR and belongs to whoever made it; "sudo -E" keeps the user's,
+            // and root is refused one it does not own. With no mutex this process is taken as the only one.
+            IsFirstInstance = true;
+        }
     }
 
-    public bool IsFirstInstance => _owned;
+    public bool IsFirstInstance { get; private set; }
 
     public void Dispose()
     {
         if (_owned)
         {
-            _mutex.ReleaseMutex();
+            _mutex!.ReleaseMutex();
             _owned = false;
         }
-        _mutex.Dispose();
+        _mutex?.Dispose();
     }
 }
 
@@ -108,34 +130,22 @@ public static class StartupChecks
 
     /// <summary>
     ///     The .wabbajack file an argument names, or null. WPF parsed any single argument as a path to find out,
-    ///     which threw for anything that is not one, so a lone "--version" took the process down.
+    ///     which threw for anything that is not one, so a lone "--version" took the process down. Linux file
+    ///     managers may hand the file over as a file:// URL, which the .desktop entry's %u allows.
     /// </summary>
     public static AbsolutePath? WabbajackFile(string arg)
     {
         try
         {
+            if (arg.StartsWith("file://", StringComparison.OrdinalIgnoreCase) &&
+                Uri.TryCreate(arg, UriKind.Absolute, out var uri) && uri.IsFile)
+                arg = uri.LocalPath;
             var path = arg.ToAbsolutePath();
             return path.FileExists() && path.Extension == Ext.Wabbajack ? path : null;
         }
         catch (PathException)
         {
             return null;
-        }
-    }
-
-    public static bool IsAdmin()
-    {
-        if (!OperatingSystem.IsWindows()) return false;
-
-        try
-        {
-            var identity = WindowsIdentity.GetCurrent();
-            if (identity.Owner is { } owner) return owner.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
-            return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
-        }
-        catch (Exception)
-        {
-            return false;
         }
     }
 
@@ -188,11 +198,11 @@ public static class StartupChecks
     /// <summary>
     ///     Arguments that are neither a wabbajack:// link nor a single .wabbajack file are a command line. WPF ran
     ///     those in-process through the CLI project; that project cannot be referenced from here, so they go to the
-    ///     wabbajack-cli.exe every install ships in its cli folder, and its exit code comes back.
+    ///     wabbajack-cli every install ships in its cli folder, and its exit code comes back.
     /// </summary>
     public static int RunCli(string[] args)
     {
-        var cli = Path.Combine(AppContext.BaseDirectory, "cli", "wabbajack-cli.exe");
+        var cli = Path.Combine(AppContext.BaseDirectory, "cli", AppFolders.CliFileName);
         if (!File.Exists(cli))
         {
             NativeMessageBox.ShowError($"Command line arguments need the Wabbajack CLI, which was not found at {cli}.",
@@ -243,7 +253,7 @@ public static class StartupChecks
             var cliDir = Path.Combine(AppContext.BaseDirectory, "cli");
             Process.Start(new ProcessStartInfo
             {
-                FileName = Path.Combine(cliDir, "wabbajack-cli.exe"),
+                FileName = Path.Combine(cliDir, AppFolders.CliFileName),
                 Arguments = "restart",
                 WorkingDirectory = cliDir,
                 CreateNoWindow = true

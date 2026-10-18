@@ -1,42 +1,57 @@
 using System;
-using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
+using Wabbajack.App.Avalonia.ViewModels;
 
 namespace Wabbajack.App.Avalonia.Services;
 
 /// <summary>
-/// WPF's MessageBox.Show is the Windows message box, so this calls the same one: same look, same sounds,
-/// owned by the main window so it stays in front of it.
+/// Errors and yes-or-no questions from anywhere in the app. Where the desktop has a message box of its own that the
+/// app is meant to look like (Windows), that is used throughout; elsewhere the app's floating pane is used once the
+/// main window is up, and the desktop's fallback before that.
 /// </summary>
 public static class NativeMessageBox
 {
-    private const uint MbOk = 0x0;
-    private const uint MbIconError = 0x10;
-
     public static void ShowError(string message, string title)
     {
-        if (!OperatingSystem.IsWindows()) return;
+        if (Desktop.Current.UsesNativeMessageBoxes)
+        {
+            Desktop.Current.ShowNativeError(message, title);
+            return;
+        }
 
-        var owner = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-            ?.MainWindow?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
-        MessageBoxW(owner, message, title, MbOk | MbIconError);
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => ShowError(message, title));
+            return;
+        }
+
+        if (MainWindowVM() is { } vm)
+            _ = vm.ShowErrorDialog(title, message);
+        else
+            Desktop.Current.ShowNativeError(message, title);
     }
 
-    /// <summary>MessageBox.Show with YesNo and the information icon; true when the answer is Yes.</summary>
+    /// <summary>A question asked before the main window is up; true when the answer is yes.</summary>
     public static bool AskYesNo(string message, string title)
     {
-        if (!OperatingSystem.IsWindows()) return false;
-
-        var owner = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-            ?.MainWindow?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
-        return MessageBoxW(owner, message, title, MbYesNo | MbIconInformation) == IdYes;
+        return Desktop.Current.AskNativeYesNo(message, title);
     }
 
-    private const uint MbYesNo = 0x4;
-    private const uint MbIconInformation = 0x40;
-    private const int IdYes = 6;
+    /// <summary>A question asked while the main window is up.</summary>
+    public static Task<bool> AskYesNoAsync(string message, string title)
+    {
+        if (Desktop.Current.UsesNativeMessageBoxes || MainWindowVM() is not { } vm)
+            return Task.FromResult(AskYesNo(message, title));
+        return vm.ShowConfirmationDialog(title, message);
+    }
 
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
+    /// <summary>The main window's view model, when the main window is showing it.</summary>
+    private static MainWindowVM? MainWindowVM()
+    {
+        var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        return window is {IsVisible: true} ? window.DataContext as MainWindowVM : null;
+    }
 }

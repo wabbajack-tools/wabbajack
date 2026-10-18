@@ -42,6 +42,20 @@ public class CompilerSettingsInferencer
         return changed;
     }
 
+    /// <summary>
+    ///     A folder MO2 wrote, as this machine names it. Under Wine or Proton a Z: path is a Unix one; any other
+    ///     drive letter belongs to whichever prefix MO2 ran in, which is looked for. Default when none has it.
+    /// </summary>
+    private AbsolutePath FromProgramPath(string? written)
+    {
+        var (path, prefix) = WinePrefixes.FromWindowsProgramPath(written);
+        if (prefix != default)
+            _logger.LogInformation("{Written} is {Path}, through the Wine prefix {Prefix}", written, path, prefix);
+        else if (path == default && !string.IsNullOrWhiteSpace(written))
+            _logger.LogWarning("{Written} is on a Windows drive none of the Wine prefixes found here has", written);
+        return path;
+    }
+
     public async Task<CompilerSettings?> InferFromRootPath(AbsolutePath rootPath)
     {
         var mo2File = rootPath.Combine(Consts.MO2IniName).LoadIniFile();
@@ -77,7 +91,7 @@ public class CompilerSettingsInferencer
                 cs.OutputFile = cs.Source.Parent.Combine(cs.ModListName).WithExtension(Ext.Wabbajack);
                 
                 var settings = iniData["Settings"];
-                cs.Downloads = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
+                cs.Downloads = FromProgramPath(settings["download_directory"].FromMO2Ini());
 
                 if (cs.Downloads == default)
                     cs.Downloads = cs.Source.Combine("downloads");
@@ -97,8 +111,10 @@ public class CompilerSettingsInferencer
                         var taggedFiles = await file.ReadAllLinesAsync().ToArray();
                         foreach (var taggedFile in taggedFiles)
                         {
-                            var noMatchIncludeAsset =
-                                (AbsolutePath) file.ToString().Replace(file.FileName.ToString(), taggedFile);
+                            // A name typed into the tag file need not match the file's case on disk.
+                            var noMatchIncludeAsset = string.IsNullOrWhiteSpace(taggedFile)
+                                ? (AbsolutePath) file.ToString().Replace(file.FileName.ToString(), taggedFile)
+                                : file.Parent.FindIgnoringCase(taggedFile.ToRelativePath());
                             if (noMatchIncludeAsset.DirectoryExists())
                                 cs.NoMatchInclude = cs.NoMatchInclude.Add(noMatchIncludeAsset
                                 .RelativeTo(mo2Folder));

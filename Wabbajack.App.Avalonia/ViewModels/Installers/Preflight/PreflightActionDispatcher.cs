@@ -76,6 +76,17 @@ public sealed class PreflightActionDispatcher
                     await _runner.RunAll(token);
                 break;
 
+            case "store-login":
+                // game-installed asks for this when the game is not here and only a Steam login stands
+                // between the user and fetching its files. Closing the pane is an answer too; the row stays.
+                if (await _gameFiles.LogInToStore(token))
+                {
+                    var installed = await _runner.RunCheck(checkId, token);
+                    if (installed.State is PreflightState.Passed or PreflightState.Warning)
+                        await _runner.RunAll(token);
+                }
+                break;
+
             case "repair-game-files":
                 // The card does the whole sequence, because all of it is one thing the user asked for: the
                 // login if there is not one, the fetch, and then the check again - which is what decides

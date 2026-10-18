@@ -176,11 +176,14 @@ public static class ServiceExtensions
         else
             service.AddAllSingleton<IGameLocator, GameLocator>();
 
-        // ImageLoader
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        // ImageLoader. texgen everywhere but Windows, where texconv stays the default until texgen has
+        // been compared against it on real lists; WABBAJACK_IMAGE_LOADER=texgen opts in to it there.
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+            !string.Equals(Environment.GetEnvironmentVariable("WABBAJACK_IMAGE_LOADER"), "texgen",
+                StringComparison.OrdinalIgnoreCase))
             service.AddSingleton<IImageLoader, TexConvImageLoader>();
         else
-            service.AddSingleton<IImageLoader, CrossPlatformImageLoader>();
+            service.AddSingleton<IImageLoader, TexGenImageLoader>();
 
         // Installer/Compiler Configuration
         service.AddScoped<InstallerConfiguration>();

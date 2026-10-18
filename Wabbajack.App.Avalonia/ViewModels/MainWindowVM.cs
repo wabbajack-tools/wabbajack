@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -117,8 +118,13 @@ public partial class MainWindowVM : ViewModel
             .DisposeWith(CompositeDisposable);
 
         var location = Environment.ProcessPath ?? typeof(MainWindowVM).Assembly.Location;
-        var fileVersion = FileVersionInfo.GetVersionInfo(location).FileVersion;
-        Version = "v" + fileVersion;
+        // Off Windows the executable is a native host with no version resource; the assembly carries the same number.
+        var fileVersion = FileVersionInfo.GetVersionInfo(location).FileVersion
+                          ?? typeof(MainWindowVM).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
+        // The informational version, which names a beta (4.4.0.0-beta.1), without the commit after its '+'.
+        var shown = typeof(MainWindowVM).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion.Split('+')[0];
+        Version = "v" + (string.IsNullOrEmpty(shown) ? fileVersion : shown);
 
         NavigateTo(ScreenType.Home);
 
@@ -138,13 +144,14 @@ public partial class MainWindowVM : ViewModel
 
             _logger.LogInformation("Wabbajack information:");
             _logger.LogInformation("    Version: {FileVersion}", fileVersion);
+            _logger.LogInformation("    Informational version: {Version}", Version.TrimStart('v'));
             _logger.LogInformation("    Build: {Sha}", ThisAssembly.Git.Sha);
             _logger.LogInformation("    Entry point: {EntryPoint}", KnownFolders.EntryPoint);
             _logger.LogInformation("    Assembly Location: {AssemblyLocation}", assemblyLocation);
             _logger.LogInformation("    Process Location: {ProcessLocation}", processLocation);
 
             _logger.LogInformation("General information:");
-            _logger.LogInformation("    Windows version: {Version}", Environment.OSVersion.VersionString);
+            _logger.LogInformation("    OS version: {Version}", Environment.OSVersion.VersionString);
 
             // The machine and drive queries are Windows APIs, as they were in the WPF app.
             if (OperatingSystem.IsWindows())
@@ -260,12 +267,22 @@ public partial class MainWindowVM : ViewModel
     ///     Asks a yes-or-no question in a floating pane and takes the pane down once it is answered. The
     ///     installer asks this through StandardInstaller's OnConfirmAction.
     /// </summary>
-    public async Task<bool> ShowConfirmationDialog(string title, string message)
+    public Task<bool> ShowConfirmationDialog(string title, string message)
     {
-        var dialog = new ConfirmationDialogVM(title, message);
+        return ShowDialog(new ConfirmationDialogVM(title, message));
+    }
+
+    /// <summary>An error in the same floating pane, with only OK; done once the user has dismissed it.</summary>
+    public Task ShowErrorDialog(string title, string message)
+    {
+        return ShowDialog(ConfirmationDialogVM.Error(title, message));
+    }
+
+    private async Task<bool> ShowDialog(ConfirmationDialogVM dialog)
+    {
         ActiveFloatingPane = dialog;
         var result = await dialog.Result;
-        ActiveFloatingPane = null;
+        if (ReferenceEquals(ActiveFloatingPane, dialog)) ActiveFloatingPane = null;
         return result;
     }
 
