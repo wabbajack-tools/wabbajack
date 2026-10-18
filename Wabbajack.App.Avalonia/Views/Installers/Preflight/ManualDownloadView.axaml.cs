@@ -42,7 +42,41 @@ public partial class ManualDownloadView : ReactiveUserControl<ManualDownloadsVM>
             this.WhenAnyValue(x => x.ViewModel!.Current)
                 .Select(current => current?.Name ?? string.Empty)
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(t => FileNameText.Text = t)
+                .Subscribe(t =>
+                {
+                    FileNameText.Text = t;
+                    // The name trims on a narrow card; the whole of it is a hover away.
+                    ToolTip.SetTip(FileNameText, string.IsNullOrEmpty(t) ? null : t);
+                })
+                .DisposeWith(dispose);
+
+            // A download page often lists several files; with the name copied, Ctrl+F finds the right one.
+            var copiedBeat = new SerialDisposable().DisposeWith(dispose);
+            Observable.FromEventPattern<RoutedEventArgs>(CopyNameButton, nameof(Button.Click))
+                .Subscribe(async _ =>
+                {
+                    if (ViewModel?.Current?.Name is not { Length: > 0 } name) return;
+                    if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
+                    try
+                    {
+                        await clipboard.SetTextAsync(name);
+                    }
+                    catch (Exception)
+                    {
+                        // Another program holding the clipboard is not worth an error dialog; the click does nothing.
+                        return;
+                    }
+
+                    CopyNameIcon.Symbol = Symbol.Checkmark;
+                    ToolTip.SetTip(CopyNameButton, "Copied");
+                    copiedBeat.Disposable = Observable.Timer(TimeSpan.FromSeconds(1.5))
+                        .ObserveOn(RxApp.MainThreadScheduler)
+                        .Subscribe(__ =>
+                        {
+                            CopyNameIcon.Symbol = Symbol.Copy;
+                            ToolTip.SetTip(CopyNameButton, "Copy the file name, to search for it on the download page");
+                        });
+                })
                 .DisposeWith(dispose);
 
             this.WhenAnyValue(x => x.ViewModel!.SiteName)
