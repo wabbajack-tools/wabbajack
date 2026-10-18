@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 4.3.2.0 - TBD
+#### Version - 4.3.2.0 - 10/17/2026
 * Linux beta 1: Wabbajack now runs on Linux, with its own launcher and CLI, and installs and compiles lists that run under Proton or Wine. This is a first beta, and it will keep getting fixes with each release (PR #3092)
 * Added a button next to a manual download's file name that copies it, for finding the file on a download page with Ctrl+F (PR #3090)
 * Mega, Google Drive and MediaFire files download more reliably (PR #3091)
