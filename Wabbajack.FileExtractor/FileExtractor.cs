@@ -115,6 +115,11 @@ public class FileExtractor
                 {
                     results = await GatheringExtractWithOMOD(archive, shouldExtract, mapfn, token);
                 }
+                else if (sig == FileType._7Z && HasBackslashNames(archive, sFn.Name))
+                {
+                    results = await GatheringExtractWithSharpCompress(archive, sFn.Name, shouldExtract, mapfn,
+                        onlyFiles, token);
+                }
                 else
                 {
                     await using var tempFolder = _manager.CreateFolder();
@@ -334,6 +339,74 @@ public class FileExtractor
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    ///     A 7z whose entry names carry backslashes, which is what one packed on Linux from Windows paths looks like:
+    ///     <c>core\Requiem.bsa</c> stored as a single name rather than a folder and a file. 7-Zip 20 read the backslash
+    ///     as a folder, the way lists compiled with it expect; 7-Zip 26 treats it as an illegal character and writes
+    ///     <c>core_Requiem.bsa</c>, so an install asking for <c>core\Requiem.bsa</c> gets nothing. Only the headers are
+    ///     read here, and anything that cannot be read leaves the archive to 7-Zip as before.
+    /// </summary>
+    private bool HasBackslashNames(Stream archive, IPath name)
+    {
+        if (!archive.CanSeek) return false;
+        try
+        {
+            using var sevenZip = SharpCompress.Archives.SevenZip.SevenZipArchive.OpenArchive(archive,
+                new SharpCompress.Readers.ReaderOptions {LeaveStreamOpen = true});
+            var found = sevenZip.Entries.Any(e => !e.IsDirectory && e.Key?.Contains('\\') == true);
+            if (found)
+                _logger.LogInformation("{Archive} names its files with backslashes; extracting it in process", name);
+            return found;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Could not read the 7z headers of {Archive}; leaving it to 7-Zip", name);
+            return false;
+        }
+        finally
+        {
+            archive.Position = 0;
+        }
+    }
+
+    /// <summary>
+    ///     Extracts a 7z in process with SharpCompress, reading each stored name with backslashes as folders, the way
+    ///     7-Zip 20 did. Entries are read in order, which is the cheap way through a solid archive.
+    /// </summary>
+    private async Task<IDictionary<RelativePath, T>> GatheringExtractWithSharpCompress<T>(Stream archive, IPath name,
+        Predicate<RelativePath> shouldExtract, Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
+        IReadOnlyCollection<RelativePath>? onlyFiles, CancellationToken token)
+    {
+        await using var dest = _manager.CreateFolder();
+        using var job = await _limiter.Begin($"Extracting {name}", archive.Length, token);
+        var results = new Dictionary<RelativePath, T>();
+        var wanted = onlyFiles == null ? null : new HashSet<RelativePath>(onlyFiles);
+
+        using var sevenZip = SharpCompress.Archives.SevenZip.SevenZipArchive.OpenArchive(archive,
+            new SharpCompress.Readers.ReaderOptions {LeaveStreamOpen = true});
+        using var reader = sevenZip.ExtractAllEntries();
+        while (reader.MoveToNextEntry())
+        {
+            token.ThrowIfCancellationRequested();
+            if (reader.Entry.IsDirectory || string.IsNullOrEmpty(reader.Entry.Key)) continue;
+
+            var path = reader.Entry.Key.ToRelativePath();
+            if (!shouldExtract(path) || (wanted != null && !wanted.Contains(path)) || results.ContainsKey(path))
+                continue;
+
+            var file = dest.Path.Combine(path);
+            file.Parent.CreateDirectory();
+            await using (var output = file.Open(FileMode.Create, FileAccess.Write, FileShare.None))
+                reader.WriteEntryTo(output);
+
+            results[path] = await mapfn(path, new ExtractedNativeFile(file));
+            file.Delete();
+            await job.Report((int) Math.Min(int.MaxValue, reader.Entry.CompressedSize), token);
+        }
+
+        return results;
     }
 
     public async Task<IDictionary<RelativePath, T>> GatheringExtractWith7Zip<T>(IStreamFactory sf,
