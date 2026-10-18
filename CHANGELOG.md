@@ -1,7 +1,12 @@
 ### Changelog
 
 #### Version - 4.3.2.0 - TBD
+* Linux beta 1: Wabbajack now runs on Linux, with its own launcher and CLI, and installs and compiles lists that run under Proton or Wine. This is a first beta, and it will keep getting fixes with each release (PR #3092)
 * Added a button next to a manual download's file name that copies it, for finding the file on a download page with Ctrl+F (PR #3090)
+* Mega, Google Drive and MediaFire files that the Wabbajack proxy has a copy of are downloaded from it instead of being sent to manual downloads (PR #3091)
+* Wabbajack updates the launcher again; launchers had not been updated since 3.0 (PR #3092)
+* An install or compile frees its memory when it finishes (PR #3092)
+* Updated 7-Zip to 26.01 (PR #3092)
 
 #### Version - 4.3.1.0 - 10/17/2026
 * Nexus manual downloads open the file's download page directly, so only Slow download is left to press (PR #3089)
