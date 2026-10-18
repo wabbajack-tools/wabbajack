@@ -12,7 +12,8 @@ namespace Wabbajack.DTOs.CDN;
 /// </summary>
 public class ProxyIndex
 {
-    public static readonly ProxyIndex Empty = new();
+    /// <summary>An index that holds nothing. A new one each time, since the type is mutable.</summary>
+    public static ProxyIndex Empty => new();
 
     public int Version { get; set; }
 

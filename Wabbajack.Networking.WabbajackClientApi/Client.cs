@@ -54,6 +54,8 @@ public class Client
 
     public bool IgnoreMirrorList { get; set; } = false;
 
+    public TimeSpan ProxyIndexTimeout { get; set; } = TimeSpan.FromSeconds(15);
+
     public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token,
         DTOSerializer dtos,
         IResource<HttpClient> limiter, IResource<Client> hashLimiter, Configuration configuration)
@@ -124,7 +126,12 @@ public class Client
     /// </summary>
     public async Task<ProxyIndex> LoadProxyIndex(CancellationToken token)
     {
-        var index = await _client.GetFromJsonAsync<ProxyIndex>(new Uri(_configuration.ProxyUrl, "index.json"), token)
+        // Not having the index only means downloading those files by hand, so a slow proxy is not worth
+        // holding up the download plan for.
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
+        timeout.CancelAfter(ProxyIndexTimeout);
+        var index = await _client.GetFromJsonAsync<ProxyIndex>(new Uri(_configuration.ProxyUrl, "index.json"),
+                        timeout.Token)
                     ?? new ProxyIndex();
         index.BaseUrl = _configuration.ProxyUrl;
         return index;
