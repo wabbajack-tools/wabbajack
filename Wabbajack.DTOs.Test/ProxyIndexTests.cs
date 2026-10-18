@@ -16,7 +16,7 @@ public class ProxyIndexTests
     {
         // HttpClient.GetFromJsonAsync reads with the web defaults.
         var index = JsonSerializer.Deserialize<ProxyIndex>(Served, JsonSerializerOptions.Web)!;
-        index.BaseUrl = new Uri("https://proxy.wabbajack.org/");
+        index.BaseUrl = new Uri("https://proxy-v2.wabbajack.org/");
         return index;
     }
 
@@ -49,7 +49,7 @@ public class ProxyIndexTests
     [Fact]
     public void FilesLiveUnderTheirHash()
     {
-        Assert.Equal("https://proxy.wabbajack.org/ce40df44e3c6f511",
+        Assert.Equal("https://proxy-v2.wabbajack.org/ce40df44e3c6f511",
             Load().UrlFor(Hash.FromHex("ce40df44e3c6f511")).ToString());
     }
 }
