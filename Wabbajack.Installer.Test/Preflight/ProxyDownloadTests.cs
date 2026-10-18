@@ -1,17 +1,27 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.CDN;
 using Wabbajack.DTOs.DownloadStates;
+using Wabbajack.DTOs.JsonConverters;
+using Wabbajack.DTOs.Logins;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Installer.Preflight.Checks;
 using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Installer.Test.Preflight.Fakes;
+using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
+using Wabbajack.RateLimiter;
 using Xunit;
 
 #nullable enable
@@ -25,12 +35,14 @@ namespace Wabbajack.Installer.Test.Preflight;
 /// </summary>
 public class ProxyDownloadTests : IDisposable
 {
+    private readonly IServiceProvider _provider;
     private readonly PreflightTestHost _host;
     private readonly RecordingProgress _progress = new();
     private readonly string _run = Guid.NewGuid().ToString("N");
 
     public ProxyDownloadTests(IServiceProvider provider)
     {
+        _provider = provider;
         _host = new PreflightTestHost(provider);
     }
 
@@ -56,12 +68,19 @@ public class ProxyDownloadTests : IDisposable
 
     private PreflightContext ContextWithMissing(params Archive[] missing)
     {
+        return ContextWithMissing(null, missing);
+    }
+
+    /// <param name="metrics">When given, metrics are on and go to this client instead of the build server.</param>
+    private PreflightContext ContextWithMissing(Client? metrics, params Archive[] missing)
+    {
         _host.Config.ModList.Archives = missing;
         var options = new PreflightOptions
         {
-            SendMetrics = false, WaitForManualDownloads = false, WatchFolder = _host.Manager.CreateFolder().Path
+            SendMetrics = metrics != null, WaitForManualDownloads = false,
+            WatchFolder = _host.Manager.CreateFolder().Path, DownloadRetryDelay = TimeSpan.FromMilliseconds(20)
         };
-        var ctx = _host.Context(options);
+        var ctx = _host.Context(options, wjClient: metrics);
         ctx.State.RequiredArchives = missing;
         ctx.State.Missing = missing.ToList();
         ctx.State.RemainingDownloadBytes = missing.Sum(a => a.Size);
@@ -188,5 +207,153 @@ public class ProxyDownloadTests : IDisposable
 
         Assert.Equal("2 downloaded", automated.Message);
         Assert.Equal(1, _host.Policy.ProxyIndexCalls);
+    }
+
+    /// <summary>The mirror is the Wabbajack team's own copy, and it has its turn before the proxy.</summary>
+    [Fact]
+    public async Task MirrorIsPreferredToTheProxy()
+    {
+        var archive = await Mega("mirrored.7z", "mirrored bytes");
+        var proxy = Proxy(archive, "mirrored bytes");
+        var mirror = new Http {Url = new Uri($"https://mirror.invalid/{_run}/mirrored.7z")};
+        _host.Server.Serve(mirror, Encoding.UTF8.GetBytes("mirrored bytes"));
+        _host.Policy.MirrorArchives.Add(new Archive {Name = archive.Name, Hash = archive.Hash, Size = archive.Size, State = mirror});
+        var ctx = ContextWithMissing(archive);
+
+        var (_, automated) = await RunDownloadChecks(ctx);
+
+        Assert.Equal("1 downloaded", automated.Message);
+        Assert.Same(mirror, archive.State);
+        Assert.Equal(1, _host.Server.Attempts(mirror));
+        Assert.Equal(0, _host.Server.Attempts(proxy));
+        Assert.Empty(ctx.State.Proxied);
+    }
+
+    /// <summary>
+    ///     Bytes from the proxy that do not hash to what the list expects are thrown away like any other, and the
+    ///     user is sent to where the file really lives rather than told the download failed.
+    /// </summary>
+    [Fact]
+    public async Task ProxyCopyThatDoesNotMatchFallsBackToTheOriginalPage()
+    {
+        var archive = await Mega("spoiled.7z", "the right bytes");
+        var proxy = Proxy(archive, "not the right bytes");
+        var ctx = ContextWithMissing(archive);
+
+        var (_, automated) = await RunDownloadChecks(ctx);
+
+        Assert.Equal(PreflightState.NeedsUser, automated.State);
+        Assert.Equal(ArchiveDownloadPipeline.HashMismatchAttempts, _host.Server.Attempts(proxy));
+        var queued = Assert.Single(ctx.State.ManualQueue);
+        Assert.Equal("mega.nz", queued.Target.Url.Host);
+        Assert.Contains("did not match", queued.Reason);
+        Assert.IsType<Mega>(archive.State);
+        Assert.False(_host.Config.Downloads.Combine("spoiled.7z").FileExists());
+    }
+
+    /// <summary>
+    ///     Re-running archive-inventory throws the plan away. The rewritten state survives that, the way the mirror's
+    ///     does, so the second plan still downloads from the proxy and the .meta still names the original source.
+    /// </summary>
+    [Fact]
+    public async Task APlanComputedAgainStillUsesTheProxy()
+    {
+        var archive = await Mega("replanned.7z", "replanned bytes");
+        var proxy = Proxy(archive, "replanned bytes");
+        var ctx = ContextWithMissing(archive);
+        await new ManualDownloadsCheck().Run(ctx, _progress, CancellationToken.None);
+
+        ctx.State.RequiredArchives = ctx.State.RequiredArchives;
+        var (manual, automated) = await RunDownloadChecks(ctx);
+
+        Assert.Equal(PreflightState.Passed, manual.State);
+        Assert.Equal("1 downloaded", automated.Message);
+        Assert.Equal(1, _host.Server.Attempts(proxy));
+        var meta = _host.Config.Downloads.Combine("replanned.7z").WithExtension(Ext.Meta).ReadAllLines().ToArray();
+        Assert.Contains(meta, l => l.Contains("mega.nz"));
+    }
+
+    /// <summary>Two archives can share a hash under different names; the proxy keeps track of each by name.</summary>
+    [Fact]
+    public async Task ArchivesSharingAHashAreEachDownloaded()
+    {
+        var first = await Mega("first copy.7z", "shared bytes");
+        var second = await Mega("second copy.7z", "shared bytes");
+        Proxy(first, "shared bytes");
+        var ctx = ContextWithMissing(first, second);
+
+        var (manual, automated) = await RunDownloadChecks(ctx);
+
+        Assert.Equal(PreflightState.Passed, manual.State);
+        Assert.Equal("2 downloaded", automated.Message);
+        Assert.True(ctx.State.HashedArchives.ContainsKey("first copy.7z"));
+        Assert.True(ctx.State.HashedArchives.ContainsKey("second copy.7z"));
+    }
+
+    /// <summary>
+    ///     The proxy's usage report, which decides what to drop when it runs short of space, counts these. The hash
+    ///     is sent as hex because that is how the proxy names its files.
+    /// </summary>
+    [Fact]
+    public async Task EachProxiedDownloadIsCounted()
+    {
+        var archive = await Mega("counted.7z", "counted bytes");
+        Proxy(archive, "counted bytes");
+        var server = new BuildServer();
+        var ctx = ContextWithMissing(server.Client(_provider), archive);
+
+        await RunDownloadChecks(ctx);
+
+        await server.WaitFor($"metrics/proxy_download/{archive.Hash.ToHex()}");
+    }
+
+    [Fact]
+    public async Task EachFallbackFromTheProxyIsCounted()
+    {
+        var archive = await Mega("refused.7z", "refused bytes");
+        var proxy = Proxy(archive, "refused bytes");
+        _host.Server.FailNext(proxy, ArchiveDownloadPipeline.TransientAttempts,
+            () => new Networking.Http.HttpException(503, "Service Unavailable"));
+        var server = new BuildServer();
+        var ctx = ContextWithMissing(server.Client(_provider), archive);
+
+        await RunDownloadChecks(ctx);
+
+        await server.WaitFor($"metrics/proxy_failed/{archive.Hash.ToHex()}");
+        Assert.DoesNotContain(server.Paths, p => p.Contains("proxy_download"));
+    }
+
+    /// <summary>Stands in for the build server's metrics endpoint, which every metric goes to.</summary>
+    private sealed class BuildServer : HttpMessageHandler, ITokenProvider<WabbajackApiState>
+    {
+        public ConcurrentQueue<string> Paths { get; } = new();
+
+        public Client Client(IServiceProvider provider)
+        {
+            return new Client(NullLogger<Client>.Instance, new HttpClient(this), this,
+                provider.GetRequiredService<DTOSerializer>(), new Resource<HttpClient>("http", 4),
+                new Resource<Client>("hash", 4), new Networking.WabbajackClientApi.Configuration());
+        }
+
+        /// <summary>Metrics are sent without waiting for them, so the test waits for the request instead.</summary>
+        public async Task WaitFor(string path)
+        {
+            for (var tries = 0; tries < 200 && !Paths.Any(p => p.EndsWith(path)); tries++)
+                await Task.Delay(25);
+            Assert.Contains(Paths, p => p.EndsWith(path));
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            Paths.Enqueue(request.RequestUri!.AbsolutePath);
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent("{}")});
+        }
+
+        public ValueTask<WabbajackApiState?> Get() =>
+            ValueTask.FromResult<WabbajackApiState?>(new WabbajackApiState {MetricsKey = "metrics-key-for-tests"});
+
+        public ValueTask SetToken(WabbajackApiState val) => ValueTask.CompletedTask;
+        public ValueTask<bool> Delete() => ValueTask.FromResult(false);
+        public bool HaveToken() => true;
     }
 }
