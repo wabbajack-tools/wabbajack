@@ -32,15 +32,19 @@ Building from Linux or macOS needs `/p:EnableWindowsTargeting=true`, which is wh
 Releases come from the Create Release workflow. `release.ps1` builds, signs and zips the Windows app, CLI and
 launcher and creates the GitHub draft; `release-linux.sh` publishes the app and CLI for linux-x64 into
 `{version}-linux-x64.tar.gz`, and the launcher into `Wabbajack-linux-x64.tar.gz` (unsigned, other platforms'
-tools left out), which the workflow attaches to that draft and uploads to Nexus once the repository variables
-`NEXUS_LINUX_FILE_ID` and `NEXUS_LINUX_LAUNCHER_FILE_ID` hold their file ids. Both read the version from the
-top of `CHANGELOG.md`.
+tools left out). The Windows job is untouched by Linux: the Linux tarballs are built in a job of their own and
+attached, and uploaded to Nexus once the repository variables `NEXUS_LINUX_FILE_ID` and
+`NEXUS_LINUX_LAUNCHER_FILE_ID` hold their file ids, by a job that runs only after the Windows release is
+published. Both scripts read the version from the top of `CHANGELOG.md`.
 
 **Old launchers cannot be updated, so every release has to suit them.** On GitHub they take the highest tag
 that is exactly four numbers, prereleases included, and its `{tag}.zip`; on Nexus, the first file whose name
 ends in `.zip` and parses as a version. The Linux launcher takes only `{version}-linux-x64.tar.gz` from
 stable releases. Betas (the Create Beta Build workflow, `BETA=beta.N`) are handed out by hand: an unsigned
 prerelease tagged `{version}-beta.N`, which no launcher picks up, and never on Nexus.
+`Wabbajack.Launcher.Test` holds those rules, the old launchers' selection code included, against a release
+shaped as the workflows publish it; `WABBAJACK_LAUNCHER_RELEASES` points a launcher at another release list to
+try one against releases that are not published.
 
 ### Credentials
 
