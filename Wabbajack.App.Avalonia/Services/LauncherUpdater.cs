@@ -93,7 +93,11 @@ public class LauncherUpdater(ILogger<LauncherUpdater> logger, HttpClient http, C
         var current = desktop.LauncherAssetIsTheLauncher
             ? launcher.FileExists() ? await Sha256(launcher) : null
             : installedDigestFile.FileExists() ? (await installedDigestFile.ReadAllTextAsync()).Trim() : null;
-        if (current == newest.Sha256) return;
+        if (current == newest.Sha256)
+        {
+            logger.LogInformation("The launcher is the one in {Version}, up to date", newest.Version);
+            return;
+        }
 
         logger.LogInformation("Updating the launcher to the one in {Version}", newest.Version);
         var download = folder.Combine(PlatformExecutable.Name("Wabbajack") + ".download");
