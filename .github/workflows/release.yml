@@ -7,8 +7,9 @@ permissions:
   contents: write
 
 jobs:
-  # The Linux app and CLI, and the Linux launcher, unsigned, as tarballs the Windows job attaches to the
-  # release it creates.
+  # The Linux builds ride along with the Windows release without being able to hold it up: they are built in
+  # a job of their own and attached by another that runs only once the Windows release is published. A Linux
+  # failure leaves the Windows release exactly as it would have been.
   linux:
     runs-on: ubuntu-latest
 
@@ -30,7 +31,7 @@ jobs:
         id: build
         run: ./release-linux.sh
 
-      - name: Keep the tarballs for the release job
+      - name: Keep the tarballs for publishing
         uses: actions/upload-artifact@v4
         with:
           name: linux-release
@@ -40,7 +41,6 @@ jobs:
           if-no-files-found: error
 
   release:
-    needs: linux
     runs-on: windows-latest
 
     env:
@@ -53,8 +53,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: true
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
@@ -81,20 +79,6 @@ jobs:
         shell: pwsh
         run: ./release.ps1
 
-      - name: Fetch the Linux build
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-release
-          path: ${{ github.workspace }}\linux-release
-
-      - name: Attach the Linux builds to the draft release
-        shell: pwsh
-        run: |
-          $tarballs = Get-ChildItem "${{ github.workspace }}\linux-release\*.tar.gz"
-          if ($tarballs.Count -ne 2) { throw "Expected the Linux app and launcher tarballs, found $($tarballs.Count)" }
-          gh release upload "${{ steps.build.outputs.version }}" $tarballs.FullName
-          if ($LASTEXITCODE -ne 0) { throw "gh release upload failed" }
-
       # --- Nexus Mods uploads (official action) ---
 
       - name: Upload launcher to Nexus Mods
@@ -120,38 +104,6 @@ jobs:
           version: ${{ steps.build.outputs.version }}
           display_name: ${{ steps.build.outputs.version }}.zip
           description: "Release files, ignore this unless you're sure you need it"
-          category: optional
-
-      # Linux builds on Nexus, once their file entries exist there and their ids are set as the repository
-      # variables NEXUS_LINUX_FILE_ID and NEXUS_LINUX_LAUNCHER_FILE_ID; skipped until then. Old launchers take
-      # the first Nexus file whose name ends in .zip and parses as a version, so these names must keep their
-      # .tar.gz endings.
-
-      - name: Upload Linux launcher to Nexus Mods
-        if: ${{ vars.NEXUS_LINUX_LAUNCHER_FILE_ID != '' }}
-        uses: Nexus-Mods/upload-action@v1.0.0-beta.8
-        with:
-          api_key: ${{ secrets.NEXUS_API_KEY }}
-          file_id: ${{ vars.NEXUS_LINUX_LAUNCHER_FILE_ID }}
-          filename: ${{ github.workspace }}\linux-release\Wabbajack-linux-x64.tar.gz
-          version: ${{ steps.build.outputs.version }}
-          display_name: Wabbajack-linux-x64.tar.gz
-          description: |
-            Version - ${{ steps.build.outputs.version }} - Linux: unpack and run Wabbajack/Wabbajack
-
-            Changelog: https://github.com/wabbajack-tools/wabbajack/releases/tag/${{ steps.build.outputs.version }}
-          category: main
-
-      - name: Upload full Linux release to Nexus Mods
-        if: ${{ vars.NEXUS_LINUX_FILE_ID != '' }}
-        uses: Nexus-Mods/upload-action@v1.0.0-beta.8
-        with:
-          api_key: ${{ secrets.NEXUS_API_KEY }}
-          file_id: ${{ vars.NEXUS_LINUX_FILE_ID }}
-          filename: ${{ github.workspace }}\linux-release\${{ steps.build.outputs.version }}-linux-x64.tar.gz
-          version: ${{ steps.build.outputs.version }}
-          display_name: ${{ steps.build.outputs.version }}-linux-x64.tar.gz
-          description: "Linux release files, ignore this unless you're sure you need it"
           category: optional
 
       # --- Publish & announce ---
@@ -205,3 +157,59 @@ jobs:
               Send-DiscordMessage -Content $releaseNotes
           }
           Write-Host "Posted to Discord"
+
+  linux-publish:
+    needs: [linux, release]
+    runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Fetch the Linux builds
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-release
+          path: linux-release
+
+      - name: Read the version
+        id: version
+        run: |
+          tarball=$(ls linux-release/*-linux-x64.tar.gz | grep -v '/Wabbajack-linux-x64.tar.gz$')
+          echo "version=$(basename "$tarball" -linux-x64.tar.gz)" >> "$GITHUB_OUTPUT"
+
+      - name: Attach the Linux builds to the release
+        run: |
+          gh release upload "${{ steps.version.outputs.version }}" linux-release/*.tar.gz \
+            --repo "${{ github.repository }}"
+
+      # Once their file entries exist on the Nexus page and their ids are set as the repository variables
+      # NEXUS_LINUX_FILE_ID and NEXUS_LINUX_LAUNCHER_FILE_ID; skipped until then. Old launchers take the first
+      # Nexus file whose name ends in .zip and parses as a version, so these names must keep their .tar.gz.
+
+      - name: Upload Linux launcher to Nexus Mods
+        if: ${{ vars.NEXUS_LINUX_LAUNCHER_FILE_ID != '' }}
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.8
+        with:
+          api_key: ${{ secrets.NEXUS_API_KEY }}
+          file_id: ${{ vars.NEXUS_LINUX_LAUNCHER_FILE_ID }}
+          filename: linux-release/Wabbajack-linux-x64.tar.gz
+          version: ${{ steps.version.outputs.version }}
+          display_name: Wabbajack-linux-x64.tar.gz
+          description: |
+            Version - ${{ steps.version.outputs.version }} - Linux (beta): unpack and run Wabbajack/Wabbajack
+
+            Changelog: https://github.com/wabbajack-tools/wabbajack/releases/tag/${{ steps.version.outputs.version }}
+          category: main
+
+      - name: Upload full Linux release to Nexus Mods
+        if: ${{ vars.NEXUS_LINUX_FILE_ID != '' }}
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.8
+        with:
+          api_key: ${{ secrets.NEXUS_API_KEY }}
+          file_id: ${{ vars.NEXUS_LINUX_FILE_ID }}
+          filename: linux-release/${{ steps.version.outputs.version }}-linux-x64.tar.gz
+          version: ${{ steps.version.outputs.version }}
+          display_name: ${{ steps.version.outputs.version }}-linux-x64.tar.gz
+          description: "Linux (beta) release files, ignore this unless you're sure you need it"
+          category: optional

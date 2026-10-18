@@ -19,7 +19,6 @@ namespace Wabbajack.Launcher.Platforms;
 ///     betas are handed out by hand, never through a launcher. GitHub only, since Nexus carries no Linux build the
 ///     launcher could tell apart.
 /// </summary>
-[UnsupportedOSPlatform("windows")]
 public sealed class LinuxLauncherPlatform : ILauncherPlatform
 {
     public bool ChecksNexus => false;
@@ -53,6 +52,7 @@ public sealed class LinuxLauncherPlatform : ILauncherPlatform
             .FirstOrDefault();
     }
 
+    [UnsupportedOSPlatform("windows")]
     public void Unpack(byte[] release, AbsolutePath versionFolder)
     {
         Extract(new MemoryStream(release), versionFolder.ToString());
@@ -65,6 +65,7 @@ public sealed class LinuxLauncherPlatform : ILauncherPlatform
     ///     beside the destination first and moved into place whole: a version folder that exists is taken as
     ///     installed, so a half-unpacked one must never be left under that name.
     /// </summary>
+    [UnsupportedOSPlatform("windows")]
     public static void Extract(Stream tarGz, string destination)
     {
         var partial = destination + ".partial";
@@ -105,6 +106,7 @@ public sealed class LinuxLauncherPlatform : ILauncherPlatform
     }
 
     /// <summary>The counterpart of the Windows .bat: a wabbajack-cli script beside the launcher.</summary>
+    [UnsupportedOSPlatform("windows")]
     public async Task WriteCliShortcut(AbsolutePath app)
     {
         var script = InstallRoot.Combine("wabbajack-cli").ToString();

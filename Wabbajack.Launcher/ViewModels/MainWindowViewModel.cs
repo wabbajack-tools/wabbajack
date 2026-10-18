@@ -33,7 +33,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly List<string> _errors = new();
 
     private (Version Version, long Size, Func<Task<Uri>> Uri) _version;
-    public Uri GITHUB_REPO = new("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
+    // WABBAJACK_LAUNCHER_RELEASES points the launcher at another release list, to test a launcher against
+    // releases that are not published; unset, it reads Wabbajack's own.
+    public Uri GITHUB_REPO = new(Environment.GetEnvironmentVariable("WABBAJACK_LAUNCHER_RELEASES") is {Length: > 0} url
+        ? url
+        : "https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
     private readonly NexusApi _nexusApi;
     private readonly HttpDownloader _downloader;
     private readonly ITokenProvider<NexusOAuthState> _tokenProvider;
