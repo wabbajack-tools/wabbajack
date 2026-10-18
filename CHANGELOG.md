@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 4.3.2.1 - 10/18/2026
+* HOTFIX: Fixed 7z archives packed on Linux, such as Requiem 5.0.3's bugfix pack, extracting nothing with the newer 7-Zip (PR #3095)
+
 #### Version - 4.3.2.0 - 10/17/2026
 * Linux beta 1: Wabbajack now runs on Linux, with its own launcher and CLI, and installs and compiles lists that run under Proton or Wine. This is a first beta, and it will keep getting fixes with each release (PR #3092)
 * Added a button next to a manual download's file name that copies it, for finding the file on a download page with Ctrl+F (PR #3090)
