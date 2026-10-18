@@ -456,6 +456,21 @@ Mods files" on the first pass and halts for a login on the second, contradicting
 is built on — a rerouted Nexus download without a login goes to the manual queue rather than stopping the
 run.
 
+**The proxy is a second reroute, and it has to happen at plan time.** The proxy (wabbajack-tools/proxy-server)
+keeps copies of Mega, Google Drive and MediaFire files, stored the way the CDN stores an authored file:
+`{ProxyUrl}{hash}/definition.json.gz` and `/parts/{n}`. Its `index.json` lists every file it holds with its
+size, and the plan loads it once beside the mirror list (`IDownloadPolicySource.ProxyIndex`) and calls
+`ArchiveDownloadPipeline.Proxy` right after the mirror reroute: an archive whose state nothing automated can
+fetch, and whose hash *and size* are in the index, becomes a `WabbajackCDN` download from the proxy. It has
+to be there and not in `DownloadOne`, because manual-downloads runs first and opens a browser page for
+everything the split sends to the queue. The index is one cached file for the whole run, so being proxied
+costs no request per archive, and an index that will not load leaves those archives manual, exactly as
+before. `PreflightBlackboard.Proxied` keeps the state the list gave each one: `Placed` writes the `.meta`
+from it, so a list compiled from this install points at Mega rather than the proxy, and `ToManual` restores
+it, so a proxied download that fails goes to the queue with the original page (a proxy address has none).
+Each proxied download sends `proxy_download` with the hash, and each fallback `proxy_failed`; the proxy's
+usage report is built from those.
+
 Splitting by state type is only half of it. An archive whose state is automated still needs a downloader the
 dispatcher has, one that will `Prepare()`, and a URL the allow-list permits, and none of those takes a
 download to establish, so `ArchiveDownloadPipeline.Screen` settles them while the plan is being computed.

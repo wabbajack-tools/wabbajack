@@ -54,6 +54,8 @@ public class Client
 
     public bool IgnoreMirrorList { get; set; } = false;
 
+    public TimeSpan ProxyIndexTimeout { get; set; } = TimeSpan.FromSeconds(15);
+
     public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token,
         DTOSerializer dtos,
         IResource<HttpClient> limiter, IResource<Client> hashLimiter, Configuration configuration)
@@ -116,6 +118,23 @@ public class Client
 
         var str = await _client.GetStringAsync(_configuration.MirrorList);
         return JsonSerializer.Deserialize<Archive[]>(str, _dtos.Options) ?? [];
+    }
+
+    /// <summary>
+    ///     The list of files the proxy holds. It is one small file the CDN caches, read once per run, so asking
+    ///     whether an archive is proxied costs no request of its own.
+    /// </summary>
+    public async Task<ProxyIndex> LoadProxyIndex(CancellationToken token)
+    {
+        // Not having the index only means downloading those files by hand, so a slow proxy is not worth
+        // holding up the download plan for.
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
+        timeout.CancelAfter(ProxyIndexTimeout);
+        var index = await _client.GetFromJsonAsync<ProxyIndex>(new Uri(_configuration.ProxyUrl, "index.json"),
+                        timeout.Token)
+                    ?? new ProxyIndex();
+        index.BaseUrl = _configuration.ProxyUrl;
+        return index;
     }
 
     public async Task<ServerAllowList> LoadMirrorAllowList()
