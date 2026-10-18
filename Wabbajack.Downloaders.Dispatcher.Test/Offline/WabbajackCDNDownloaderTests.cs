@@ -19,6 +19,7 @@ using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Xunit;
+using ClientConfiguration = Wabbajack.Networking.WabbajackClientApi.Configuration;
 
 namespace Wabbajack.Downloaders.Dispatcher.Test.Offline;
 
@@ -163,6 +164,30 @@ public class WabbajackCDNDownloaderTests : IAsyncLifetime
         {
             Assert.Equal("authored-files.wabbajack.org", r.RequestUri!.Host);
             Assert.Equal("authored-files.wabbajack.org", r.Headers.Host);
+        });
+    }
+
+    /// <summary>
+    ///     The download proxy stores its files in the CDN layout under a host the CDN remaps know nothing about;
+    ///     preflight hands such files to this downloader, so they have to be fetched from that host as they are.
+    /// </summary>
+    [Fact]
+    public async Task Download_FromTheProxy_StaysOnTheProxyHost()
+    {
+        var http = await Cdn(Data);
+        var dest = _folder.Path.Combine("archive.7z");
+        var state = new WabbajackCDN {Url = new Uri(new ClientConfiguration().ProxyUrl, "0123456789abcdef")};
+        var archive = new Archive {Name = "archive.7z", Size = Data.Length, State = state};
+        using var job = await new Resource<WabbajackCDNDownloaderTests>("dl", 1).Begin("dl", Data.Length, CancellationToken.None);
+
+        var hash = await Downloader(http).Download(archive, state, dest, job, CancellationToken.None);
+
+        Assert.Equal(await Data.Hash(), hash);
+        Assert.Equal(Data, await dest.ReadAllBytesAsync());
+        Assert.All(http.Requests, r =>
+        {
+            Assert.Equal(state.Url.Host, r.RequestUri!.Host);
+            Assert.StartsWith("/0123456789abcdef/", r.RequestUri.AbsolutePath);
         });
     }
 

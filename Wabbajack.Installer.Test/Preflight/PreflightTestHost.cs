@@ -144,10 +144,12 @@ public sealed class PreflightTestHost : IDisposable
         };
     }
 
-    public PreflightContext Context(PreflightOptions? options = null, IManualDownloadAcquirer? acquirer = null)
+    /// <param name="wjClient">A client over a recording handler, for tests that check what is sent to the build server.</param>
+    public PreflightContext Context(PreflightOptions? options = null, IManualDownloadAcquirer? acquirer = null,
+        Client? wjClient = null)
     {
         return new PreflightContext(Config, options ?? DefaultOptions(), Locator, Cache, Dispatcher, DownloadLimiter,
-            _provider.GetRequiredService<Client>(), Nexus, Policy, acquirer ?? Acquirer, Limiter, NullLogger.Instance,
+            wjClient ?? _provider.GetRequiredService<Client>(), Nexus, Policy, acquirer ?? Acquirer, Limiter, NullLogger.Instance,
             Restorer);
     }
 

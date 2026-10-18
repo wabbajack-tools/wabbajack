@@ -9,6 +9,7 @@ using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.Interfaces;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.CDN;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
@@ -53,8 +54,11 @@ public sealed class ArchiveDownloadPipeline
         _progress = progress;
     }
 
-    /// <summary>The allow-list and mirror list, loaded together so one network failure is reported once.</summary>
-    public sealed record DownloadPolicy(ServerAllowList AllowList, ILookup<Hash, Archive> Mirrors);
+    /// <summary>
+    ///     The allow-list and mirror list, loaded together so one network failure is reported once, and the proxy
+    ///     index, which is loaded beside them but is allowed to be missing.
+    /// </summary>
+    public sealed record DownloadPolicy(ServerAllowList AllowList, ILookup<Hash, Archive> Mirrors, ProxyIndex Proxy);
 
     /// <summary>
     ///     Where each missing archive goes. <see cref="Unsupported" /> is what neither a downloader nor a
@@ -141,7 +145,53 @@ public sealed class ArchiveDownloadPipeline
         _ctx.Logger.LogInformation("Downloading validation data");
         var allowList = await _ctx.DownloadPolicy.AllowList(token);
         var mirrors = await _ctx.DownloadPolicy.Mirrors(token);
-        return new DownloadPolicy(allowList, mirrors);
+        return new DownloadPolicy(allowList, mirrors, await LoadProxyIndex(token));
+    }
+
+    /// <summary>
+    ///     The proxy only ever saves the user a trip to the browser, so not reaching it costs them nothing they
+    ///     would have had without it: the archives it would have covered go to the manual queue as before.
+    /// </summary>
+    private async Task<ProxyIndex> LoadProxyIndex(CancellationToken token)
+    {
+        try
+        {
+            return await _ctx.DownloadPolicy.ProxyIndex(token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _ctx.Logger.LogWarning(ex, "Could not load the proxy index, files it holds will be downloaded by hand");
+            return ProxyIndex.Empty;
+        }
+    }
+
+    /// <summary>
+    ///     Points archives the proxy holds at the proxy, so a Mega, Google Drive or MediaFire file it has
+    ///     copied downloads on its own instead of going to the browser. Only states nothing automated can fetch
+    ///     are considered, after the mirror has had its turn. As with <see cref="Reroute" />, the modlist's own
+    ///     archive is rewritten; the state it carried is kept in <paramref name="proxied" />, because the
+    ///     <c>.meta</c> file and the fallback to a browser both need it.
+    /// </summary>
+    public static List<Archive> Proxy(IEnumerable<Archive> missing, ProxyIndex index,
+        IDictionary<string, IDownloadState> proxied, ILogger logger)
+    {
+        var rerouted = new List<Archive>();
+        foreach (var archive in missing)
+        {
+            if (IsAutomatedType(archive.State) || !index.Holds(archive.Hash, archive.Size)) continue;
+
+            proxied[archive.Name] = archive.State;
+            archive.State = new WabbajackCDN {Url = index.UrlFor(archive.Hash)};
+            logger.LogInformation("Downloading {Archive} from the proxy instead of {Source}", archive.Name,
+                proxied[archive.Name].PrimaryKeyString);
+            rerouted.Add(archive);
+        }
+
+        return rerouted;
     }
 
     /// <summary>
@@ -381,8 +431,18 @@ public sealed class ArchiveDownloadPipeline
     private async Task Placed(Archive archive, AbsolutePath destination, Hash hash, CancellationToken token)
     {
         await _ctx.HashCache.FileHashWriteCache(destination, hash);
+        // A proxied file is recorded as coming from its real source, so a list compiled from this install
+        // never points at the proxy.
+        var proxied = _ctx.State.Proxied.TryGetValue(archive.Name, out var original);
+        var source = proxied
+            ? new Archive {Name = archive.Name, Hash = archive.Hash, Size = archive.Size, Meta = archive.Meta, State = original!}
+            : archive;
+        // The proxy's usage report is built from these: which files are fetched, and which never are, is what
+        // decides what can be dropped when it runs short of space.
+        if (proxied)
+            SendMetric("proxy_download", archive.Hash.ToHex());
         await destination.WithExtension(Ext.Meta)
-            .WriteAllTextAsync(_ctx.Dispatcher.MetaIniSection(archive), token);
+            .WriteAllTextAsync(_ctx.Dispatcher.MetaIniSection(source), token);
         _ctx.State.HashedArchives[archive.Name] = destination;
         lock (_sync)
         {
@@ -407,6 +467,17 @@ public sealed class ArchiveDownloadPipeline
 
     private void ToManual(Archive archive, string reason, ManualDownloadTarget? target = null)
     {
+        // The proxy's copy would not come, so the file goes back to where the list said it lives: that is the
+        // page the user can fetch it from, and the state the acquirer and the .meta file should see.
+        if (_ctx.State.Proxied.TryRemove(archive.Name, out var original))
+        {
+            _ctx.Logger.LogWarning("The proxy's copy of {Archive} could not be downloaded: {Reason}", archive.Name, reason);
+            archive.State = original;
+            target = null;
+            reason = $"The Wabbajack proxy's copy could not be downloaded ({reason})";
+            SendMetric("proxy_failed", archive.Hash.ToHex());
+        }
+
         if (target == null && !ManualDownloadUrls.TryGet(archive.State, out target))
         {
             _ctx.Logger.LogError("{Archive} cannot be downloaded and has no page to send the user to: {Reason}",
