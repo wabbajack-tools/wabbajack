@@ -37,7 +37,14 @@ attached, and uploaded to Nexus once the repository variables `NEXUS_LINUX_FILE_
 `NEXUS_LINUX_LAUNCHER_FILE_ID` hold their file ids, by a job that runs only after the Windows release is
 published. Both scripts read the version from the top of `CHANGELOG.md`.
 
-**Old launchers cannot be updated, so every release has to suit them.** On GitHub they take the highest tag
+**The launcher updates the app, and the app updates the launcher.** `LauncherUpdater` replaces the launcher
+beside a launcher-laid-out install with the newest stable release's (`Wabbajack.exe`, or the launcher in
+`Wabbajack-linux-x64.tar.gz`), compared by the SHA-256 digest GitHub publishes for each asset, since launchers
+carry no Wabbajack version. From 3.0 until this was rewritten the WPF updater never replaced one (it read the
+release list with Newtonsoft attributes through System.Text.Json), so launchers going back to 2021 are still in
+use, and every launcher runs before the app that would replace it.
+
+**So every release has to suit the old launchers.** On GitHub they take the highest tag
 that is exactly four numbers, prereleases included, and its `{tag}.zip`; on Nexus, the first file whose name
 ends in `.zip` and parses as a version. The Linux launcher asks Nexus first too, with a premium login, and
 takes only `{version}-linux-x64.tar.gz`, from Nexus or from stable GitHub releases, so Linux downloads count on
@@ -104,7 +111,7 @@ The app and the CLI run on both. A platform difference belongs in the one place 
   frame, screen and VRAM, where Modlists goes): `IDesktop` in `Wabbajack.App.Avalonia/Services/Desktop`, with
   `WindowsDesktop` and `LinuxDesktop`; `Desktop.Current` is chosen once.
 - **The launcher**: `ILauncherPlatform` in `Wabbajack.Launcher/Platforms`. The Windows one must keep behaving as
-  launchers already installed do, since they cannot be updated.
+  launchers already installed do, since each runs before the app that would replace it.
 - **Paths and files**: `WindowsProgramPaths` and `WinePrefixes` (paths as MO2 and the game see them under Wine),
   `CaseInsensitiveLookup` and `PathCasing` (Windows casing on a case-sensitive file system), `Volumes` (which
   volume, free space, moving within one), `PlatformExecutable` (a program's file name), `KnownFolders`.

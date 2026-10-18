@@ -4,6 +4,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Security.Principal;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -11,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.App.Avalonia.Util;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 
 namespace Wabbajack.App.Avalonia.Services;
@@ -97,6 +100,16 @@ public sealed class WindowsDesktop : IDesktop
     {
         ActivatorUtilities.CreateInstance<FileAssociationSelfHealService>(services)
             .RegisterOrUpdate(enableProtocol: true);
+    }
+
+    public string LauncherAssetName => "Wabbajack.exe";
+
+    public bool LauncherAssetIsTheLauncher => true;
+
+    // The launcher has exited by the time the app it started runs, so its file is free to replace.
+    public async Task InstallLauncher(AbsolutePath asset, AbsolutePath launcher, CancellationToken token)
+    {
+        await asset.MoveToAsync(launcher, true, token);
     }
 
     private static IntPtr OwnerHandle()

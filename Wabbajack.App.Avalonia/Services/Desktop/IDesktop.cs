@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Wabbajack.Installer;
 using Wabbajack.Paths;
@@ -50,6 +52,15 @@ public interface IDesktop
 
     /// <summary>Opens .wabbajack files and wabbajack:// links with this executable, wherever it now lives.</summary>
     void RegisterFileAssociations(IServiceProvider services);
+
+    /// <summary>The release asset this platform's launcher comes in.</summary>
+    string LauncherAssetName { get; }
+
+    /// <summary>Whether that asset is the launcher itself, so the two can be compared directly.</summary>
+    bool LauncherAssetIsTheLauncher { get; }
+
+    /// <summary>Replaces the launcher with the one in a downloaded launcher asset.</summary>
+    Task InstallLauncher(AbsolutePath asset, AbsolutePath launcher, CancellationToken token);
 }
 
 public static class Desktop

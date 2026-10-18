@@ -1,6 +1,12 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Formats.Tar;
+using System.IO;
+using System.IO.Compression;
+using System.Runtime.Versioning;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.App.Avalonia.Util;
@@ -86,6 +92,40 @@ public sealed class LinuxDesktop : IDesktop
     public void RegisterFileAssociations(IServiceProvider services)
     {
         ActivatorUtilities.CreateInstance<XdgFileAssociation>(services).RegisterOrUpdate();
+    }
+
+    public string LauncherAssetName => "Wabbajack-linux-x64.tar.gz";
+
+    public bool LauncherAssetIsTheLauncher => false;
+
+    /// <summary>
+    ///     Takes the launcher out of the tarball (Wabbajack/Wabbajack), makes it executable, and renames it over the
+    ///     old one, which has exited by the time the app it started runs.
+    /// </summary>
+    [UnsupportedOSPlatform("windows")]
+    public async Task InstallLauncher(AbsolutePath asset, AbsolutePath launcher, CancellationToken token)
+    {
+        var replacement = launcher + ".new";
+        await using (var file = File.OpenRead(asset.ToString()))
+        await using (var gzip = new GZipStream(file, CompressionMode.Decompress))
+        await using (var tar = new TarReader(gzip))
+        {
+            while (await tar.GetNextEntryAsync(cancellationToken: token) is { } entry)
+            {
+                if (entry.EntryType is not (TarEntryType.RegularFile or TarEntryType.V7RegularFile) ||
+                    entry.Name.TrimStart('.', '/') != "Wabbajack/Wabbajack")
+                    continue;
+                await entry.ExtractToFileAsync(replacement, true, token);
+                File.SetUnixFileMode(replacement, UnixFileMode.UserRead | UnixFileMode.UserWrite |
+                                                  UnixFileMode.UserExecute | UnixFileMode.GroupRead |
+                                                  UnixFileMode.GroupExecute | UnixFileMode.OtherRead |
+                                                  UnixFileMode.OtherExecute);
+                File.Move(replacement, launcher.ToString(), true);
+                return;
+            }
+        }
+
+        throw new InvalidDataException("The launcher tarball holds no Wabbajack/Wabbajack");
     }
 
     /// <summary>Runs a desktop dialog tool and waits for it to close; false when the tool is not installed.</summary>
