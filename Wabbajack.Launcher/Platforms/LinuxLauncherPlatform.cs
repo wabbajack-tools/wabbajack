@@ -14,14 +14,34 @@ namespace Wabbajack.Launcher.Platforms;
 
 /// <summary>
 ///     The launcher on Linux. A release carries the Windows build as <c>{version}.zip</c> and the Linux one as
-///     <c>{version}-linux-x64.tar.gz</c>; this takes only the second, so it never fetches a Windows build, and skips
-///     a release that has none, as every release before Linux builds existed does. Prereleases are skipped too:
-///     betas are handed out by hand, never through a launcher. GitHub only, since Nexus carries no Linux build the
-///     launcher could tell apart.
+///     <c>{version}-linux-x64.tar.gz</c>, on GitHub and on Nexus alike; this takes only the second, so it never
+///     fetches a Windows build, and skips a release that has none, as every release before Linux builds existed
+///     does. Prereleases are skipped too: betas are handed out by hand, never through a launcher.
 /// </summary>
 public sealed class LinuxLauncherPlatform : ILauncherPlatform
 {
-    public bool ChecksNexus => false;
+    /// <summary>
+    ///     The newest file named {version}-linux-x64.tar.gz, in whatever category. No Windows launcher can take
+    ///     it: they all want a name ending in .zip.
+    /// </summary>
+    public (Version Version, NexusFile File)? PickNexusFile(IReadOnlyList<NexusFile> files)
+    {
+        return files
+            .Select(f => (File: f, Version: VersionOfLinuxBuild(f.Name)))
+            .Where(f => f.Version != null)
+            .OrderByDescending(f => f.Version)
+            .Select(f => ((Version, NexusFile)?) (f.Version!, f.File))
+            .FirstOrDefault();
+    }
+
+    /// <summary>The version a {version}-linux-x64.tar.gz names, or null for any other name.</summary>
+    private static Version? VersionOfLinuxBuild(string name)
+    {
+        const string suffix = "-linux-x64.tar.gz";
+        if (!name.EndsWith(suffix, StringComparison.Ordinal)) return null;
+        var version = name[..^suffix.Length];
+        return version.Split('.').Length == 4 && Version.TryParse(version, out var v) ? v : null;
+    }
 
     // A desktop starts programs in the home folder, so version folders go beside the launcher instead.
     public AbsolutePath InstallRoot => KnownFolders.EntryPoint;

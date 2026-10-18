@@ -17,7 +17,14 @@ namespace Wabbajack.Launcher.Platforms;
 /// </summary>
 public sealed class WindowsLauncherPlatform : ILauncherPlatform
 {
-    public bool ChecksNexus => true;
+    /// <summary>The first optional or miscellaneous file named {version}.zip, as every launcher since 2022 takes.</summary>
+    public (Version Version, NexusFile File)? PickNexusFile(IReadOnlyList<NexusFile> files)
+    {
+        return files.Where(f => f.Category == 5 || f.Category == 3)
+            .Where(f => f.Name.EndsWith(".zip"))
+            .Select(f => Version.TryParse(f.Name[..^4], out var version) ? ((Version, NexusFile)?) (version, f) : null)
+            .FirstOrDefault(f => f != null);
+    }
 
     public AbsolutePath InstallRoot => KnownFolders.CurrentDirectory;
 

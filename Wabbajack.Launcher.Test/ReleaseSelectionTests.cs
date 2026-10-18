@@ -82,6 +82,34 @@ public class ReleaseSelectionTests
         Assert.Null(LinuxLauncherPlatform.Pick(GitHub.Where(r => r.Tag != "4.4.0.0")));
     }
 
+    private static IReadOnlyList<NexusFile> NexusFiles =>
+        Nexus.Select((f, i) => new NexusFile(f.Name, f.Category, i + 1, 1)).ToList();
+
+    [Fact]
+    public void TheWindowsLauncherTakesTheWindowsZipFromNexus()
+    {
+        Assert.Equal("4.4.0.0.zip", new WindowsLauncherPlatform().PickNexusFile(NexusFiles)!.Value.File.Name);
+    }
+
+    /// <summary>Linux downloads go through Nexus too, which counts them on the mod page, and take only the tarball.</summary>
+    [Fact]
+    public void TheLinuxLauncherTakesTheLinuxTarballFromNexus()
+    {
+        var files = NexusFiles.Append(new NexusFile("4.3.1.0-linux-x64.tar.gz", 4, 99, 1)).ToList();
+
+        var picked = new LinuxLauncherPlatform().PickNexusFile(files);
+
+        Assert.Equal((new Version(4, 4, 0, 0), "4.4.0.0-linux-x64.tar.gz"),
+            (picked!.Value.Version, picked.Value.File.Name));
+    }
+
+    [Fact]
+    public void TheLinuxLauncherTakesNothingFromNexusWithoutALinuxBuild()
+    {
+        Assert.Null(new LinuxLauncherPlatform().PickNexusFile(
+            NexusFiles.Where(f => !f.Name.EndsWith(".tar.gz") || f.Name.StartsWith("Wabbajack")).ToList()));
+    }
+
     /// <summary>The selection code of every launcher already installed, as it was written.</summary>
     private static class OldLaunchers
     {

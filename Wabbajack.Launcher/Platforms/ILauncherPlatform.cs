@@ -11,6 +11,9 @@ public record ReleaseInfo(string Tag, bool Prerelease, IReadOnlyList<ReleaseFile
 
 public record ReleaseFile(string Name, Uri Url, long Size);
 
+/// <summary>A file on Wabbajack's Nexus Mods page: its display name, category, id and size.</summary>
+public record NexusFile(string Name, int Category, int FileId, long Size);
+
 /// <summary>
 ///     Everything the launcher does differently on Windows and Linux: which releases it takes and from where, how
 ///     it unpacks one, where version folders live, and how it starts the app. The flow itself (check, download,
@@ -18,8 +21,11 @@ public record ReleaseFile(string Name, Uri Url, long Size);
 /// </summary>
 public interface ILauncherPlatform
 {
-    /// <summary>Whether a premium Nexus login is asked for the release before GitHub is.</summary>
-    bool ChecksNexus { get; }
+    /// <summary>
+    ///     The file to install from Wabbajack's Nexus page, which a premium login is asked for before GitHub; null
+    ///     when the page has none for this platform. Downloading through Nexus counts on the mod page.
+    /// </summary>
+    (Version Version, NexusFile File)? PickNexusFile(IReadOnlyList<NexusFile> files);
 
     /// <summary>The folder version folders are kept in.</summary>
     AbsolutePath InstallRoot { get; }

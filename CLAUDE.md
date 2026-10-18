@@ -39,8 +39,9 @@ published. Both scripts read the version from the top of `CHANGELOG.md`.
 
 **Old launchers cannot be updated, so every release has to suit them.** On GitHub they take the highest tag
 that is exactly four numbers, prereleases included, and its `{tag}.zip`; on Nexus, the first file whose name
-ends in `.zip` and parses as a version. The Linux launcher takes only `{version}-linux-x64.tar.gz` from
-stable releases. Betas (the Create Beta Build workflow, `BETA=beta.N`) are handed out by hand: an unsigned
+ends in `.zip` and parses as a version. The Linux launcher asks Nexus first too, with a premium login, and
+takes only `{version}-linux-x64.tar.gz`, from Nexus or from stable GitHub releases, so Linux downloads count on
+the mod page as Windows ones do. Betas (the Create Beta Build workflow, `BETA=beta.N`) are handed out by hand: an unsigned
 prerelease tagged `{version}-beta.N`, which no launcher picks up, and never on Nexus.
 `Wabbajack.Launcher.Test` holds those rules, the old launchers' selection code included, against a release
 shaped as the workflows publish it; `WABBAJACK_LAUNCHER_RELEASES` points a launcher at another release list to

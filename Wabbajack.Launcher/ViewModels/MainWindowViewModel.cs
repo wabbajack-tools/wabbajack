@@ -90,7 +90,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
 
-            if (Platform.ChecksNexus && _tokenProvider.HaveToken())
+            if (_tokenProvider.HaveToken())
             {
                 try
                 {
@@ -293,17 +293,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var data = await _nexusApi.ModFiles("site", 403, token);
         Status = "Parsing Response";
-        //return JsonSerializer.Deserialize<Release[]>(data)!;
 
-        var found = data.info.Files.Where(f => f.CategoryId == 5 || f.CategoryId == 3)
-            .Where(f => f.Name.EndsWith(".zip"))
-            .Select(f => Version.TryParse(f.Name[..^4], out var version) ? (version, f.SizeInBytes ?? f.Size,  f.FileId) : default)
-            .FirstOrDefault(f => f != default);
-        if (found == default) return default;
+        var picked = Platform.PickNexusFile(data.info.Files
+            .Select(f => new NexusFile(f.Name, f.CategoryId, f.FileId, f.SizeInBytes ?? f.Size)).ToList());
+        if (picked == null) return default;
 
-        return (found.version, found.Item2, async () =>
+        var (version, file) = picked.Value;
+        return (version, file.Size, async () =>
         {
-            var link = await _nexusApi.DownloadLink("site", 403, found.FileId, token);
+            var link = await _nexusApi.DownloadLink("site", 403, file.FileId, token);
 
             return link.info.First().URI;
         });
