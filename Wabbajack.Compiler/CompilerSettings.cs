@@ -10,6 +10,8 @@ namespace Wabbajack.Compiler;
 public class CompilerSettings
 {
     public bool ModlistIsNSFW { get; set; }
+    public bool ModlistIsUtilityList { get; set; }
+    public string[] ModListTags { get; set; } = Array.Empty<string>();
     public AbsolutePath Source { get; set; }
     public AbsolutePath Downloads { get; set; }
     public Game Game { get; set; }
