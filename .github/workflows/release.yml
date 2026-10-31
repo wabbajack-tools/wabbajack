@@ -1,4 +1,4 @@
-name: Create Release (Windows)
+name: Create Release
 
 on:
   workflow_dispatch:
@@ -7,6 +7,39 @@ permissions:
   contents: write
 
 jobs:
+  # The Linux builds ride along with the Windows release without being able to hold it up: they are built in
+  # a job of their own and attached by another that runs only once the Windows release is published. A Linux
+  # failure leaves the Windows release exactly as it would have been.
+  linux:
+    runs-on: ubuntu-latest
+
+    env:
+      PUBLISH_DIR: ${{ github.workspace }}/publish-wj-linux
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Build and package
+        id: build
+        run: ./release-linux.sh
+
+      - name: Keep the tarballs for publishing
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: |
+            ${{ steps.build.outputs.tarball }}
+            ${{ steps.build.outputs.launcher }}
+          if-no-files-found: error
+
   release:
     runs-on: windows-latest
 
@@ -20,6 +53,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
@@ -124,3 +159,59 @@ jobs:
               Send-DiscordMessage -Content $releaseNotes
           }
           Write-Host "Posted to Discord"
+
+  linux-publish:
+    needs: [linux, release]
+    runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Fetch the Linux builds
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-release
+          path: linux-release
+
+      - name: Read the version
+        id: version
+        run: |
+          tarball=$(ls linux-release/*-linux-x64.tar.gz | grep -v '/Wabbajack-linux-x64.tar.gz$')
+          echo "version=$(basename "$tarball" -linux-x64.tar.gz)" >> "$GITHUB_OUTPUT"
+
+      - name: Attach the Linux builds to the release
+        run: |
+          gh release upload "${{ steps.version.outputs.version }}" linux-release/*.tar.gz \
+            --repo "${{ github.repository }}"
+
+      # Once their file entries exist on the Nexus page and their ids are set as the repository variables
+      # NEXUS_LINUX_FILE_ID and NEXUS_LINUX_LAUNCHER_FILE_ID; skipped until then. Old launchers take the first
+      # Nexus file whose name ends in .zip and parses as a version, so these names must keep their .tar.gz.
+
+      - name: Upload Linux launcher to Nexus Mods
+        if: ${{ vars.NEXUS_LINUX_LAUNCHER_FILE_ID != '' }}
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.8
+        with:
+          api_key: ${{ secrets.NEXUS_API_KEY }}
+          file_id: ${{ vars.NEXUS_LINUX_LAUNCHER_FILE_ID }}
+          filename: linux-release/Wabbajack-linux-x64.tar.gz
+          version: ${{ steps.version.outputs.version }}
+          display_name: Wabbajack-linux-x64.tar.gz
+          description: |
+            Version - ${{ steps.version.outputs.version }} - Linux (beta): unpack and run Wabbajack/Wabbajack
+
+            Changelog: https://github.com/wabbajack-tools/wabbajack/releases/tag/${{ steps.version.outputs.version }}
+          category: main
+
+      - name: Upload full Linux release to Nexus Mods
+        if: ${{ vars.NEXUS_LINUX_FILE_ID != '' }}
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.8
+        with:
+          api_key: ${{ secrets.NEXUS_API_KEY }}
+          file_id: ${{ vars.NEXUS_LINUX_FILE_ID }}
+          filename: linux-release/${{ steps.version.outputs.version }}-linux-x64.tar.gz
+          version: ${{ steps.version.outputs.version }}
+          display_name: ${{ steps.version.outputs.version }}-linux-x64.tar.gz
+          description: "Linux (beta) release files, ignore this unless you're sure you need it"
+          category: optional

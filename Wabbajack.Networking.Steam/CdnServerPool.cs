@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
 namespace Wabbajack.Networking.Steam;
@@ -29,6 +30,14 @@ public readonly record struct ContentServerFacts(string Key, string? Type, uint[
 ///     number of slots Steam says each is worth, and walk that list. A server that fails is struck off, and
 ///     when everything has been struck off the directory is fetched again rather than giving up -- a whole
 ///     region going away is a reason to re-ask Steam, not to stop.
+///     <para>
+///         The directory itself is not per app. Steam answers with the same servers whatever is asked for,
+///         and the app only decides which of them are kept, so one answer is fetched and every app's list
+///         is filtered out of it. That distinction is the difference between one round trip and hundreds:
+///         a repair alternates between a game's app and its Creation Kit's for every single file, and a
+///         pool that threw its list away on each switch asked Steam 150 times for a 75 file repair, every
+///         answer the same 24 servers.
+///     </para>
 /// </summary>
 public sealed class CdnServerPool<T>
 {
@@ -42,9 +51,17 @@ public sealed class CdnServerPool<T>
 
     private readonly HashSet<string> _struckOff = new(StringComparer.OrdinalIgnoreCase);
 
-    private uint? _builtFor;
-    private int _cursor = -1;
-    private T[] _slots = Array.Empty<T>();
+    /// <summary>
+    ///     The weighted list for each app the pool has been asked about, all filtered out of the same
+    ///     <see cref="_directory" />. Read without the rebuild lock, so it is concurrent.
+    /// </summary>
+    private readonly ConcurrentDictionary<uint, AppSlots> _byApp = new();
+
+    /// <summary>
+    ///     Steam's answer as last fetched, before any per-app filter. Only ever touched while
+    ///     <see cref="_rebuild" /> is held.
+    /// </summary>
+    private T[] _directory = Array.Empty<T>();
 
     public CdnServerPool(ILogger logger, uint? cellId, Func<CancellationToken, Task<IEnumerable<T>>> fetch,
         Func<T, ContentServerFacts> describe)
@@ -72,24 +89,36 @@ public sealed class CdnServerPool<T>
     {
         for (var attempt = 0; attempt < 2; attempt++)
         {
-            var slots = _builtFor == appId ? _slots : Array.Empty<T>();
-
-            if (slots.Length > 0)
-            {
-                // One pass of the weighted list. Anything struck off since it was built is skipped, and
-                // running out means everything is struck off, which is what sends us round to a rebuild.
-                for (var i = 0; i < slots.Length; i++)
-                {
-                    var next = slots[(int) ((uint) Interlocked.Increment(ref _cursor) % (uint) slots.Length)];
-                    if (!IsStruckOff(next)) return next;
-                }
-            }
+            if (TryNext(appId, out var server)) return server;
 
             await RebuildAsync(appId, token).ConfigureAwait(false);
         }
 
         throw new SteamNoContentServersException(
             $"Steam has no content server that will serve app {appId} right now");
+    }
+
+    /// <summary>
+    ///     One pass of this app's weighted list. Anything struck off since it was built is skipped, and
+    ///     running out means everything is struck off, which is what sends the caller round to a rebuild.
+    /// </summary>
+    private bool TryNext(uint appId, out T server)
+    {
+        server = default!;
+
+        if (!_byApp.TryGetValue(appId, out var app) || app.Slots.Length == 0) return false;
+
+        for (var i = 0; i < app.Slots.Length; i++)
+        {
+            var next = app.Slots[(int) ((uint) Interlocked.Increment(ref app.Cursor) % (uint) app.Slots.Length)];
+
+            if (IsStruckOff(next)) continue;
+
+            server = next;
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -122,18 +151,35 @@ public sealed class CdnServerPool<T>
         await _rebuild.WaitAsync(token).ConfigureAwait(false);
         try
         {
-            // Another caller may have rebuilt while this one waited, in which case its list is fine. The
-            // filter is per-app, so a list built for a different app is not reusable however healthy it is.
-            if (_builtFor == appId && _slots.Length > 0 && _slots.Any(s => !IsStruckOff(s))) return;
+            // Another caller may have rebuilt while this one waited, in which case its list is fine.
+            if (_byApp.TryGetValue(appId, out var held) && held.Slots.Any(s => !IsStruckOff(s))) return;
 
-            var all = (await _fetch(token).ConfigureAwait(false)).ToArray();
+            // Steam is only asked again when there is nothing to filter, or when this app has struck off
+            // every server the last answer offered -- the "a whole region went away" case. An app the pool
+            // has simply not been asked about before is a filter over the directory already in hand, which
+            // is what keeps a repair alternating between a game and its Creation Kit off the wire.
+            if (_directory.Length == 0 || held != null)
+            {
+                _directory = (await _fetch(token).ConfigureAwait(false)).ToArray();
+                ProxyServer = _directory.FirstOrDefault(s => _describe(s).UseAsProxy);
 
-            ProxyServer = all.FirstOrDefault(s => _describe(s).UseAsProxy);
+                // Both belong to the directory they were made against: the strikes name hosts that may not
+                // even be in the new answer, and every app's list was built out of the old one.
+                lock (_struckOff)
+                {
+                    _struckOff.Clear();
+                }
+
+                _byApp.Clear();
+
+                _logger.LogInformation("Steam offered {Total} content servers{Proxy}", _directory.Length,
+                    ProxyServer == null ? "" : $", proxied through {_describe(ProxyServer).Key}");
+            }
 
             // The proxy is deliberately not a download target. It is passed alongside whichever real server
             // is chosen, and handing it over as the server as well would have it rewrite a request that was
             // already addressed to it.
-            var usable = all.Where(s => !_describe(s).UseAsProxy && Serves(_describe(s), appId)).ToArray();
+            var usable = _directory.Where(s => !_describe(s).UseAsProxy && Serves(_describe(s), appId)).ToArray();
 
             // Ascending weighted load: Steam's number is how busy a server is, so the lightest first.
             var slots = usable
@@ -142,19 +188,12 @@ public sealed class CdnServerPool<T>
                 .SelectMany(s => Enumerable.Repeat(s.Server, Math.Max(1, s.Facts.NumEntries)))
                 .ToArray();
 
-            lock (_struckOff)
-            {
-                _struckOff.Clear();
-            }
+            _byApp[appId] = new AppSlots(slots);
 
-            _slots = slots;
-            _builtFor = appId;
-            _cursor = -1;
-
-            _logger.LogInformation(
-                "Steam offered {Total} content servers, {Usable} of them for app {AppId}, {Slots} weighted slots{Proxy}",
-                all.Length, usable.Length, appId, slots.Length,
-                ProxyServer == null ? "" : $", proxied through {_describe(ProxyServer).Key}");
+            // Stands on its own rather than continuing the line above, which is usually not there: after the
+            // first app, a list is filtered out of a directory fetched some time ago.
+            _logger.LogInformation("{Usable} content servers will serve app {AppId}, {Slots} weighted slots",
+                usable.Length, appId, slots.Length);
         }
         finally
         {
@@ -168,5 +207,21 @@ public sealed class CdnServerPool<T>
 
         // An empty allow-list means the server takes anything; a populated one is exhaustive.
         return facts.AllowedAppIds.Length == 0 || facts.AllowedAppIds.Contains(appId);
+    }
+
+    /// <summary>
+    ///     One app's weighted walk over the directory, and how far through it the last caller got. The
+    ///     cursor belongs to the list rather than to the pool: two apps handed out in turn would otherwise
+    ///     share a position and step through each other's lists.
+    /// </summary>
+    private sealed class AppSlots
+    {
+        public readonly T[] Slots;
+        public int Cursor = -1;
+
+        public AppSlots(T[] slots)
+        {
+            Slots = slots;
+        }
     }
 }

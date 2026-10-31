@@ -35,6 +35,33 @@ public interface ISteamContentClient
     /// <summary>Whether the logged in account may open this depot.</summary>
     Task<DepotAccess> CheckAccessAsync(uint appId, uint depotId, CancellationToken token);
 
+    /// <summary>
+    ///     Makes sure the account holds a licence for an app Steam gives away, asking for one when it does
+    ///     not. Returns whether it now holds one.
+    ///     <para>
+    ///         The Creation Kit is why this exists. It is free, but it is not
+    ///         <see cref="DepotEntitlement.IsFreeToDownload" />-free: an account that has never installed it
+    ///         holds no package naming it, and Steam then refuses even the PICS access token, so the app
+    ///         cannot be so much as described, let alone read. What the Steam client does when someone
+    ///         presses Install on a free store page is ask for the licence, and the account gets a
+    ///         no-cost package granting exactly that app.
+    ///     </para>
+    ///     <para>
+    ///         This adds something to the user's Steam library, which nothing else here does, so three
+    ///         things hold. It is only ever called for an app whose depots are about to be read. It is not
+    ///         called when the account is merely <em>not known</em> to hold the licence - a licence list
+    ///         that never arrived is an unknown, not a no, and guessing wrong here puts a package in
+    ///         somebody's library. And the answer is remembered for the run, negative as well as positive,
+    ///         so a repair of fifty files asks once.
+    ///     </para>
+    ///     <para>
+    ///         A false is advisory rather than a reason to stop: the account may hold the licence and the
+    ///         scan simply could not confirm it, and Steam's own refusal from the depot call is the one
+    ///         worth showing the user.
+    ///     </para>
+    /// </summary>
+    Task<bool> EnsureFreeLicenseAsync(uint appId, CancellationToken token);
+
     /// <summary>As <see cref="CheckAccessAsync" />, but throws rather than returning an answer.</summary>
     Task EnsureAccessAsync(uint appId, uint depotId, CancellationToken token);
 

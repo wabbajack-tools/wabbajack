@@ -11,6 +11,8 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 using Octokit;
 using Wabbajack.DTOs.Interventions;
+using Wabbajack.Networking.Bethesda;
+using Wabbajack.Networking.Bethesda.Steam;
 using Wabbajack.Networking.Http;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.Steam;
@@ -27,7 +29,12 @@ internal class Program
 {
     private static async Task<int> Main(string[] args)
     {
-        var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+        // Disposed on the way out: that is what deletes this run's temporary folders, which otherwise wait for
+        // the next launch to clean them up. A compile leaves a whole game's extracted archives there.
+        // The content root is watched recursively for appsettings changes; left at the working directory, a
+        // CLI started from the home folder watched every folder under it.
+        using var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+            .UseContentRoot(AppContext.BaseDirectory)
             .ConfigureLogging(AddLogging)
             .ConfigureServices((host, services) =>
             {
@@ -51,6 +58,13 @@ internal class Program
 
                 services.AddOSIntegrated();
                 services.AddSteam();
+
+                // The second game file source, behind the same IGameFileRestorer as Steam's and asked after
+                // it. The seventy Anniversary Edition Creations no Steam depot carries come from Bethesda,
+                // fetched with a ticket the running Steam client mints rather than with a Wabbajack login.
+                services.AddBethesdaCreations();
+                services.AddSteamAppTicket();
+
                 services.AddServerLib();
 
 

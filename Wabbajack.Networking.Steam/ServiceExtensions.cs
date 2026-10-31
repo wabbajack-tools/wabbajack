@@ -20,7 +20,11 @@ public static class ServiceExtensions
         services.TryAddSingleton<SteamContentClient>();
         services.TryAddSingleton<ISteamContentClient>(s => s.GetRequiredService<SteamContentClient>());
         services.TryAddSingleton<ISteamManifestIndex, ClientSteamManifestIndex>();
-        services.TryAddSingleton<IGameFileRestorer, SteamGameFileRestorer>();
+
+        // One of possibly several game file sources rather than the only one. Registered this way, a host
+        // that adds nothing else resolves this restorer itself and behaves exactly as it always has, while
+        // a host that also registers the Bethesda source gets both in order behind one IGameFileRestorer.
+        services.AddGameFileRestorer<SteamGameFileRestorer>(GameFileRestorerOrder.Steam);
         return services;
     }
 }

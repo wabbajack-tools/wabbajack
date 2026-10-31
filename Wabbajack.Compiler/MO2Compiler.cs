@@ -87,7 +87,16 @@ public class MO2Compiler : ACompiler
         await _wjClient.SendMetric("begin_compiling", Mo2Settings.Profile);
 
         var roots = new List<AbsolutePath> {Settings.Source, Settings.Downloads};
-        roots.AddRange(Settings.OtherGames.Append(Settings.Game).Select(g => _locator.GameLocation(g)));
+        foreach (var game in Settings.OtherGames.Append(Settings.Game).Distinct())
+        {
+            if (!_locator.TryFindLocation(game, out var gameFolder))
+            {
+                _logger.LogError("{Game} is not installed. The list's settings name it, and its files are needed to compile", game);
+                return false;
+            }
+
+            roots.Add(gameFolder);
+        }
         roots.Add(Settings.Downloads);
 
         NextStep("Initializing", "Add Roots");
@@ -176,6 +185,8 @@ public class MO2Compiler : ACompiler
         zEditIntegration.VerifyMerges(this);
 
         await BuildPatches(token);
+
+        ChooseArchiveSources();
 
         await GatherArchives();
 

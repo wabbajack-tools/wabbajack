@@ -19,10 +19,7 @@ namespace Wabbajack.Compiler.Test;
 ///     longer needs must not be demanded. These cover the two cases where the contents of the downloads
 ///     folder and the modlist's archive list come apart: a re-install of an unchanged list, and an update
 ///     whose pruned archives are gone from downloads.
-///     The fixture the harness builds on comes from authored-files.wabbajack.org, so the whole class needs
-///     network.
 /// </summary>
-[Trait("Category", "RequiresNetwork")]
 public class InstallOverExistingTests : IAsyncLifetime
 {
     private const string ByHandArchive = "by-hand.zip";
@@ -41,9 +38,7 @@ public class InstallOverExistingTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _mod = await _harness.InstallMod(Ext.Zip,
-            new Uri(
-                "https://authored-files.wabbajack.org/Tonal%20Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f"));
+        _mod = await _harness.InstallGeneratedMod();
     }
 
     public Task DisposeAsync()

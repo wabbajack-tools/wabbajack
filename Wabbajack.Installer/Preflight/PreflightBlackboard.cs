@@ -78,6 +78,18 @@ public sealed class PreflightBlackboard
     public Dictionary<Game, AbsolutePath> OtherGameFolders { get; } = new();
 
     /// <summary>
+    ///     Set by game-installed: games with no folder on this machine that a game file source said it
+    ///     could supply anyway, because the account owns them where the files come from.
+    ///     <para>
+    ///         game-files reads it for the same thing <c>IGameLocator.TryGetSteamBuildId</c> tells it about
+    ///         an installed game - that the game came from a store the repair can fetch from - since that
+    ///         one is read out of a local install and there is none here. Without it the row that lists
+    ///         every game file as missing would offer no way to get any of them.
+    ///     </para>
+    /// </summary>
+    public HashSet<Game> SourcedGames { get; } = new();
+
+    /// <summary>
     ///     Set by archive-inventory: the archives this install will actually read, after pruning what an
     ///     existing install already has (see <c>RequiredArchives.Compute</c>). Writing it throws the download
     ///     plan away, which was partitioned from the previous answer - see <see cref="DropPlan" />.
@@ -101,6 +113,16 @@ public sealed class PreflightBlackboard
     ///     second pass over the same list. It survives the plan being dropped because the rewritten states do.
     /// </summary>
     public HashSet<string> Rerouted { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    ///     Archives the proxy stood in for, by <c>Archive.Name</c>, with the state the list gave them. Like the
+    ///     mirror reroute, the proxy rewrites the modlist's own state to a CDN one; unlike it, the original is
+    ///     still wanted afterwards. The <c>.meta</c> file records where the file really comes from, so a list
+    ///     compiled from this install points at Mega or Google Drive and not at the proxy; and a proxied
+    ///     download that fails goes to the manual queue with that original page, which a CDN address has none of.
+    ///     The automated pass runs wide, so the fallback removes entries from several threads at once.
+    /// </summary>
+    public ConcurrentDictionary<string, IDownloadState> Proxied { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     ///     Set by archive-inventory: where each required archive was found on disk, keyed by

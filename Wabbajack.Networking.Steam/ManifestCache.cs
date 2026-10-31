@@ -6,11 +6,15 @@ namespace Wabbajack.Networking.Steam;
 ///     A manifest id names one immutable build, so anything derived from a manifest is worth keeping for as
 ///     long as it is being used: a repair reads the same manifest once per file to find it and again to
 ///     fetch it, and re-reading costs the whole manifest each time. What it is not worth is keeping
-///     forever. The thing doing the caching lives as long as its host, and a single manifest of a large
-///     game is tens of megabytes; unbounded is tolerable in a command that exits and a growing floor under
-///     a desktop session that does not.
+///     forever. The thing doing the caching lives as long as its host; unbounded is tolerable in a command
+///     that exits and a growing floor under a desktop session that does not.
 ///     Least-recently-used rather than oldest-first because the access pattern is a search: several
 ///     manifests are read to find which one has a file, and then the one that answered is read again.
+///     The capacity is the caller's to choose and it is not a free dial. The access pattern above sweeps a
+///     whole set of manifests per file, so a capacity below the size of that set does not merely halve the
+///     hit rate -- it drives it to zero, every entry being evicted just before it is wanted again, and the
+///     cache then costs a manifest download per file rather than saving one. Size it above the working set
+///     and let memory be the only thing the bound is arguing with.
 /// </summary>
 public sealed class ManifestCache<T> where T : class
 {

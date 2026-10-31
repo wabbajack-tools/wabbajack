@@ -20,6 +20,9 @@ public class CdnServerPoolTests
 {
     private const uint AppId = 489830;
 
+    /// <summary>Skyrim Special Edition's Creation Kit: a second app, in the same repair, on the same run.</summary>
+    private const uint ToolAppId = 1946180;
+
     [Fact]
     public async Task ServersThatWillNotServeThisAppAreNotOffered()
     {
@@ -112,6 +115,67 @@ public class CdnServerPoolTests
 
         Assert.Equal("round2.example", (await pool.TakeAsync(AppId, CancellationToken.None)).Host);
         Assert.Equal(2, fetches);
+    }
+
+    /// <summary>
+    ///     Steam's directory is the same answer whatever app is named; the app decides only which of those
+    ///     servers are kept. A repair alternates between a game's app and its Creation Kit's for every file,
+    ///     so a pool that re-asked on each switch spent two round trips per file re-learning a list that had
+    ///     not changed.
+    /// </summary>
+    [Fact]
+    public async Task AlternatingBetweenTwoAppsDoesNotReAskSteamEachTime()
+    {
+        var fetches = 0;
+        var pool = new CdnServerPool<FakeServer>(NullLogger.Instance, null, _ =>
+        {
+            fetches++;
+            return Task.FromResult<IEnumerable<FakeServer>>(new[] {Server("serves-both.example", "CDN")});
+        }, Describe);
+
+        for (var i = 0; i < 20; i++)
+        {
+            Assert.Equal("serves-both.example", (await pool.TakeAsync(AppId, CancellationToken.None)).Host);
+            Assert.Equal("serves-both.example", (await pool.TakeAsync(ToolAppId, CancellationToken.None)).Host);
+        }
+
+        Assert.Equal(1, fetches);
+    }
+
+    /// <summary>
+    ///     Sharing the directory between apps must not share the filter. Steam does hand out servers that
+    ///     will serve one app and not another, and offering one of those for the wrong app is a request
+    ///     that gets refused.
+    /// </summary>
+    [Fact]
+    public async Task TheFilterIsStillPerAppThoughTheDirectoryIsShared()
+    {
+        var pool = Pool(
+            Server("game-only.example", "CDN", allowedAppIds: new[] {AppId}),
+            Server("tool-only.example", "CDN", allowedAppIds: new[] {ToolAppId}));
+
+        for (var i = 0; i < 4; i++)
+        {
+            Assert.Equal("game-only.example", (await pool.TakeAsync(AppId, CancellationToken.None)).Host);
+            Assert.Equal("tool-only.example", (await pool.TakeAsync(ToolAppId, CancellationToken.None)).Host);
+        }
+    }
+
+    /// <summary>
+    ///     And a strike against a host is a strike whichever app was being fetched when it failed: a content
+    ///     server that has stopped answering has not stopped answering for one app only.
+    /// </summary>
+    [Fact]
+    public async Task AServerStruckOffWhileFetchingForOneAppIsNotOfferedForAnother()
+    {
+        var bad = Server("bad.example", "CDN");
+        var pool = Pool(bad, Server("good.example", "CDN"));
+
+        await pool.TakeAsync(AppId, CancellationToken.None);
+        pool.StrikeOff(bad);
+
+        for (var i = 0; i < 5; i++)
+            Assert.Equal("good.example", (await pool.TakeAsync(ToolAppId, CancellationToken.None)).Host);
     }
 
     [Fact]

@@ -54,6 +54,8 @@ public class Client
 
     public bool IgnoreMirrorList { get; set; } = false;
 
+    public TimeSpan ProxyIndexTimeout { get; set; } = TimeSpan.FromSeconds(15);
+
     public Client(ILogger<Client> logger, HttpClient client, ITokenProvider<WabbajackApiState> token,
         DTOSerializer dtos,
         IResource<HttpClient> limiter, IResource<Client> hashLimiter, Configuration configuration)
@@ -116,6 +118,23 @@ public class Client
 
         var str = await _client.GetStringAsync(_configuration.MirrorList);
         return JsonSerializer.Deserialize<Archive[]>(str, _dtos.Options) ?? [];
+    }
+
+    /// <summary>
+    ///     The list of files the proxy holds. It is one small file the CDN caches, read once per run, so asking
+    ///     whether an archive is proxied costs no request of its own.
+    /// </summary>
+    public async Task<ProxyIndex> LoadProxyIndex(CancellationToken token)
+    {
+        // Not having the index only means downloading those files by hand, so a slow proxy is not worth
+        // holding up the download plan for.
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
+        timeout.CancelAfter(ProxyIndexTimeout);
+        var index = await _client.GetFromJsonAsync<ProxyIndex>(new Uri(_configuration.ProxyUrl, "index.json"),
+                        timeout.Token)
+                    ?? new ProxyIndex();
+        index.BaseUrl = _configuration.ProxyUrl;
+        return index;
     }
 
     public async Task<ServerAllowList> LoadMirrorAllowList()
@@ -266,7 +285,7 @@ public class Client
         var repositories = await _client.GetFromJsonAsync<Dictionary<string, Uri>>(_limiter,
             new HttpRequestMessage(HttpMethod.Get,
                 "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/repositories.json"), _dtos.Options);
-        return repositories!;
+        return repositories!.ToDictionary(repo => repo.Key, repo => GitHubRawUrl.Normalize(repo.Value));
     }
 
     public async Task<HashSet<string>> LoadAllowedTags()
@@ -507,6 +526,19 @@ public class Client
             $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}_steam_manifests.json";
         return await _client.GetFromJsonAsync<SteamManifest[]>(url, _dtos.Options, token) ??
                Array.Empty<SteamManifest>();
+    }
+
+    /// <summary>
+    ///     The content index shard a hash falls in: every game file anybody has indexed whose hash starts
+    ///     with the same byte. One file over HTTP per lookup, which is why the index is sharded at all.
+    /// </summary>
+    public async Task<IndexedGameFile[]> GetIndexedGameFiles(Game game, Hash hash,
+        CancellationToken token = default)
+    {
+        var url = "https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/" +
+                  $"{game}/{GameFileIndex.ShardPath(hash)}";
+        return await _client.GetFromJsonAsync<IndexedGameFile[]>(url, _dtos.Options, token) ??
+               Array.Empty<IndexedGameFile>();
     }
 
     public async Task<bool> ProxyHas(Uri uri)

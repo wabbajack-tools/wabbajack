@@ -32,7 +32,11 @@ public class SettingsManager
 
     public async Task Save<T>(string key, T value)
     {
-        var tmp = GetPath(key).WithExtension(Ext.Temp);
+        // A temporary file of its own for each save: with one per key, a save running alongside another (the app
+        // and the CLI, or two processes on one machine) could rename the other's away, and that one's rename then
+        // found nothing. The last rename wins, which for settings is what is wanted.
+        var path = GetPath(key);
+        var tmp = path.Parent.Combine($"{path.FileName}.{RandomName.Next()}").WithExtension(Ext.Temp);
         await using (var s = tmp.Open(FileMode.Create, FileAccess.Write))
         {
             var opts = new JsonSerializerOptions(_dtos.Options)
@@ -42,7 +46,7 @@ public class SettingsManager
             await JsonSerializer.SerializeAsync(s, value, opts);
         }
 
-        await tmp.MoveToAsync(GetPath(key), true, CancellationToken.None);
+        await tmp.MoveToAsync(path, true, CancellationToken.None);
     }
 
     public async Task<T> Load<T>(string key)

@@ -34,8 +34,42 @@ public static class DepotEntitlement
         return appInfo != null && appInfo["common"]["FreeToDownload"].AsBoolean();
     }
 
+    /// <summary>
+    ///     Whether to ask Steam for the licence it gives away, given what the licence scan established.
+    ///     <para>
+    ///         The third case is the point of this existing. Asking adds a package to somebody's Steam
+    ///         library, and "we could not find out what they own" is not "they own nothing" - a licence
+    ///         list that has not arrived on a slow link would otherwise put the Creation Kit in the library
+    ///         of a user who already had it. <see cref="SteamContentClient.CheckAccessAsync" />'s
+    ///         <see cref="DepotAccess.Unconfirmed" /> refuses to guess for exactly this reason, and a guess
+    ///         that ends in writing to the account is the one least worth making.
+    ///     </para>
+    /// </summary>
+    public static FreeLicenseDecision DecideFreeLicense(bool held, bool licensesArrived)
+    {
+        if (held) return FreeLicenseDecision.AlreadyHeld;
+
+        return licensesArrived ? FreeLicenseDecision.Ask : FreeLicenseDecision.Unconfirmed;
+    }
+
     private static bool ListContains(KeyValue list, uint value)
     {
         return list != KeyValue.Invalid && list.Children.Any(child => child.AsUnsignedInteger() == value);
     }
+}
+
+/// <summary>What the licence scan means for asking Steam to grant a free app.</summary>
+public enum FreeLicenseDecision
+{
+    /// <summary>A licence already names the app. Nothing to ask for.</summary>
+    AlreadyHeld,
+
+    /// <summary>The account's licences are known and none of them covers it. Ask.</summary>
+    Ask,
+
+    /// <summary>
+    ///     The licence list never arrived, so whether the account already holds one is unknown. Do not ask:
+    ///     an unknown is not a no, and the cost of being wrong is a package in somebody's library.
+    /// </summary>
+    Unconfirmed
 }

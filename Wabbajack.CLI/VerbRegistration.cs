@@ -35,6 +35,8 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<HashUrlString>();
         CommandLineBuilder.RegisterCommand<IndexNexusMod>(IndexNexusMod.Definition, c => ((IndexNexusMod)c).Run);
         services.AddSingleton<IndexNexusMod>();
+        CommandLineBuilder.RegisterCommand<IndexSteamDepots>(IndexSteamDepots.Definition, c => ((IndexSteamDepots)c).Run);
+        services.AddSingleton<IndexSteamDepots>();
         CommandLineBuilder.RegisterCommand<Install>(Install.Definition, c => ((Install)c).Run);
         services.AddSingleton<Install>();
         CommandLineBuilder.RegisterCommand<InstallCompileInstallVerify>(InstallCompileInstallVerify.Definition, c => ((InstallCompileInstallVerify)c).Run);
@@ -53,6 +55,8 @@ public static class CommandLineBuilderExtensions
         services.AddSingleton<Reset>();
         CommandLineBuilder.RegisterCommand<Restart>(Restart.Definition, c => ((Restart)c).Run);
         services.AddSingleton<Restart>();
+        CommandLineBuilder.RegisterCommand<SteamAppTicket>(SteamAppTicket.Definition, c => ((SteamAppTicket)c).Run);
+        services.AddSingleton<SteamAppTicket>();
         CommandLineBuilder.RegisterCommand<SteamFetchFile>(SteamFetchFile.Definition, c => ((SteamFetchFile)c).Run);
         services.AddSingleton<SteamFetchFile>();
         CommandLineBuilder.RegisterCommand<SteamListManifest>(SteamListManifest.Definition, c => ((SteamListManifest)c).Run);

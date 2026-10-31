@@ -96,6 +96,9 @@ public static class GameRegistry
                 MO2Name = "Skyrim",
                 MO2ArchiveName = "skyrim",
                 SteamIDs = new[] {72850},
+                // Skyrim Creation Kit. Alone among the four, its depot is granted by the packages that
+                // grant the game itself, so owning Skyrim is owning it.
+                SteamToolIDs = new[] {202480},
                 RequiredFiles = new[]
                 {
                     "tesv.exe".ToRelativePath()
@@ -114,6 +117,9 @@ public static class GameRegistry
                 MO2Name = "Skyrim Special Edition",
                 MO2ArchiveName = "skyrimse",
                 SteamIDs = new[] {489830},
+                // Skyrim Special Edition: Creation Kit. Depots 1946182 (CreationKit.exe) and 1946183
+                // (everything else); its installdir is the game's and it declares sharesdirwithapp 489830.
+                SteamToolIDs = new[] {1946180},
                 GOGIDs = new long[]
                 {
                     1711230643,// The Elder Scrolls V: Skyrim Special Edition AKA Base Game
@@ -138,6 +144,8 @@ public static class GameRegistry
                 MO2Name = "Fallout 4",
                 MO2ArchiveName = "fallout4",
                 SteamIDs = new[] {377160},
+                // Fallout 4: Creation Kit. Depots 1946161 and 1946162, installdir "Fallout 4".
+                SteamToolIDs = new[] {1946160},
                 GOGIDs = new long[]{1998527297},
                 RequiredFiles = new[]
                 {
@@ -647,6 +655,8 @@ public static class GameRegistry
                 MO2Name = "Starfield",
                 MO2ArchiveName = "Starfield",
                 SteamIDs = [1716740],
+                // Starfield: Creation Kit. One depot, 2722711, installdir "Starfield".
+                SteamToolIDs = [2722710],
                 RequiredFiles = new []
                 {
                     @"Starfield.exe".ToRelativePath()
@@ -852,6 +862,22 @@ public static class GameRegistry
                 },
                 MainExecutable = "NieRAutomata.exe".ToRelativePath(),
                 IconSource = "https://cdn2.steamgriddb.com/icon/e8fd4a8a5bab2b3785d794ab51fef55c/32/32x32.png",
+            }
+        },
+        {
+            Game.DuneAwakening, new GameMetaData
+            {
+                Game = Game.DuneAwakening,
+                MO2Name = "Dune: Awakening",
+                NexusName = "duneawakening",
+                NexusGameId = 7828,
+                MO2ArchiveName = "duneawakening",
+                SteamIDs = [1172710],
+                RequiredFiles = new []
+                {
+                    @"DuneSandbox\Binaries\Win64\DuneSandbox-Win64-Shipping.exe".ToRelativePath(),
+                },
+                MainExecutable = @"DuneSandbox\Binaries\Win64\DuneSandbox-Win64-Shipping.exe".ToRelativePath(),
             }
         },
         {

@@ -110,6 +110,35 @@ public class DIRegistrationTests
     }
 
     [Fact]
+    public void AllVerbOptionsBindToARunParameter()
+    {
+        // The binder matches options to Run's parameters by name, ignoring case and dashes (--new-file
+        // binds newFile). An option whose name matches nothing is silently dropped and the parameter gets
+        // its default, so the verb runs as if the option had not been given.
+        var problems = new System.Collections.Generic.List<string>();
+        foreach (var verbType in CommandLineBuilder.Verbs)
+        {
+            var definition = (VerbDefinition)verbType.GetField("Definition", BindingFlags.Public | BindingFlags.Static)!
+                .GetValue(null)!;
+            var runParameters = verbType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .First(m => m.Name == "Run")
+                .GetParameters();
+
+            foreach (var option in definition.Options)
+            {
+                var parameter = runParameters.FirstOrDefault(p =>
+                    string.Equals(p.Name, option.LongOption.Replace("-", ""), StringComparison.OrdinalIgnoreCase));
+                if (parameter == null)
+                    problems.Add($"{verbType.Name}: '--{option.LongOption}' has no Run parameter of that name");
+                else if (parameter.ParameterType != option.Type)
+                    problems.Add($"{verbType.Name}: '--{option.LongOption}' is {option.Type.Name} but Run takes {parameter.ParameterType.Name}");
+            }
+        }
+
+        Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
+    }
+
+    [Fact]
     public void NoDuplicateVerbCommandNames()
     {
         var names = CommandLineBuilder.Verbs

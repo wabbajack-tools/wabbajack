@@ -52,6 +52,9 @@ public class SteamSession : ISteamSession
 
     private TaskCompletionSource<SteamUser.LoggedOnCallback>? _loggedOn;
 
+    /// <summary>1 once the callback pump thread has been started; see <see cref="EnsurePump" />.</summary>
+    private int _pumping;
+
     public SteamSession(ILogger<SteamSession> logger, ITokenProvider<SteamLoginState> tokenProvider,
         ISteamGuardPrompt prompt)
     {
@@ -75,12 +78,6 @@ public class SteamSession : ISteamSession
         _manager.Subscribe<SteamUser.LoggedOnCallback>(OnLoggedOn);
         _manager.Subscribe<SteamUser.LoggedOffCallback>(OnLoggedOff);
         _manager.Subscribe<SteamApps.LicenseListCallback>(OnLicenseList);
-
-        new Thread(PumpCallbacks)
-        {
-            Name = "Steam client callback runner",
-            IsBackground = true
-        }.Start();
     }
 
     /// <summary>
@@ -381,6 +378,26 @@ public class SteamSession : ISteamSession
         return BitConverter.ToUInt32(bytes);
     }
 
+    /// <summary>
+    ///     Starts the callback pump, once, the first time a connection is actually attempted.
+    ///     Not in the constructor, which is where it used to be. This is a DI singleton and
+    ///     <c>PreflightRunner.Create</c> resolves the restorer sitting on top of it for every install, so in a
+    ///     process that stays open all day - the app, rather than a CLI run that exits in seconds - building
+    ///     it eagerly meant a thread waking four times a second for the life of the app on behalf of a user
+    ///     who may never log into Steam at all. Nothing arrives before <see cref="_client" /> connects, so
+    ///     there is nothing for it to have missed.
+    /// </summary>
+    private void EnsurePump()
+    {
+        if (Interlocked.Exchange(ref _pumping, 1) == 1) return;
+
+        new Thread(PumpCallbacks)
+        {
+            Name = "Steam client callback runner",
+            IsBackground = true
+        }.Start();
+    }
+
     private void PumpCallbacks()
     {
         while (!_shutdown.IsCancellationRequested)
@@ -414,6 +431,8 @@ public class SteamSession : ISteamSession
     private async Task ConnectAsync(CancellationToken token)
     {
         if (_client.IsConnected) return;
+
+        EnsurePump();
 
         var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         _connected = tcs;

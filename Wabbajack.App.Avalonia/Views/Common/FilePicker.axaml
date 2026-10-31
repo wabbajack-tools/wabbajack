@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:common="using:Wabbajack.App.Avalonia.Views.Common"
+             x:Class="Wabbajack.App.Avalonia.Views.Common.FilePicker">
+    <!--
+        A path box with a browse button at its end. Its background and font size come from MainFilePickerStyle
+        (Themes/CommonControls.axaml). In error it glows and outlines itself in the warning colour, both
+        swinging to the darker yellow over 0.8 seconds and back, for as long as the error lasts.
+    -->
+    <UserControl.Styles>
+        <Style Selector="common|FilePicker.inError Rectangle#ErrorGlow">
+            <Setter Property="IsVisible" Value="True" />
+            <Style.Animations>
+                <Animation Duration="0:0:0.8" IterationCount="Infinite" PlaybackDirection="Alternate">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Fill" Value="{StaticResource WarningBrush}" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <!-- YellowDark -->
+                        <Setter Property="Fill" Value="#967400" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="common|FilePicker.inError Border#ErrorBorder">
+            <Setter Property="IsVisible" Value="True" />
+            <Style.Animations>
+                <Animation Duration="0:0:0.8" IterationCount="Infinite" PlaybackDirection="Alternate">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="BorderBrush" Value="{StaticResource WarningBrush}" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="BorderBrush" Value="#967400" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Height="32" ColumnDefinitions="*,Auto">
+        <Rectangle x:Name="ErrorGlow" Grid.ColumnSpan="2" Fill="{StaticResource WarningBrush}" Opacity="0.3" IsVisible="False">
+            <Rectangle.Effect>
+                <BlurEffect Radius="15" />
+            </Rectangle.Effect>
+        </Rectangle>
+        <Border x:Name="BackgroundCornerFillIn" Grid.ColumnSpan="2" Margin="0,0,5,0"
+                Background="{StaticResource TextBoxBackground}" CornerRadius="4" />
+        <!--
+            The text box is 36px tall (the TextBox style) in a 32px row. WPF clipped it to the row, which cut off
+            its top and bottom edges; without the clip they would show 2px above and below the picker.
+            WPF also gave it DarkBackgroundBrush, which its template never showed, so it is left out.
+        -->
+        <Panel Grid.Column="0" ClipToBounds="True">
+            <TextBox x:Name="PathBox" Margin="4,0,0,0" VerticalAlignment="Center" VerticalContentAlignment="Center" />
+        </Panel>
+        <Grid Grid.Column="1" HorizontalAlignment="Right" ClipToBounds="True">
+            <Border Width="32" HorizontalAlignment="Right" BorderThickness="0" CornerRadius="4">
+                <!-- MainButtonStyle with a local transparent background, which its hover setters do not outrank. -->
+                <Button x:Name="SetTargetPathButton" Classes="main" Background="Transparent" ToolTip.Tip="Set target path">
+                    <ic:SymbolIcon x:Name="IconView" FontSize="18" />
+                </Button>
+            </Border>
+        </Grid>
+        <Border x:Name="ErrorBorder" Grid.ColumnSpan="2" Background="Transparent"
+                BorderBrush="{StaticResource WarningBrush}" BorderThickness="1" CornerRadius="4"
+                IsHitTestVisible="False" IsVisible="False" />
+    </Grid>
+</UserControl>

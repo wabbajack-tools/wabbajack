@@ -81,6 +81,39 @@ public class DepotEntitlementTests
         Assert.False(DepotEntitlement.IsFreeToDownload(null));
     }
 
+    /// <summary>
+    ///     The same walk answers for an <em>app</em> id, which is what the free-licence path leans on:
+    ///     "does this account already hold the Creation Kit" is asked about app 1946180, and Steam's
+    ///     complimentary package for it lists that under <c>appids</c> with its two depots under
+    ///     <c>depotids</c>. Were this not true the account would be asked to grant a licence it has.
+    /// </summary>
+    [Fact]
+    public void TheSameQuestionAnswersForAnAppId()
+    {
+        var package = Package(new uint[] {1946180}, new uint[] {1946182, 1946183});
+
+        Assert.True(DepotEntitlement.PackageGrantsDepot(package, 1946180));
+        Assert.True(DepotEntitlement.PackageGrantsDepot(package, 1946182));
+        Assert.False(DepotEntitlement.PackageGrantsDepot(package, 1946160));
+    }
+
+    /// <summary>
+    ///     Whether to ask Steam to grant a free app. The only one of the three that writes to somebody's
+    ///     account is <see cref="FreeLicenseDecision.Ask" />, so the table is really about the other two
+    ///     never becoming it - above all the unconfirmed case, where a licence list that never arrived
+    ///     would otherwise read as "owns nothing" and add a package the user already had.
+    /// </summary>
+    [Theory]
+    [InlineData(true, true, FreeLicenseDecision.AlreadyHeld)]
+    [InlineData(true, false, FreeLicenseDecision.AlreadyHeld)]
+    [InlineData(false, true, FreeLicenseDecision.Ask)]
+    [InlineData(false, false, FreeLicenseDecision.Unconfirmed)]
+    public void AFreeLicenceIsOnlyAskedForWhenTheAccountIsKnownNotToHaveOne(bool held, bool licensesArrived,
+        FreeLicenseDecision expected)
+    {
+        Assert.Equal(expected, DepotEntitlement.DecideFreeLicense(held, licensesArrived));
+    }
+
     private static KeyValue Package(uint[]? appIds = null, uint[]? depotIds = null)
     {
         var package = new KeyValue("package");

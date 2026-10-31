@@ -145,7 +145,8 @@ public class GameFilesCheckTests : IDisposable
 
         Assert.Equal(PreflightState.Failed, result.State);
         Assert.Contains("1 game file is missing", result.Message);
-        Assert.Contains("Data_Dawnguard.esm", result.Message);
+        Assert.DoesNotContain("Data_Dawnguard.esm", result.Message);
+        Assert.Contains("Data_Dawnguard.esm", result.Detail);
         Assert.Equal(ArchiveState.Missing, _progress.LastStates()["Data_Dawnguard.esm"]);
         Assert.Equal(ArchiveState.Present, _progress.LastStates()["Data_Skyrim.esm"]);
         Assert.Null(result.Actions);
@@ -233,8 +234,13 @@ public class GameFilesCheckTests : IDisposable
         Assert.Contains("missing", withoutFolder.Message);
     }
 
+    /// <summary>
+    ///     The message counts and the detail names. It used to name up to twenty files, which is drawn as
+    ///     one ellipsized line on the checklist row and repeated at the top of the game-files card: it said
+    ///     nothing the list of files underneath was not already saying, and hid the sentence that mattered.
+    /// </summary>
     [Fact]
-    public async Task TheMessageNamesAtMostTwentyFilesAndTheDetailAllOfThem()
+    public async Task TheMessageCountsTheFilesAndTheDetailNamesThem()
     {
         var archives = new List<Archive>();
         for (var i = 0; i < 25; i++)
@@ -244,9 +250,29 @@ public class GameFilesCheckTests : IDisposable
         var result = await _check.Run(await Context(), _progress, CancellationToken.None);
 
         Assert.Equal(PreflightState.Failed, result.State);
-        Assert.Contains("and 5 more", result.Message);
-        Assert.DoesNotContain("missing24", result.Message);
+        Assert.Contains("25 game files are missing", result.Message);
+        Assert.All(archives, a => Assert.DoesNotContain(a.Name, result.Message));
         Assert.Equal(25, archives.Count(a => result.Detail!.Contains(a.Name)));
+    }
+
+    /// <summary>
+    ///     A game that is not installed is not a modified install, so the row does not ask a user who has
+    ///     just been told the game is missing whether they forgot a DLC.
+    /// </summary>
+    [Fact]
+    public async Task ASourcedGameIsSaidToBeTheReasonTheFilesAreMissing()
+    {
+        _host.Config.ModList.Archives = new[] {await GameFile(null, "Data/Skyrim.esm", "esm bytes")};
+
+        var ctx = _host.Context();
+        ctx.State.GameFolder = default;
+        ctx.State.SourcedGames.Add(Game.SkyrimSpecialEdition);
+        await _host.Inventory(ctx);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Contains("Skyrim Special Edition is not installed", result.Message);
+        Assert.DoesNotContain("modified install", result.Message);
     }
 
     /// <summary>
@@ -268,7 +294,63 @@ public class GameFilesCheckTests : IDisposable
 
         Assert.Equal(PreflightState.Failed, withSteam.State);
         Assert.Equal(new[] {PreflightAction.RepairGameFiles}, withSteam.Actions);
-        Assert.Contains("Steam can fetch 1 file", withSteam.Detail);
+        Assert.Contains("Wabbajack can download 1 file from Steam", withSteam.Detail);
+    }
+
+    /// <summary>
+    ///     A game that is not installed at all: game-installed left no folder and said the source can supply
+    ///     the game, so every file this list takes from it is missing rather than mismatched - nothing here
+    ///     is the wrong version of anything - and the repair is offered.
+    ///     <para>
+    ///         The Steam build id is what says "this came from a store we can fetch from" for an installed
+    ///         game, and it is read out of a local install. There is none, so <c>SourcedGames</c> stands in
+    ///         its place; without that this row would list every game file as missing and offer no way to
+    ///         get any of them.
+    ///     </para>
+    /// </summary>
+    [Fact]
+    public async Task AGameThatIsSourcedRatherThanInstalledHasEveryFileMissing()
+    {
+        _host.Restorer = new FakeGameFileRestorer();
+        _host.Config.ModList.Archives = new[]
+        {
+            await GameFile(null, "Data/Skyrim.esm", "esm bytes"),
+            await GameFile(null, "Data/Dawnguard.esm", "dlc bytes")
+        };
+
+        var ctx = _host.Context();
+        ctx.State.GameFolder = default;
+        ctx.State.SourcedGames.Add(Game.SkyrimSpecialEdition);
+        await _host.Inventory(ctx);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Failed, result.State);
+        Assert.Contains("2 game files are missing", result.Message);
+        Assert.Equal(new[] {PreflightAction.RepairGameFiles}, result.Actions);
+        Assert.All(ctx.State.RepairableGameFiles, f => Assert.Equal(GameFileProblem.Missing, f.Problem));
+    }
+
+    /// <summary>
+    ///     The game's own required files are a claim about an install, and there is none. Saying the install
+    ///     at "" is incomplete would be both untrue and a row the user has already seen - the Warning that
+    ///     let the run get this far.
+    /// </summary>
+    [Fact]
+    public async Task ASourcedGameIsNotCheckedForRequiredFiles()
+    {
+        _host.Restorer = new FakeGameFileRestorer();
+        _host.Config.ModList.Archives = Array.Empty<Archive>();
+
+        var ctx = _host.Context();
+        ctx.State.GameFolder = default;
+        ctx.State.SourcedGames.Add(Game.SkyrimSpecialEdition);
+        await _host.Inventory(ctx);
+
+        var result = await _check.Run(ctx, _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, result.State);
+        Assert.Contains("takes no files from the game", result.Message);
     }
 
     /// <summary>
@@ -287,6 +369,49 @@ public class GameFilesCheckTests : IDisposable
 
         Assert.Equal(new[] {PreflightAction.RepairGameFiles}, result.Actions);
         Assert.Contains("Log into Steam and these can be fetched for you.", result.Detail);
+    }
+
+    /// <summary>
+    ///     What a repair would do beyond downloading is asked about the games of the files being repaired,
+    ///     and not about the modlist's own game.
+    ///     <para>
+    ///         For nearly every list those are the same set, which is what makes the difference easy to get
+    ///         wrong: a list with <c>CanSourceFrom</c> files carries a second game, and asking about
+    ///         <c>Config.Game</c> alone would miss a companion app for the sourced game while naming one for
+    ///         a game whose files are all fine. Both directions are pinned here.
+    ///     </para>
+    /// </summary>
+    [Fact]
+    public async Task AsksAboutTheGamesOfTheFilesBeingRepaired()
+    {
+        const string consequence = "This adds a free Fallout 4 app to your Steam library.";
+
+        _host.Restorer = new FakeGameFileRestorer
+        {
+            Consequence = consequence,
+            ConsequentialGames = {Game.Fallout4}
+        };
+        _host.Locator.SteamBuildIds[Game.SkyrimSpecialEdition] = "1234567";
+
+        // Only the modlist's own game is short a file, and it has no companion app.
+        _host.Config.ModList.Archives = new[] {await GameFile(null, "Data/Dawnguard.esm", "dlc bytes")};
+
+        var skyrimOnly = await _check.Run(await Context(), _progress, CancellationToken.None);
+
+        Assert.Equal(new[] {PreflightAction.RepairGameFiles}, skyrimOnly.Actions);
+        Assert.DoesNotContain(consequence, skyrimOnly.Detail);
+
+        // Now a file sourced from a second game, which does. Nothing about the modlist's GameType changed.
+        _host.Config.ModList.Archives = new[]
+        {
+            await GameFile(null, "Data/Dawnguard.esm", "dlc bytes"),
+            await GameFile(null, "Data/Fallout4.esm", "other game bytes", Game.Fallout4)
+        };
+
+        var bothGames = await _check.Run(await Context(), new RecordingProgress(), CancellationToken.None);
+
+        Assert.Equal(new[] {PreflightAction.RepairGameFiles}, bothGames.Actions);
+        Assert.Contains(consequence, bothGames.Detail);
     }
 
     /// <summary>A host with no restorer at all keeps the behaviour it has always had: fix it by hand.</summary>

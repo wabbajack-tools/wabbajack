@@ -46,6 +46,7 @@ public static class PreflightCheckIds
 {
     public const string NexusLogin = "nexus-login";
     public const string GameInstalled = "game-installed";
+    public const string SteamSandbox = "steam-sandbox";
     public const string GameFiles = "game-files";
     public const string ArchiveInventory = "archive-inventory";
     public const string UnsupportedArchives = "unsupported-archives";

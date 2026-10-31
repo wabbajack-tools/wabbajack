@@ -25,6 +25,8 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
+        <!-- Builds the Zstd side of a depot chunk in DepotChunkCompressionTests; see Directory.Packages.props. -->
+        <PackageReference Include="ZstdSharp.Port" />
     </ItemGroup>
 
     <ItemGroup>

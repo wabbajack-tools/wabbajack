@@ -1,0 +1,7 @@
+<Project>
+    <!-- Projects under external/ are other repositories that pin their own package versions.
+         This stops the root Directory.Packages.props from applying to them. -->
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    </PropertyGroup>
+</Project>

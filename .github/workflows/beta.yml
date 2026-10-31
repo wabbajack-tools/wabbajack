@@ -1,0 +1,128 @@
+name: Create Beta Build
+
+# A beta is handed out by hand: people download it, unpack it anywhere, run it, and delete it when they are
+# done. It is built unsigned for Windows and Linux and put on a GitHub prerelease, and goes nowhere else: no
+# Nexus upload, no Discord post, no launcher.
+#
+# Old launchers read the GitHub release list, prereleases included, and take the highest tag made of exactly
+# four numbers, then its {tag}.zip. A beta's tag, such as 4.4.0.0-beta.1, is neither, and no beta file is
+# named {tag}.zip, so no launcher can pick one up. Keep it that way.
+
+on:
+  workflow_dispatch:
+    inputs:
+      beta:
+        description: "Beta label, such as beta.1 (the tag becomes <changelog version>-<label>)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+
+    env:
+      PUBLISH_DIR: ${{ github.workspace }}/publish-wj-linux
+      BETA: ${{ inputs.beta }}
+
+    outputs:
+      label: ${{ steps.build.outputs.label }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Check the beta label
+        run: |
+          if [[ ! "$BETA" =~ ^beta\.[0-9]+$ ]]; then
+            echo "The beta label must look like beta.1, not '$BETA'" >&2
+            exit 1
+          fi
+
+      - name: Build and package
+        id: build
+        run: ./release-linux.sh
+
+      - name: Keep the tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-linux
+          path: ${{ steps.build.outputs.tarball }}
+          if-no-files-found: error
+
+  windows:
+    needs: linux
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # As release.ps1 builds the app and CLI, without signing or the launcher.
+      - name: Build and package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $label = "${{ needs.linux.outputs.label }}"
+          $version = $label -replace '-beta\.\d+$', ''
+          $publish = "${{ github.workspace }}\publish-wj"
+
+          $common = @("--runtime", "win-x64", "--configuration", "Release", "--self-contained",
+                      "/p:IncludeNativeLibrariesForSelfExtract=true", "/p:DebugType=embedded",
+                      "/p:VERSION=$version", "/p:BETA=${{ inputs.beta }}")
+
+          dotnet publish Wabbajack.App.Avalonia\Wabbajack.App.Avalonia.csproj --framework net10.0 @common -o "$publish\app"
+          if ($LASTEXITCODE -ne 0) { throw "dotnet publish Wabbajack.App.Avalonia failed" }
+          dotnet publish Wabbajack.CLI\Wabbajack.CLI.csproj --framework net10.0-windows @common -o "$publish\app\cli"
+          if ($LASTEXITCODE -ne 0) { throw "dotnet publish Wabbajack.CLI failed" }
+
+          # A top-level folder, as the Linux tarball has, so unpacking it keeps the beta in one place.
+          $folder = "$publish\Wabbajack-$label"
+          Move-Item "$publish\app" $folder
+          Compress-Archive -Path $folder -DestinationPath "$publish\$label-windows-x64.zip"
+
+      - name: Keep the zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-windows
+          path: ${{ github.workspace }}\publish-wj\*-windows-x64.zip
+          if-no-files-found: error
+
+  prerelease:
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Fetch the builds
+        uses: actions/download-artifact@v4
+        with:
+          path: beta
+          merge-multiple: true
+
+      - name: Create the GitHub prerelease
+        run: |
+          label="${{ needs.linux.outputs.label }}"
+          gh release create "$label" beta/* \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --prerelease \
+            --title "$label" \
+            --notes "Beta build for testing. Download the file for your system, unpack it anywhere and run Wabbajack from that folder; delete the folder when you are done. Unsigned, and never offered by the launcher."

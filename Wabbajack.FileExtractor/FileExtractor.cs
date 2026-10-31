@@ -64,6 +64,12 @@ public class FileExtractor
 
     private readonly IResource<FileExtractor> _limiter;
     private readonly ILogger<FileExtractor> _logger;
+
+    /// <summary>
+    ///     7-Zip matches a file list by case on Linux and macOS. The list's names come from a VFS built on Windows,
+    ///     which may spell a folder differently from the archive, so matching is made case-insensitive there.
+    /// </summary>
+    private static readonly string[] CaseInsensitive = OperatingSystem.IsWindows() ? [] : ["-ssc-"];
     private readonly TemporaryFileManager _manager;
 
     private readonly ParallelOptions _parallelOptions;
@@ -108,6 +114,11 @@ public class FileExtractor
                 if (sFn.Name.FileName.Extension == OMODExtension)
                 {
                     results = await GatheringExtractWithOMOD(archive, shouldExtract, mapfn, token);
+                }
+                else if (sig == FileType._7Z && HasBackslashNames(archive, sFn.Name))
+                {
+                    results = await GatheringExtractWithSharpCompress(archive, sFn.Name, shouldExtract, mapfn,
+                        onlyFiles, token);
                 }
                 else
                 {
@@ -210,7 +221,7 @@ public class FileExtractor
         public bool CanMove { get; set; } = true;
         public async ValueTask Move(AbsolutePath newPath, CancellationToken token)
         {
-            await using var output = newPath.Open(FileMode.Create, FileAccess.Read, FileShare.Read);
+            await using var output = newPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
             _rdr.Position = _start;
             await _rdr.BaseStream.CopyToLimitAsync(output, (int)_length, token);
         }
@@ -330,6 +341,74 @@ public class FileExtractor
         return sb.ToString();
     }
 
+    /// <summary>
+    ///     A 7z whose entry names carry backslashes, which is what one packed on Linux from Windows paths looks like:
+    ///     <c>core\Requiem.bsa</c> stored as a single name rather than a folder and a file. 7-Zip 20 read the backslash
+    ///     as a folder, the way lists compiled with it expect; 7-Zip 26 treats it as an illegal character and writes
+    ///     <c>core_Requiem.bsa</c>, so an install asking for <c>core\Requiem.bsa</c> gets nothing. Only the headers are
+    ///     read here, and anything that cannot be read leaves the archive to 7-Zip as before.
+    /// </summary>
+    private bool HasBackslashNames(Stream archive, IPath name)
+    {
+        if (!archive.CanSeek) return false;
+        try
+        {
+            using var sevenZip = SharpCompress.Archives.SevenZip.SevenZipArchive.OpenArchive(archive,
+                new SharpCompress.Readers.ReaderOptions {LeaveStreamOpen = true});
+            var found = sevenZip.Entries.Any(e => !e.IsDirectory && e.Key?.Contains('\\') == true);
+            if (found)
+                _logger.LogInformation("{Archive} names its files with backslashes; extracting it in process", name);
+            return found;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Could not read the 7z headers of {Archive}; leaving it to 7-Zip", name);
+            return false;
+        }
+        finally
+        {
+            archive.Position = 0;
+        }
+    }
+
+    /// <summary>
+    ///     Extracts a 7z in process with SharpCompress, reading each stored name with backslashes as folders, the way
+    ///     7-Zip 20 did. Entries are read in order, which is the cheap way through a solid archive.
+    /// </summary>
+    private async Task<IDictionary<RelativePath, T>> GatheringExtractWithSharpCompress<T>(Stream archive, IPath name,
+        Predicate<RelativePath> shouldExtract, Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
+        IReadOnlyCollection<RelativePath>? onlyFiles, CancellationToken token)
+    {
+        await using var dest = _manager.CreateFolder();
+        using var job = await _limiter.Begin($"Extracting {name}", archive.Length, token);
+        var results = new Dictionary<RelativePath, T>();
+        var wanted = onlyFiles == null ? null : new HashSet<RelativePath>(onlyFiles);
+
+        using var sevenZip = SharpCompress.Archives.SevenZip.SevenZipArchive.OpenArchive(archive,
+            new SharpCompress.Readers.ReaderOptions {LeaveStreamOpen = true});
+        using var reader = sevenZip.ExtractAllEntries();
+        while (reader.MoveToNextEntry())
+        {
+            token.ThrowIfCancellationRequested();
+            if (reader.Entry.IsDirectory || string.IsNullOrEmpty(reader.Entry.Key)) continue;
+
+            var path = reader.Entry.Key.ToRelativePath();
+            if (!shouldExtract(path) || (wanted != null && !wanted.Contains(path)) || results.ContainsKey(path))
+                continue;
+
+            var file = dest.Path.Combine(path);
+            file.Parent.CreateDirectory();
+            await using (var output = file.Open(FileMode.Create, FileAccess.Write, FileShare.None))
+                reader.WriteEntryTo(output);
+
+            results[path] = await mapfn(path, new ExtractedNativeFile(file));
+            file.Delete();
+            await job.Report((int) Math.Min(int.MaxValue, reader.Entry.CompressedSize), token);
+        }
+
+        return results;
+    }
+
     public async Task<IDictionary<RelativePath, T>> GatheringExtractWith7Zip<T>(IStreamFactory sf,
         Predicate<RelativePath> shouldExtract,
         Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
@@ -389,12 +468,12 @@ public class FileExtractor
                     token);
                 process.Arguments =
                 [
-                    "x", "-bsp1", "-y", $"-o\"{dest}\"", source, $"@\"{tmpFile.Value.ToString()}\"", "-mmt=off"
+                    "x", "-bsp1", "-y", $"-o\"{dest}\"", source, $"@\"{tmpFile.Value.ToString()}\"", "-mmt=off", ..CaseInsensitive
                 ];
             }
             else
             {
-                process.Arguments = ["x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off"];
+                process.Arguments = ["x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off", ..CaseInsensitive];
             }
 
             _logger.LogTrace("{prog} {args}", process.Path, process.Arguments);
@@ -453,6 +532,7 @@ public class FileExtractor
 
             
             job.Dispose();
+            if (!OperatingSystem.IsWindows()) MoveBackslashNamedFilesIntoFolders(dest.Path.ToString());
             var results = await dest.Path.EnumerateFiles()
                 .SelectAsync(async f =>
                 {
@@ -464,7 +544,7 @@ public class FileExtractor
                     return (path, mapResult);
                 })
                 .Where(d => d.Item1 != default)
-                .ToDictionary(d => d.Item1, d => d.Item2);
+                .ToDictionaryFirstWins(d => d.Item1, d => d.Item2, sf.Name, _logger);
 
             // The same count check GatheringExtract performs, done here so the report can say what 7-Zip
             // reported and what was asked of it. Reaching the generic check would lose both.
@@ -484,6 +564,28 @@ public class FileExtractor
         }
     }
     
+    /// <summary>
+    ///     Some zips made on Windows name their entries with backslashes (<c>BuildHost-net472\Host.exe.config</c>),
+    ///     which Windows reads as folders. Off Windows 7-Zip writes such an entry as a single file whose name holds
+    ///     the backslashes, and since paths here split on them, the file was then looked for in a folder that does
+    ///     not exist. So each is moved into the folders its name describes; where that file already exists, the
+    ///     archive held the same entry twice and the copy already in place is kept.
+    /// </summary>
+    internal static void MoveBackslashNamedFilesIntoFolders(string root)
+    {
+        foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
+                     .Where(f => Path.GetFileName(f).Contains('\\')).ToList())
+        {
+            var parts = Path.GetFileName(file).Split('\\', StringSplitOptions.RemoveEmptyEntries);
+            var target = Path.Combine([Path.GetDirectoryName(file)!, ..parts]);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            if (File.Exists(target))
+                File.Delete(file);
+            else
+                File.Move(file, target);
+        }
+    }
+
     public async Task<IDictionary<RelativePath, T>> GatheringExtractWithInnoExtract<T>(IStreamFactory sf,
         Predicate<RelativePath> shouldExtract,
         Func<RelativePath, IExtractedFile, ValueTask<T>> mapfn,
@@ -557,7 +659,12 @@ public class FileExtractor
                 .ForEachAsync(p =>
                 {
                     var (_, line) = p;
-                    _logger.LogError("While extracting InnoSetup archive {fileName} at {path}: {line}", source.FileName, processExtract.Path, line);
+                    // Every .exe is offered to innoextract, and most are not installers: that answer is normal,
+                    // and logged as an error it buried real ones under a line per executable.
+                    if (line.Contains("Not a supported Inno Setup installer", StringComparison.OrdinalIgnoreCase))
+                        _logger.LogDebug("{fileName} is not an Inno Setup installer", source.FileName);
+                    else
+                        _logger.LogError("While extracting InnoSetup archive {fileName} at {path}: {line}", source.FileName, processExtract.Path, line);
                 }, token);
 
             // Wait for the job size to be calculated before actually starting the extraction operation, should be very fast
@@ -588,7 +695,7 @@ public class FileExtractor
                     return (path, mapResult);
                 })
                 .Where(d => d.Item1 != default)
-                .ToDictionary(d => d.Item1, d => d.Item2);
+                .ToDictionaryFirstWins(d => d.Item1, d => d.Item2, sf.Name, _logger);
             
             return results;
         }
@@ -614,5 +721,24 @@ public class FileExtractor
             await abs.WriteAllAsync(stream, token);
             return 0;
         }, token, progressFunction: updateProgress);
+    }
+}
+
+internal static class ExtractionResults
+{
+    /// <summary>
+    ///     Collects what an extractor wrote, keyed by path without case. On a case-sensitive file system an archive
+    ///     holding Textures/a.dds and textures/a.dds extracts both, where Windows kept one; the first is kept here
+    ///     the same way, and the other is logged.
+    /// </summary>
+    public static async Task<IDictionary<RelativePath, TV>> ToDictionaryFirstWins<T, TV>(
+        this IAsyncEnumerable<T> items, Func<T, RelativePath> key, Func<T, TV> value, IPath archive, ILogger logger)
+    {
+        var results = new Dictionary<RelativePath, TV>();
+        await foreach (var item in items)
+            if (!results.TryAdd(key(item), value(item)))
+                logger.LogWarning("{Archive} holds {Path} more than once under different casing; keeping the first",
+                    archive, key(item));
+        return results;
     }
 }

@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Paths.IO;
 using Wabbajack.Services.OSIntegrated;
 using Xunit;
 
@@ -17,6 +19,31 @@ public class SteamTokenStorageTests
     {
         return new EncryptedJsonTokenProvider<SteamLoginState>(NullLogger.Instance,
             new DTOSerializer(Array.Empty<JsonConverter>()), key);
+    }
+
+    /// <summary>A stored login is readable by its owner alone off Windows, including one an older build wrote.</summary>
+    [Fact]
+    public async Task AStoredLoginIsReadableOnlyByItsOwner()
+    {
+        if (OperatingSystem.IsWindows()) return;
+
+        var key = $"steam-login-test-{Guid.NewGuid():N}";
+        var provider = MakeProvider(key);
+        var file = KnownFolders.WabbajackAppLocal.Combine("encrypted", key).ToString();
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+            await File.WriteAllTextAsync(file, "");
+            File.SetUnixFileMode(file, (UnixFileMode) 0b110_100_100);
+
+            await provider.SetToken(new SteamLoginState {AccountName = "someaccount"});
+
+            Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(file));
+        }
+        finally
+        {
+            await provider.Delete();
+        }
     }
 
     [Fact]

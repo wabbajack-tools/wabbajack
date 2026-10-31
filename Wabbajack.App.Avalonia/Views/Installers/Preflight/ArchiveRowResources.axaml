@@ -1,0 +1,155 @@
+<!--
+    The archive lists' shared pieces (WPF's ArchiveRowResources.xaml): the band header and archive row
+    templates, the selector that picks between them, and the list and row styles all three lists used.
+    Included by BulkDownloadsView, ManualDownloadView and GameFilesView.
+
+    Colours: WPF blends a translucent text brush in gamma space, so Transparent66ForegroundBrush lands
+    brighter than a plain blend would. #C4E5E5E8 is the plain blend that lands on WPF's colour over the 16
+    tone the band header and the source chip sit on.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ic="using:FluentIcons.Avalonia"
+        xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+        xmlns:conv="using:Wabbajack.App.Avalonia.Converters"
+        xmlns:pvm="using:Wabbajack.App.Avalonia.ViewModels.Installers.Preflight"
+        xmlns:pv="using:Wabbajack.App.Avalonia.Views.Installers.Preflight">
+    <Styles.Resources>
+        <!--
+            The summary row for one band, deeper than an archive row so the list reads as sections. Clicking
+            anywhere on it folds it open or shut, so it is a button with no chrome of its own.
+        -->
+        <DataTemplate x:Key="ArchiveGroupHeaderTemplate" x:DataType="pvm:ArchiveGroupVM">
+            <Button Classes="archiveGroupHeader" Command="{Binding ToggleCommand}"
+                    AutomationProperties.AutomationId="{Binding Title, Mode=OneTime}">
+                <Grid Height="32" Background="{StaticResource ComplementaryPrimary16Brush}" ColumnDefinitions="Auto,Auto,*">
+                    <ic:SymbolIcon Grid.Column="0" FontSize="14" Width="14" Height="14" IconVariant="Regular"
+                                   Foreground="#C4E5E5E8" Margin="13,0,0,0" VerticalAlignment="Center"
+                                   Symbol="{Binding IsExpanded, Converter={x:Static conv:PreflightConverters.Chevron}}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Title, Mode=OneTime}" FontSize="13" FontWeight="SemiBold"
+                               Margin="10,0,8,0" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                    <TextBlock Grid.Column="2" Text="{Binding SummaryText}" FontSize="12" Foreground="#C4E5E5E8"
+                               Margin="0,0,12,0" TextAlignment="Right" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                </Grid>
+            </Button>
+        </DataTemplate>
+
+        <!-- One template for every archive row; state drives the icon, its colour and the progress fill. -->
+        <DataTemplate x:Key="ArchiveRowTemplate" x:DataType="pvm:ArchiveRowVM">
+            <Grid Height="32" ColumnDefinitions="Auto,*,Auto,Auto">
+                <c:MetroProgressBar Grid.ColumnSpan="4" Background="Transparent" Maximum="1"
+                             Foreground="{StaticResource ComplementaryPrimary16Brush}"
+                             Value="{Binding Progress, Mode=OneWay}"
+                             IsVisible="{Binding State, Converter={x:Static conv:PreflightConverters.StateShowsProgress}}" />
+
+                <ic:SymbolIcon Grid.Column="0" FontSize="16" Width="16" Height="16" IconVariant="Filled"
+                               Margin="12,0,0,0" VerticalAlignment="Center"
+                               Symbol="{Binding State, Converter={x:Static conv:PreflightConverters.StateSymbol}}"
+                               Foreground="{Binding State, Converter={x:Static conv:PreflightConverters.StateBrush}}" />
+
+                <TextBlock Grid.Column="1" Text="{Binding Name, Mode=OneTime}" FontSize="13" Margin="10,0,8,0"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                           ToolTip.Tip="{Binding Detail, Converter={x:Static conv:PreflightConverters.EmptyToNull}}" />
+
+                <Border Grid.Column="2" CornerRadius="4" Background="{StaticResource ComplementaryPrimary16Brush}"
+                        Padding="6,2" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding SourceName, Mode=OneTime}" FontSize="11" Foreground="#C4E5E5E8" TextWrapping="NoWrap" />
+                </Border>
+
+                <TextBlock Grid.Column="3" Text="{Binding SizeText, Mode=OneTime}" FontSize="12" MinWidth="64"
+                           TextAlignment="Right" Foreground="{StaticResource ComplementaryWhite25Brush}"
+                           Margin="0,0,12,0" VerticalAlignment="Center" TextWrapping="NoWrap" />
+            </Grid>
+        </DataTemplate>
+
+        <pv:ArchiveListTemplateSelector x:Key="ArchiveListTemplates"
+                                        RowTemplate="{StaticResource ArchiveRowTemplate}"
+                                        GroupTemplate="{StaticResource ArchiveGroupHeaderTemplate}" />
+    </Styles.Resources>
+
+    <!-- ArchiveGroupHeaderButton: no chrome, a hand cursor, the content stretched across the row. -->
+    <Style Selector="Button.archiveGroupHeader">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ContentPresenter Name="Presenter" Content="{TemplateBinding Content}"
+                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- The implicit WPF ListBox style: the 08 tone, no border, its ScrollViewer straight inside. -->
+    <Style Selector="ListBox.archives">
+        <Setter Property="Background" Value="{StaticResource ListBackground}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Bd" Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <ScrollViewer Name="PART_ScrollViewer" Padding="{TemplateBinding Padding}"
+                                  HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                  VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                        <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                    </ScrollViewer>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!--
+        ListBoxItemStyle with no padding and the content stretched, over the system (Aero2) item style that
+        still supplied a transparent 1px border. Rows alternate between the 08 tone and LogViewAlternateBrush;
+        hover and selection paint over the alternation, and selection over hover.
+    -->
+    <Style Selector="ListBox.archives ListBoxItem">
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Bd" Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Name="Presenter"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="ListBox.archives ListBoxItem:nth-child(2n)">
+        <Setter Property="Background" Value="{StaticResource LogViewAlternateBrush}" />
+    </Style>
+    <Style Selector="ListBox.archives ListBoxItem:pointerover /template/ Border#Bd">
+        <Setter Property="Background" Value="{StaticResource MouseOverListItem}" />
+    </Style>
+    <Style Selector="ListBox.archives ListBoxItem:selected /template/ Border#Bd">
+        <Setter Property="Background" Value="{StaticResource SelectedListItem}" />
+    </Style>
+    <Style Selector="ListBox.archives ListBoxItem:selected">
+        <Setter Property="Foreground" Value="{StaticResource SelectedListItemForeground}" />
+    </Style>
+</Styles>

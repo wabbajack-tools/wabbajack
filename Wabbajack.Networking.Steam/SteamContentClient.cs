@@ -40,11 +40,23 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     private const int MaxServerAttempts = 6;
 
     /// <summary>
-    ///     How many manifests' file lists are kept at once. A version resolves to a handful of depots and a
-    ///     repair searches all of them, so this holds a whole repair; anything beyond that is paid for in
-    ///     memory that is never handed back.
+    ///     How many manifests' file lists are kept at once.
+    ///     The bound has to clear a whole repair's working set, because a repair does not read one manifest
+    ///     and move on: a game file names no depot, so every candidate manifest is searched for every file,
+    ///     and a bound below that number evicts the one that is about to be asked for again. Skyrim Special
+    ///     Edition publishes eleven Windows depots on its public branch and its Creation Kit two more, and a
+    ///     repair of 55 files searched all thirteen for each of them -- 973 manifest downloads for thirteen
+    ///     distinct manifests, because the bound was four. That is the failure mode to stay clear of, and
+    ///     the margin is what makes it stay clear: a list carrying <c>CanSourceFrom</c> files repairs two
+    ///     games in one run, each with a companion app.
+    ///     What the bound is really protecting is memory, and an entry costs less than the old comment here
+    ///     claimed. A manifest's file list is its <see cref="DepotManifest.FileData" /> and their chunks, and
+    ///     a chunk covers about a megabyte of content for something like a hundred bytes of id, offset and
+    ///     lengths -- so the thirteen manifests above, covering some thirty gigabytes, are a few megabytes
+    ///     between them. Sixty-four of the largest depots anyone ships is tens of megabytes, which is worth
+    ///     it to never pay for a manifest twice, and still a ceiling rather than a leak.
     /// </summary>
-    private const int MaxCachedManifests = 4;
+    public const int MaxCachedManifests = 64;
 
     /// <summary>
     ///     Licences arrive on their own schedule after logon. Long enough that a slow connection is not cut
@@ -57,9 +69,18 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     private readonly ManifestRequestCodeCache _codes = new();
 
     /// <summary>
+    ///     What <see cref="EnsureFreeLicenseAsync" /> settled for each app this run, negative as well as
+    ///     positive. Asking is a write to somebody's Steam library and a refusal costs a round trip, so
+    ///     neither is worth repeating once per repaired file.
+    /// </summary>
+    private readonly ConcurrentDictionary<uint, bool> _freeLicenses = new();
+
+    private readonly SemaphoreSlim _freeLicenseLock = new(1, 1);
+
+    /// <summary>
     ///     The file lists of manifests already downloaded and decrypted, so a repair that reads the same
-    ///     build several times pays for it once. Bounded, because this object lives as long as its host and
-    ///     a single manifest of a large game is tens of megabytes of <see cref="DepotManifest.FileData" />.
+    ///     build several times pays for it once. Bounded, because this object lives as long as its host;
+    ///     see <see cref="MaxCachedManifests" /> for what the bound has to clear and what an entry costs.
     ///     <para>
     ///         Nothing in here leaves this class. The list is a read-only view over a private array, so
     ///         several callers reading the same manifest cannot sort, filter or add to what the others are
@@ -104,6 +125,7 @@ public class SteamContentClient : ISteamContentClient, IDisposable
         if (_disposed) return;
         _disposed = true;
         _cdn?.Dispose();
+        _freeLicenseLock.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -209,22 +231,8 @@ public class SteamContentClient : ISteamContentClient, IDisposable
     {
         EnsureLoggedIn();
 
-        var licensesArrived = await _session.WaitForLicensesAsync(LicenseWait, token).ConfigureAwait(false);
-
-        // The licence carries the package's access token. Without it PICS answers about the package with
-        // nothing useful, so the depot list would come back empty and a perfectly entitled account would be
-        // told it owns nothing.
-        foreach (var license in _session.Licenses) PackageTokens[license.PackageID] = license.AccessToken;
-
-        var packages = _session.Licenses.Select(l => l.PackageID).Distinct().ToArray();
-
-        if (packages.Length > 0)
-        {
-            var infos = await GetPackageInfos(packages);
-
-            if (infos.Values.Any(info => DepotEntitlement.PackageGrantsDepot(info?.KeyValues, depotId)))
-                return DepotAccess.Granted;
-        }
+        var (held, licensesArrived) = await HoldsLicenseForAsync(depotId, token).ConfigureAwait(false);
+        if (held) return DepotAccess.Granted;
 
         var app = await GetAppProductInfo(appId);
         if (DepotEntitlement.IsFreeToDownload(app.KeyValues))
@@ -238,6 +246,104 @@ public class SteamContentClient : ISteamContentClient, IDisposable
         // said no. Without the list, "not entitled" is a guess -- and telling someone to go and buy a game
         // they already own because their connection was slow is a worse answer than admitting the doubt.
         return licensesArrived ? DepotAccess.NotEntitled : DepotAccess.Unconfirmed;
+    }
+
+    /// <summary>
+    ///     Whether any of the account's licences names <paramref name="id" />, and whether the licence list
+    ///     arrived at all. The second answer matters: "nothing we have covers it" and "we never found out
+    ///     what we have" look identical here and lead somewhere completely different for the user.
+    ///     <para>
+    ///         The id is checked against a package's <c>appids</c> as well as its <c>depotids</c>, so this
+    ///         answers for an app and for a depot alike - see <see cref="DepotEntitlement.PackageGrantsDepot" />.
+    ///     </para>
+    /// </summary>
+    private async Task<(bool Held, bool LicensesArrived)> HoldsLicenseForAsync(uint id, CancellationToken token)
+    {
+        var licensesArrived = await _session.WaitForLicensesAsync(LicenseWait, token).ConfigureAwait(false);
+
+        // The licence carries the package's access token. Without it PICS answers about the package with
+        // nothing useful, so the depot list would come back empty and a perfectly entitled account would be
+        // told it owns nothing.
+        foreach (var license in _session.Licenses) PackageTokens[license.PackageID] = license.AccessToken;
+
+        var packages = _session.Licenses.Select(l => l.PackageID).Distinct().ToArray();
+        if (packages.Length == 0) return (false, licensesArrived);
+
+        var infos = await GetPackageInfos(packages);
+
+        return (infos.Values.Any(info => DepotEntitlement.PackageGrantsDepot(info?.KeyValues, id)),
+            licensesArrived);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> EnsureFreeLicenseAsync(uint appId, CancellationToken token)
+    {
+        EnsureLoggedIn();
+
+        if (_freeLicenses.TryGetValue(appId, out var known)) return known;
+
+        // Serialised, and the memo re-read inside. Steam refreshes the licence list asynchronously after a
+        // grant, so two callers arriving together would both read the old list and both ask - and a repair
+        // of fifty missing files would ask fifty times over. One question per app per run, whatever the
+        // answer was.
+        await _freeLicenseLock.WaitAsync(token).ConfigureAwait(false);
+        try
+        {
+            if (_freeLicenses.TryGetValue(appId, out known)) return known;
+
+            var answer = await AskForFreeLicenseAsync(appId, token).ConfigureAwait(false);
+            _freeLicenses[appId] = answer;
+            return answer;
+        }
+        finally
+        {
+            _freeLicenseLock.Release();
+        }
+    }
+
+    private async Task<bool> AskForFreeLicenseAsync(uint appId, CancellationToken token)
+    {
+        var (held, licensesArrived) = await HoldsLicenseForAsync(appId, token).ConfigureAwait(false);
+
+        switch (DepotEntitlement.DecideFreeLicense(held, licensesArrived))
+        {
+            case FreeLicenseDecision.AlreadyHeld:
+                return true;
+
+            case FreeLicenseDecision.Unconfirmed:
+                // Remembered as a no all the same: a licence list that has not arrived in LicenseWait is
+                // not going to arrive later in this run, and asking again would cost the same wait per
+                // file. Nothing is lost by it - the depot call still goes ahead, and an account that does
+                // hold the licence will be served.
+                _logger.LogInformation(
+                    "Steam did not send the licence list within {Seconds:0}s, so whether the account already " +
+                    "holds app {AppId} is unknown. Not asking for a free licence: an unknown is not a no, and " +
+                    "asking would add a package the user may already have.",
+                    LicenseWait.TotalSeconds, appId);
+                return false;
+        }
+
+        _logger.LogInformation(
+            "The Steam account {Account} holds no licence for app {AppId}, asking Steam for the free one",
+            _session.AccountName, appId);
+
+        var granted = await _session.Apps.RequestFreeLicense(appId);
+
+        if (granted.Result != EResult.OK || !granted.GrantedApps.Contains(appId))
+        {
+            _logger.LogInformation("Steam would not grant a free licence for app {AppId}: {Result}", appId,
+                granted.Result);
+            return false;
+        }
+
+        _logger.LogInformation("Steam granted a free licence for app {AppId} as package {Packages}", appId,
+            string.Join(", ", granted.GrantedPackages));
+
+        // Steam follows the grant with a fresh licence list, and the new packages will not be in anything
+        // already worked out from the old one. Drop them so the next entitlement question asks about them.
+        foreach (var package in granted.GrantedPackages) PackageInfos.TryRemove(package, out _);
+
+        return true;
     }
 
     /// <summary>As <see cref="CheckAccessAsync" />, but says so rather than returning an answer.</summary>

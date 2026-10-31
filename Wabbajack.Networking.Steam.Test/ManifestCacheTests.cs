@@ -7,9 +7,10 @@ using Xunit;
 namespace Wabbajack.Networking.Steam.Test;
 
 /// <summary>
-///     The bound and the eviction order. What is cached here is tens of megabytes per entry under a process
-///     that may run all day, so the interesting property is not that it remembers but that it forgets, and
-///     that it forgets the right one.
+///     The bound and the eviction order. This is cached under a process that may run all day, so the
+///     interesting property is not only that it remembers but that it forgets, and that it forgets the
+///     right one -- and, in the last test here, that the bound the client ships is far enough above a
+///     repair's working set that forgetting never costs a manifest twice.
 /// </summary>
 public class ManifestCacheTests
 {
@@ -94,6 +95,36 @@ public class ManifestCacheTests
     public void ACacheOfNothingIsRefused()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new ManifestCache<string>(0));
+    }
+
+    /// <summary>
+    ///     The bound the client actually ships has to clear a whole repair, and the cost of getting that
+    ///     wrong is not a worse hit rate but no hits at all. A game file names no depot, so every file
+    ///     sweeps every candidate manifest; a capacity below the length of that sweep evicts each entry
+    ///     exactly before it comes round again, and the cache then costs a manifest download per file
+    ///     instead of saving one. That is what a Skyrim Special Edition repair hit in the field: thirteen
+    ///     manifests -- eleven Windows depots on the game's public branch and two more for its Creation Kit
+    ///     -- swept for each of 55 files against a capacity of four, and 973 manifests downloaded for the
+    ///     thirteen distinct ones.
+    /// </summary>
+    [Fact]
+    public void TheShippedBoundHoldsAWholeRepairsWorkingSet()
+    {
+        const int manifests = 13;
+        const int files = 55;
+
+        var cache = new ManifestCache<string>(SteamContentClient.MaxCachedManifests);
+        var downloads = 0;
+
+        for (var file = 0; file < files; file++)
+        for (var depot = 1u; depot <= manifests; depot++)
+            if (cache.Get(depot, depot, Branch) == null)
+            {
+                downloads++;
+                cache.Set(depot, depot, Branch, $"files {depot}");
+            }
+
+        Assert.Equal(manifests, downloads);
     }
 
     /// <summary>
