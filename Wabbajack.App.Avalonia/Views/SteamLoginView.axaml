@@ -1,0 +1,124 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          x:Class="Wabbajack.App.Avalonia.Views.SteamLoginView"
+                          x:TypeArguments="vm:SteamLoginVM"
+                          x:DataType="vm:SteamLoginVM">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.body">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style Selector="TextBlock.dim">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Foreground" Value="{StaticResource Transparent66ForegroundBrush}" />
+        </Style>
+        <Style Selector="TextBlock.fieldLabel">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource Transparent66ForegroundBrush}" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+    </UserControl.Styles>
+
+    <!--
+        Centred when there is room and scrolling when there is not: the window's minimum height is shorter
+        than this pane, and a login with its buttons cut off the bottom is a login nobody can finish. The
+        width is fixed so switching between the code and the password does not resize the pane under the
+        user's cursor.
+    -->
+    <ScrollViewer VerticalAlignment="Center" HorizontalAlignment="Center"
+                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Width="700" Margin="8" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+
+            <Grid Grid.Row="0" Margin="0,0,0,16" ColumnDefinitions="Auto,*">
+                <ic:SymbolIcon Symbol="Games" FontSize="24" IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}"
+                               VerticalAlignment="Center" Margin="0,0,12,0" />
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Log into Steam" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="So Wabbajack can fetch game files from the same depots Steam installs them from"
+                               FontSize="13" Foreground="{StaticResource Transparent66ForegroundBrush}"
+                               TextWrapping="Wrap" Margin="0,2,0,0" />
+                </StackPanel>
+            </Grid>
+
+            <!-- QR: the default, and the only path where no password is typed anywhere. -->
+            <Grid x:Name="QrPane" Grid.Row="1" ColumnDefinitions="Auto,*">
+                <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="8" Width="216" Height="216" VerticalAlignment="Top">
+                    <Grid>
+                        <c:QrCodeView x:Name="Qr" />
+                        <c:ProgressRing x:Name="QrRing" Width="28" Height="28" Foreground="{StaticResource PrimaryBrush}"
+                                        IsActive="False" IsVisible="False" />
+                    </Grid>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="20,0,0,0">
+                    <TextBlock Classes="body" Text="Open the Steam mobile app, go to the Steam Guard screen and scan this code." />
+                    <TextBlock Classes="body" Text="Your phone will ask you to approve a sign-in from &quot;Wabbajack&quot;. Nothing is downloaded until you ask for it, and your password is never typed here." />
+                    <TextBlock Classes="dim" Text="The code refreshes every few seconds; the one on screen is always the one to scan. Wabbajack keeps the login Steam hands back so it does not have to ask again for months." />
+                    <c:WJButton x:Name="UseCredentialsButton" ButtonStyle="Transparent" Text="No mobile app? Use a password"
+                                Icon="Password" IconSize="14" Width="236" Height="28" HorizontalAlignment="Left" Margin="-6,4,0,0"
+                                Command="{Binding UseCredentialsCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Account name and password, for an account with no mobile authenticator to scan with. -->
+            <Grid x:Name="CredentialsPane" Grid.Row="1" IsVisible="False" ColumnDefinitions="260,*">
+                <StackPanel Grid.Column="0">
+                    <TextBlock Classes="fieldLabel" Text="Account name" />
+                    <TextBox x:Name="UsernameBox" Height="32" Margin="0,0,0,12" Text="{Binding Username}" />
+                    <TextBlock Classes="fieldLabel" Text="Password" />
+                    <!-- WPF's PasswordBox. The password is read out of the box when it is used and goes nowhere else. -->
+                    <TextBox x:Name="PasswordBox" Height="32" PasswordChar="●" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="20,0,0,0">
+                    <TextBlock Classes="body" Text="The password is used once to sign in and is never written anywhere. Steam hands back a login token, and that is what Wabbajack keeps." />
+                    <TextBlock Classes="dim" Text="If the account has Steam Guard on, Steam will ask for a code next." />
+                    <c:WJButton x:Name="UseQrButton" ButtonStyle="Transparent" Text="Scan a code instead" Icon="QrCode"
+                                IconSize="14" Width="176" Height="28" HorizontalAlignment="Left" Margin="-6,4,0,0"
+                                Command="{Binding UseQrCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Whatever Steam Guard is asking mid-flow. -->
+            <c:AttentionBorder x:Name="GuardCard" Grid.Row="2" Margin="0,16,0,0" IsVisible="False">
+                <Grid Margin="16,12,16,12" ColumnDefinitions="*,Auto,Auto">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock x:Name="GuardTitle" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock x:Name="GuardMessage" FontSize="12" Foreground="{StaticResource Transparent66ForegroundBrush}"
+                                   TextWrapping="Wrap" Margin="0,2,0,0" />
+                        <TextBlock x:Name="GuardRetryText" FontSize="12" Foreground="{StaticResource WarningBrush}"
+                                   Text="That code was not accepted. Try the next one." Margin="0,4,0,0" IsVisible="False" />
+                    </StackPanel>
+                    <TextBox x:Name="GuardCodeBox" Grid.Column="1" Width="120" Height="32" HorizontalContentAlignment="Center"
+                             TextAlignment="Center" FontSize="15" Margin="16,0,8,0" VerticalAlignment="Center" />
+                    <c:WJButton x:Name="GuardSubmitButton" Grid.Column="2" ButtonStyle="Color" Text="Submit" Icon="Checkmark"
+                                IconSize="16" Width="120" Height="32" VerticalAlignment="Center" />
+                </Grid>
+            </c:AttentionBorder>
+
+            <Grid Grid.Row="3" Margin="0,16,0,0" ColumnDefinitions="Auto,*">
+                <Grid Grid.Column="0" Width="18" Height="18" VerticalAlignment="Center">
+                    <c:ProgressRing x:Name="BusyRing" Width="18" Height="18" Foreground="{StaticResource PrimaryBrush}"
+                                    IsActive="False" IsVisible="False" />
+                    <ic:SymbolIcon x:Name="ErrorIcon" FontSize="18" IconVariant="Filled" Symbol="ErrorCircle"
+                                   Foreground="{StaticResource ErrorBrush}" IsVisible="False" />
+                </Grid>
+                <TextBlock x:Name="StatusText" Grid.Column="1" FontSize="13" Margin="10,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap" />
+            </Grid>
+
+            <Grid Grid.Row="4" Margin="0,20,0,0" ColumnDefinitions="*,Auto,Auto">
+                <c:WJButton x:Name="CancelButton" Grid.Column="1" ButtonStyle="Mono" Text="Cancel" Icon="Dismiss" IconSize="16"
+                            Width="130" Height="32" Margin="0,0,12,0" Command="{Binding CloseCommand}" />
+                <c:WJButton x:Name="SignInButton" Grid.Column="2" ButtonStyle="Color" Text="Sign in" Icon="PersonArrowRight"
+                            IconSize="16" Width="150" Height="32" IsVisible="False" />
+                <c:WJButton x:Name="RetryButton" Grid.Column="2" ButtonStyle="Color" Text="Try again" Icon="ArrowCounterclockwise"
+                            IconSize="16" Width="150" Height="32" IsVisible="False" Command="{Binding UseQrCommand}" />
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</rxui:ReactiveUserControl>

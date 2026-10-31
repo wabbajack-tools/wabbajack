@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -21,6 +22,38 @@ public class CompilerSettingsInferencer
     {
         _logger = logger;
 
+    }
+
+    /// <summary>
+    ///     Points settings loaded from <paramref name="settingsFile" /> at this machine; see
+    ///     <see cref="ReusedCompilerSettings" />. Returns what was changed.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> RepointForThisMachine(CompilerSettings settings, AbsolutePath settingsFile)
+    {
+        var modlistTxt = settingsFile.Parent.Combine(Consts.MO2Profiles, settings.Profile, Consts.ModListTxt);
+        var inferred = !string.IsNullOrEmpty(settings.Profile) && modlistTxt.FileExists()
+            ? await InferModListFromLocation(modlistTxt)
+            : null;
+
+        var changed = ReusedCompilerSettings.Repoint(settings, settingsFile, inferred);
+        if (changed.Count > 0)
+            _logger.LogInformation("Settings in {File} were made for another folder; changed {Changed} to suit this one",
+                settingsFile, string.Join(", ", changed));
+        return changed;
+    }
+
+    /// <summary>
+    ///     A folder MO2 wrote, as this machine names it. Under Wine or Proton a Z: path is a Unix one; any other
+    ///     drive letter belongs to whichever prefix MO2 ran in, which is looked for. Default when none has it.
+    /// </summary>
+    private AbsolutePath FromProgramPath(string? written)
+    {
+        var (path, prefix) = WinePrefixes.FromWindowsProgramPath(written);
+        if (prefix != default)
+            _logger.LogInformation("{Written} is {Path}, through the Wine prefix {Prefix}", written, path, prefix);
+        else if (path == default && !string.IsNullOrWhiteSpace(written))
+            _logger.LogWarning("{Written} is on a Windows drive none of the Wine prefixes found here has", written);
+        return path;
     }
 
     public async Task<CompilerSettings?> InferFromRootPath(AbsolutePath rootPath)
@@ -49,7 +82,8 @@ public class CompilerSettingsInferencer
                 cs.Game = GameRegistry.GetByFuzzyName(general["gameName"].FromMO2Ini()).Game;
                 cs.Source = mo2Folder;
 
-                var selectedProfile = general["selected_profile"].FromMO2Ini();
+                // The profile is the one whose modlist.txt was picked, not whichever MO2 last had selected.
+                var selectedProfile = settingsFile.Parent.FileName.ToString();
                 //cs.GamePath = general["gamePath"].FromMO2Ini().ToAbsolutePath();
                 cs.ModListName = selectedProfile;
                 cs.Profile = selectedProfile;
@@ -57,7 +91,7 @@ public class CompilerSettingsInferencer
                 cs.OutputFile = cs.Source.Parent.Combine(cs.ModListName).WithExtension(Ext.Wabbajack);
                 
                 var settings = iniData["Settings"];
-                cs.Downloads = settings["download_directory"].FromMO2Ini().ToAbsolutePath();
+                cs.Downloads = FromProgramPath(settings["download_directory"].FromMO2Ini());
 
                 if (cs.Downloads == default)
                     cs.Downloads = cs.Source.Combine("downloads");
@@ -77,8 +111,10 @@ public class CompilerSettingsInferencer
                         var taggedFiles = await file.ReadAllLinesAsync().ToArray();
                         foreach (var taggedFile in taggedFiles)
                         {
-                            var noMatchIncludeAsset =
-                                (AbsolutePath) file.ToString().Replace(file.FileName.ToString(), taggedFile);
+                            // A name typed into the tag file need not match the file's case on disk.
+                            var noMatchIncludeAsset = string.IsNullOrWhiteSpace(taggedFile)
+                                ? (AbsolutePath) file.ToString().Replace(file.FileName.ToString(), taggedFile)
+                                : file.Parent.FindIgnoringCase(taggedFile.ToRelativePath());
                             if (noMatchIncludeAsset.DirectoryExists())
                                 cs.NoMatchInclude = cs.NoMatchInclude.Add(noMatchIncludeAsset
                                 .RelativeTo(mo2Folder));

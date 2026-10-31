@@ -1,4 +1,5 @@
 using System;
+using Wabbajack.Common;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Downloaders.GameFile;
@@ -22,7 +23,7 @@ public static class GameVersionDetector
         try
         {
             var mainExe = gameFolder.Combine(gameMeta.MainExecutable.Value);
-            var info = FileVersionInfo.GetVersionInfo(mainExe.ToString());
+            var info = ExecutableVersion.Read(mainExe.ToString());
 
             var productVersion = info.ProductVersion?.Trim();
             var fileVersion = info.FileVersion?.Trim();

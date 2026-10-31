@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.Paths;
 using Xunit;
@@ -47,7 +48,22 @@ public class ManualDownloadUrlsTests
             new object[]
             {
                 new WabbajackCDN {Url = new Uri("https://authored-files.wabbajack.org/Tonal%20Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f")},
-                "https://authored-files.wabbajack.org/Tonal Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f", "Wabbajack CDN", "Download the file from this page"
+                // A CDN address is a folder of numbered parts; an authored file's page on the build server is what
+                // turns them back into the file in a browser.
+                "https://build.wabbajack.org/authored_files/download/Tonal Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f",
+                "Wabbajack CDN", "Download the file from this page"
+            },
+            new object[]
+            {
+                new WabbajackCDN {Url = new Uri("https://wabbajack.b-cdn.net/636039181_MNCABC-FluffworksPatchv0.2.rar_6d2f8414-b3a5-4e1b-bd37-2a3c4f3ecde1")},
+                "https://build.wabbajack.org/authored_files/download/636039181_MNCABC-FluffworksPatchv0.2.rar_6d2f8414-b3a5-4e1b-bd37-2a3c4f3ecde1",
+                "Wabbajack CDN", "Download the file from this page"
+            },
+            new object[]
+            {
+                // Mirrored and patch files have no page to download them from.
+                new WabbajackCDN {Url = new Uri("https://mirror.wabbajack.org/7c2a1f6e4b3d9a80")},
+                null, null, null
             },
             new object[]
             {
@@ -57,14 +73,14 @@ public class ManualDownloadUrlsTests
             new object[]
             {
                 new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 51939, FileID = 212497},
-                "https://www.nexusmods.com/skyrimspecialedition/mods/51939?tab=files&file_id=212497", "Nexus Mods", "Download the file from this page"
+                "https://www.nexusmods.com/Core/Libs/Common/Widgets/DownloadPopUp?id=212497&game_id=1704", "Nexus Mods", "Press Slow download on this page"
             },
-            // The shape the file link has to have, spelled out: the mod page alone is not enough, and the
-            // query string is the only part of it that names the file.
+            // The page Nexus's own Manual download button opens. The owner confirmed on 2026-10-17 that this
+            // exact link, opened in a browser, goes straight to the download for the file.
             new object[]
             {
                 new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 266, FileID = 209150},
-                "https://www.nexusmods.com/skyrimspecialedition/mods/266?tab=files&file_id=209150", "Nexus Mods", "Download the file from this page"
+                "https://www.nexusmods.com/Core/Libs/Common/Widgets/DownloadPopUp?id=209150&game_id=1704", "Nexus Mods", "Press Slow download on this page"
             },
             // No file id recorded. file_id=0 selects nothing, so the Files tab on its own is the most
             // specific page that still resolves, and the user is told they have to find the file there.
@@ -74,10 +90,10 @@ public class ManualDownloadUrlsTests
                 "https://www.nexusmods.com/skyrimspecialedition/mods/266?tab=files", "Nexus Mods",
                 "This list doesn't record which file, so find it by name in the Files tab"
             },
-            // Terraria is one of the two games the registry gives no NexusName; without the fallback this
-            // would be https://www.nexusmods.com//mods/2547, which resolves to nothing. The domain is worked
-            // out from the game's name and is therefore a good guess rather than a fact, so the card says so
-            // instead of promising the page is there.
+            // Terraria is one of the games the registry gives no NexusName or Nexus game id, so it keeps the Files
+            // tab link; without the fallback this would be https://www.nexusmods.com//mods/2547, which resolves to
+            // nothing. The domain is worked out from the game's name and is therefore a good guess rather than a
+            // fact, so the card says so instead of promising the page is there.
             new object[]
             {
                 new Nexus {Game = Game.Terraria, ModID = 2547, FileID = 10432},
@@ -159,9 +175,30 @@ public class ManualDownloadUrlsTests
             var url = target!.Url;
             Assert.Equal("www.nexusmods.com", url.Host);
             Assert.DoesNotContain("//mods/", url.AbsolutePath + url.Query);
-            Assert.EndsWith("/mods/1", url.AbsolutePath);
-            Assert.Equal("?tab=files&file_id=2", url.Query);
+            if (game.MetaData().NexusGameId > 0)
+            {
+                Assert.Equal("/Core/Libs/Common/Widgets/DownloadPopUp", url.AbsolutePath);
+                Assert.Equal($"?id=2&game_id={game.MetaData().NexusGameId}", url.Query);
+            }
+            else
+            {
+                Assert.EndsWith("/mods/1", url.AbsolutePath);
+                Assert.Equal("?tab=files&file_id=2", url.Query);
+            }
         }
+    }
+
+    /// <summary>
+    ///     The direct download page is what saves the user two clicks per file, and the Files tab is what they
+    ///     got before it. Nearly every game has the numeric id the direct page needs, so a registry change that
+    ///     dropped them would quietly put the clicks back; this keeps the ones without an id to the few known.
+    /// </summary>
+    [Fact]
+    public void NearlyEveryGameGetsTheDirectDownloadPage()
+    {
+        var withoutId = GameRegistry.Games.Where(g => g.Value.NexusGameId <= 0).Select(g => g.Key).ToList();
+
+        Assert.True(withoutId.Count <= 3, $"Games without a Nexus game id: {string.Join(", ", withoutId)}");
     }
 
     /// <summary>
@@ -174,7 +211,9 @@ public class ManualDownloadUrlsTests
     {
         foreach (var game in GameRegistry.Games.Keys)
         {
-            var state = new Nexus {Game = game, ModID = 7, FileID = 8};
+            // Without a file id there is no download page to go to, so the file link is the Files tab and has
+            // to name the same game as the mod link.
+            var state = new Nexus {Game = game, ModID = 7};
             Assert.True(ManualDownloadUrls.TryGet(state, out var target));
 
             Assert.Equal($"https://www.nexusmods.com/{game.MetaData().NexusDomain}/mods/7", state.LinkUrl!.AbsoluteUri);
@@ -195,7 +234,7 @@ public class ManualDownloadUrlsTests
         Assert.True(ManualDownloadUrls.TryGet(
             new Nexus {Game = Game.SkyrimSpecialEdition, ModID = 266, FileID = 209150}, out var target));
 
-        Assert.Equal("https://www.nexusmods.com/skyrimspecialedition/mods/266?tab=files&file_id=209150",
+        Assert.Equal("https://www.nexusmods.com/Core/Libs/Common/Widgets/DownloadPopUp?id=209150&game_id=1704",
             target!.Url.AbsoluteUri);
     }
 }

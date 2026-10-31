@@ -548,6 +548,9 @@ public class PreflightRunnerTests : IDisposable
         Assert.Equal(PreflightState.Running, running.State);
         Assert.Equal(0.5d, (double) running.Progress, 3);
         Assert.Equal("half way", running.ProgressText);
+        // The counts themselves, so a host can say "5 of 10" rather than only a percentage.
+        Assert.Equal(5, running.ProgressCurrent);
+        Assert.Equal(10, running.ProgressTotal);
 
         release.SetResult();
         await run;
@@ -555,6 +558,43 @@ public class PreflightRunnerTests : IDisposable
         var passed = runner.Checks.Single();
         Assert.Equal(1d, (double) passed.Progress, 3);
         Assert.Null(passed.ProgressText);
+    }
+
+    [Fact]
+    public async Task ARerunStartsItsCountsFromNothing()
+    {
+        var runs = 0;
+        var reported = new TaskCompletionSource();
+        var release = new TaskCompletionSource();
+        var a = new FakeCheck("a", 10)
+        {
+            Body = async (_, progress, _) =>
+            {
+                if (++runs == 1)
+                {
+                    progress.Report(7, 10, "first run");
+                    return PreflightResult.Passed("ok");
+                }
+
+                reported.SetResult();
+                await release.Task;
+                return PreflightResult.Passed("ok");
+            }
+        };
+
+        var runner = Runner(a);
+        await runner.RunAll(CancellationToken.None);
+        var rerun = runner.RunCheck("a", CancellationToken.None);
+        await reported.Task;
+
+        // The second run has reported nothing yet, so it must not still show the first run's 7 of 10.
+        var running = runner.Checks.Single();
+        Assert.Equal(PreflightState.Running, running.State);
+        Assert.Equal(0, running.ProgressCurrent);
+        Assert.Equal(0, running.ProgressTotal);
+
+        release.SetResult();
+        await rerun;
     }
 
     [Fact]

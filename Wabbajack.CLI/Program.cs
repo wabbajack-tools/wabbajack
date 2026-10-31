@@ -29,7 +29,12 @@ internal class Program
 {
     private static async Task<int> Main(string[] args)
     {
-        var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+        // Disposed on the way out: that is what deletes this run's temporary folders, which otherwise wait for
+        // the next launch to clean them up. A compile leaves a whole game's extracted archives there.
+        // The content root is watched recursively for appsettings changes; left at the working directory, a
+        // CLI started from the home folder watched every folder under it.
+        using var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+            .UseContentRoot(AppContext.BaseDirectory)
             .ConfigureLogging(AddLogging)
             .ConfigureServices((host, services) =>
             {

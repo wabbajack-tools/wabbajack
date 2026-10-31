@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -109,22 +110,37 @@ public static class RequiredArchives
     ///     Removes from <paramref name="indexed" /> every directive whose destination already holds a file
     ///     with the expected hash.
     /// </summary>
+    /// <param name="onChecked">
+    ///     Called with (checked, total) after each directive, from any thread. An update run hashes every file
+    ///     already installed here, so on a big list this is the longest quiet stretch preflight has.
+    /// </param>
     public static async Task PruneUnmodified(Dictionary<RelativePath, Directive> indexed, AbsolutePath install,
-        FileHashCache hashCache, IResource<IInstaller> limiter, CancellationToken token)
+        FileHashCache hashCache, IResource<IInstaller> limiter, CancellationToken token,
+        Action<long, long>? onChecked = null)
     {
         var existingfiles = install.DirectoryExists()
             ? install.EnumerateFiles().ToHashSet()
             : new HashSet<AbsolutePath>();
+
+        var total = (long) indexed.Count;
+        var done = 0L;
 
         await indexed.Values.PMapAllBatchedAsync(limiter, async d =>
             {
                 // Bit backwards, but we want to return null for
                 // all files we *want* installed. We return the files
                 // to remove from the install list.
-                var path = install.Combine(d.To);
-                if (!existingfiles.Contains(path)) return null;
+                try
+                {
+                    var path = install.Combine(d.To);
+                    if (!existingfiles.Contains(path)) return null;
 
-                return await hashCache.FileHashCachedAsync(path, token) == d.Hash ? d : null;
+                    return await hashCache.FileHashCachedAsync(path, token) == d.Hash ? d : null;
+                }
+                finally
+                {
+                    onChecked?.Invoke(Interlocked.Increment(ref done), total);
+                }
             })
             .Do(d =>
             {
@@ -149,10 +165,10 @@ public static class RequiredArchives
     ///     <paramref name="install" /> would read. Touches nothing on disk beyond the hash cache.
     /// </summary>
     public static async Task<Archive[]> Compute(ModList modList, AbsolutePath install, FileHashCache hashCache,
-        IResource<IInstaller> limiter, CancellationToken token)
+        IResource<IInstaller> limiter, CancellationToken token, Action<long, long>? onChecked = null)
     {
         var plan = await PruneBuiltBsas(modList, install, hashCache, token);
-        await PruneUnmodified(plan.Indexed, install, hashCache, limiter, token);
+        await PruneUnmodified(plan.Indexed, install, hashCache, limiter, token, onChecked);
         var required = RequiredHashes(plan.Indexed.Values);
         return modList.Archives.Where(a => required.Contains(a.Hash)).ToArray();
     }

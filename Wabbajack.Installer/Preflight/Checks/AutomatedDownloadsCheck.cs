@@ -73,7 +73,7 @@ public sealed class AutomatedDownloadsCheck : IPreflightCheck
         if (outcome.Manual.Count > 0)
         {
             plan.Enqueue(ctx, outcome.Manual);
-            progress.ManualQueue(ctx.State.ManualQueue.Select(m => (m.Archive, m.Target)).ToList());
+            progress.ManualQueue(ctx.State.ManualQueue.ToList());
         }
 
         ctx.State.Missing = ctx.State.Missing.Where(a => !ctx.State.HashedArchives.ContainsKey(a.Name)).ToList();

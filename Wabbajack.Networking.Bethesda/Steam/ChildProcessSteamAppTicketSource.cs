@@ -22,6 +22,13 @@ public class ChildProcessSteamAppTicketSource : ISteamAppTicketSource
     /// <summary>The verb the helper runs. Named here because both sides have to agree on it.</summary>
     public const string Verb = "steam-app-ticket";
 
+    /// <summary>
+    ///     Marks the helper's own message on standard error. steam_api64.dll writes to the same stream,
+    ///     including a line with the account's SteamID64, so only marked lines are read and the rest is
+    ///     dropped: an error message ends up in logs users post publicly.
+    /// </summary>
+    public const string MessagePrefix = "wabbajack-ticket-error: ";
+
     private readonly ISteamAppTicketHelper _helper;
     private readonly IGameLocator _locator;
     private readonly ILogger<ChildProcessSteamAppTicketSource> _logger;
@@ -106,17 +113,33 @@ public class ChildProcessSteamAppTicketSource : ISteamAppTicketSource
     private static SteamAppTicketException Failed(SteamAppTicketHelperResult result, string name)
     {
         var error = SteamAppTicketErrors.FromExitCode(result.ExitCode);
-        var detail = result.StandardError.Trim();
+        var detail = HelperMessage(result.StandardError);
 
         // The helper's own sentence is the better one - it knows which interface, which Steam result, which
         // folder, and it already says the general thing as well - so it is used whole when there is one. The
         // generic sentence for the code fills in when the helper died before it could say anything.
-        return new SteamAppTicketException(error, detail.Length > 0 ? detail : error.DefaultMessage(name));
+        return new SteamAppTicketException(error, detail ?? error.DefaultMessage(name));
     }
 
     private static string Detail(SteamAppTicketHelperResult result)
     {
-        var text = result.StandardError.Trim();
-        return text.Length == 0 ? string.Empty : Environment.NewLine + text;
+        return HelperMessage(result.StandardError) is { } text ? Environment.NewLine + text : string.Empty;
+    }
+
+    /// <summary>
+    ///     The lines the helper marked with <see cref="MessagePrefix" />, unmarked, or null when there are none.
+    ///     Everything else on standard error is steam_api64.dll's and is not kept anywhere.
+    /// </summary>
+    public static string? HelperMessage(string standardError)
+    {
+        var lines = new List<string>();
+        foreach (var line in standardError.Split('\n'))
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith(MessagePrefix, StringComparison.Ordinal))
+                lines.Add(trimmed[MessagePrefix.Length..].Trim());
+        }
+
+        return lines.Count == 0 ? null : string.Join(Environment.NewLine, lines);
     }
 }

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.CLI.Builder;
+using Wabbajack.Common;
 using Wabbajack.Downloaders;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.JsonConverters;
@@ -50,8 +51,23 @@ public class Install
     {
         if (!string.IsNullOrEmpty(machineUrl))
         {
+            if (wabbajack == default)
+            {
+                if (downloads == default)
+                {
+                    _logger.LogError("--machineUrl needs --wabbajack or --downloads to know where to save the list");
+                    return 1;
+                }
+                wabbajack = downloads.Combine(machineUrl.Replace("/", "_@@_")).WithExtension(Ext.Wabbajack);
+            }
+
             if (!await DownloadMachineUrl(machineUrl, wabbajack, token))
                 return 1;
+        }
+        else if (wabbajack == default)
+        {
+            _logger.LogError("Nothing to install, pass --wabbajack <file> or --machineUrl <repository>/<machineUrl>");
+            return 1;
         }
 
         var modlist = await StandardInstaller.LoadFromFile(_dtos, wabbajack);
@@ -64,6 +80,7 @@ public class Install
             Install = output,
             ModList = modlist,
             Game = modlist.GameType,
+            OtherGames = modlist.OtherGames,
             ModlistArchive = wabbajack,
             GameFolder = default
         }, _logger, token);

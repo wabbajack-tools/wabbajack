@@ -1,0 +1,177 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             x:Class="Wabbajack.App.Avalonia.Views.HomeView"
+             x:DataType="vm:HomeVM">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.cardTitle">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="DemiBold" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+        <Style Selector="TextBlock.cardBody">
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+        <Style Selector="ic|SymbolIcon.cardIcon">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="IconVariant" Value="Filled" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+        <Style Selector="Button.link">
+            <Setter Property="Width" Value="180" />
+            <Setter Property="Height" Value="49" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <!-- WPF bound the DockPanel's width to the button's whole 180px, though the content area
+                 inside its border and padding is 176px, so the panel overran by 4px on the right and the
+                 icon sat 4px further right than the padding allows. The negative margin keeps that. -->
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="Button.link > Grid">
+            <Setter Property="Margin" Value="0,0,-4,0" />
+        </Style>
+        <Style Selector="Button.link TextBlock">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="DemiBold" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="16,0,0,0" />
+        </Style>
+        <Style Selector="Button.link ic|SymbolIcon">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Margin" Value="0,0,16,0" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="8,0" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+        <TextBlock Grid.Row="0" FontSize="87" FontWeight="Bold">
+            <Run Text="Welcome to" />
+            <Run Foreground="{StaticResource PrimaryBrush}" Text="Wabbajack" />
+        </TextBlock>
+
+        <!-- WPF wrapped this in a Label, whose default padding is 5 all round, and built it from five
+             TextBlocks rather than one with runs; each is placed on a whole pixel, so the same shape keeps
+             the words where WPF put them. -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5">
+            <TextBlock FontSize="24" Text="The home of " />
+            <TextBlock FontSize="24" Foreground="{StaticResource PrimaryBrush}" Text="{Binding ModlistCount}" />
+            <TextBlock FontSize="24" Text=" ready-made modlists spanning " />
+            <TextBlock FontSize="24" Foreground="{StaticResource PrimaryBrush}" Text="{Binding GameCount}" />
+            <TextBlock FontSize="24" Text=" games." />
+        </StackPanel>
+
+        <Grid Grid.Row="2" Grid.Column="0" Margin="0,16,0,0" ColumnDefinitions="*,*" RowDefinitions="*,*">
+            <Border Grid.Row="0" Grid.Column="0" Classes="card">
+                <Grid Margin="12" VerticalAlignment="Center" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                    <TextBlock Classes="cardTitle" Text="Find a modlist that suits you" />
+                    <ic:SymbolIcon Grid.Column="1" Classes="cardIcon" Symbol="Search" />
+                    <!-- WPF put two Hyperlinks inline. Avalonia has no clickable inline, and a button hosted
+                         in an InlineUIContainer sits off the baseline, so the linked line is a row of its own.
+                         Inline, WPF started each piece where the last ended, fractions and all; here each is
+                         whole-pixel, so the text after the first link can sit a pixel or two off. -->
+                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
+                        <TextBlock Classes="cardBody wpfLineHeight20"
+                                   Text="Go through a series of questions to find a modlist that works for you through our" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button Classes="hyperlink" Content="Wabbakinator quiz"
+                                    AutomationProperties.AutomationId="WizardLink"
+                                    Command="{Binding VisitModlistWizardCommand}" />
+                            <TextBlock Classes="cardBody wpfLineHeight20" Text=", or " />
+                            <Button Classes="hyperlink" Content="navigate the gallery"
+                                    AutomationProperties.AutomationId="GalleryLink"
+                                    Command="{Binding BrowseCommand}" />
+                            <TextBlock Classes="cardBody wpfLineHeight20" Text=" yourself and pick something fun." />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border Grid.Row="0" Grid.Column="1" Classes="card">
+                <Grid Margin="12" VerticalAlignment="Center" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                    <TextBlock Classes="cardTitle" Text="Follow the install notes" />
+                    <ic:SymbolIcon Grid.Column="1" Classes="cardIcon" Symbol="DocumentOnePageMultiple" />
+                    <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Classes="cardBody wpfLineHeight20">
+                        <Run Text="Some modlists have steps that you need to take before you install the list, some" />
+                        <LineBreak />
+                        <Run Text="don't. Check your list's documentation to see how to get started." />
+                    </TextBlock>
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Grid.Column="0" Classes="card">
+                <Grid Margin="12" VerticalAlignment="Center" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                    <TextBlock Classes="cardTitle" Text="Start downloading your chosen list" />
+                    <ic:SymbolIcon Grid.Column="1" Classes="cardIcon" Symbol="ArrowDownload" />
+                    <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Classes="cardBody wpfLineHeight20">
+                        <Run Text="Pick a destination with enough free space and click the download button." />
+                        <LineBreak />
+                        <Run Text="Heads up; for full automation of Nexus downloads, a premium account is required." />
+                    </TextBlock>
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Grid.Column="1" Classes="card">
+                <Grid Margin="12" VerticalAlignment="Center" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                    <TextBlock Classes="cardTitle" Text="Ready to start playing!" />
+                    <ic:SymbolIcon Grid.Column="1" Classes="cardIcon" Symbol="Games" />
+                    <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Classes="cardBody wpfLineHeight20">
+                        <Run Text="If your install completed successfully and you're done with the documentation as" />
+                        <LineBreak />
+                        <Run Text="well, you're now ready to launch the modlist and play!" />
+                    </TextBlock>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- LinksView in the WPF app; four buttons out to the project's other homes. -->
+        <!-- Four equal rows sharing the cards' height, as WPF had them; a stack would space them evenly
+             where WPF's star rows split the fractions 66/65/65. -->
+        <Grid Grid.Row="2" Grid.Column="1" Margin="0,16,0,0" RowDefinitions="*,*,*,*">
+            <Button Classes="main lessRounded link" AutomationProperties.AutomationId="PatreonButton" AutomationProperties.Name="Patreon"
+                    Command="{Binding OpenPatreonCommand}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Patreon" />
+                    <ic:SymbolIcon Grid.Column="1" Symbol="Heart" />
+                </Grid>
+            </Button>
+            <Button Grid.Row="1" Classes="main lessRounded link" AutomationProperties.AutomationId="GitHubButton" AutomationProperties.Name="GitHub"
+                    Command="{Binding OpenGitHubCommand}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="GitHub" />
+                    <ic:SymbolIcon Grid.Column="1" Symbol="BranchFork" />
+                </Grid>
+            </Button>
+            <Button Grid.Row="2" Classes="main lessRounded link" AutomationProperties.AutomationId="DiscordButton" AutomationProperties.Name="Discord"
+                    Command="{Binding OpenDiscordCommand}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Discord" />
+                    <ic:SymbolIcon Grid.Column="1" Symbol="PeopleChat" />
+                </Grid>
+            </Button>
+            <Button Grid.Row="3" Classes="main lessRounded link" AutomationProperties.AutomationId="WikiButton" AutomationProperties.Name="Wiki"
+                    Command="{Binding OpenWikiCommand}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Wiki" />
+                    <ic:SymbolIcon Grid.Column="1" Symbol="QuestionCircle" />
+                </Grid>
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="3" Margin="0,16" ColumnDefinitions="*,6*,*">
+            <Border Grid.Column="1" Height="4" CornerRadius="4" Background="{StaticResource DarkSecondaryBrush}" />
+        </Grid>
+
+        <!-- BigButton with ButtonStyle="Color". -->
+        <Button Grid.Row="4" Grid.Column="0" Classes="main big color" Margin="0,16,16,16" MinHeight="108"
+                AutomationProperties.AutomationId="GetStartedButton" AutomationProperties.Name="Get Started"
+                Command="{Binding BrowseCommand}">
+            <Grid Margin="16" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                <TextBlock VerticalAlignment="Center" Text="Get Started" FontWeight="DemiBold" FontSize="24"
+                           Margin="0,0,0,4" />
+                <ic:SymbolIcon Grid.Column="1" VerticalAlignment="Center" Symbol="ChevronRight" FontSize="28" />
+                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Classes="wpfLineHeight20" VerticalAlignment="Center" FontSize="13"
+                           Text="Browse the gallery and find yourself a modlist to play" />
+            </Grid>
+        </Button>
+    </Grid>
+</UserControl>

@@ -8,6 +8,9 @@
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
         <VERSION Condition=" '$(VERSION)' == ''">4.0.0.0</VERSION>
         <Version>$(VERSION)</Version>
+        <!-- A beta build (BETA=beta.1) says so in its informational version, which is what is shown and reported;
+             assembly and file versions keep the plain four numbers. (VERSION is Version: MSBuild ignores case.) -->
+        <InformationalVersion Condition=" '$(BETA)' != ''">$(VERSION)-$(BETA)</InformationalVersion>
         <AssemblyName>wabbajack-cli</AssemblyName>
         <PublishTrimmed>false</PublishTrimmed>
         <TimeMode>linked</TimeMode>
@@ -16,6 +19,8 @@
         <NoWarn>CS8618</NoWarn>
         <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
     </PropertyGroup>
+
+    <Import Project="..\SingleFile.targets" />
 
     <ItemGroup>
         <InternalsVisibleTo Include="Wabbajack.CLI.Test" />

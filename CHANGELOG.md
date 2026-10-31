@@ -1,7 +1,46 @@
 ### Changelog
 
 #### Version - TBD - TBD
-* Fixed modlist images remaining stale due to not being picked up by the list validation actions
+* Metrics improvements
+
+#### Version - 4.3.2.1 - 10/18/2026
+* HOTFIX: Fixed 7z archives packed on Linux, such as Requiem 5.0.3's bugfix pack, extracting nothing with the newer 7-Zip (PR #3095)
+
+#### Version - 4.3.2.0 - 10/17/2026
+* Linux beta 1: Wabbajack now runs on Linux, with its own launcher and CLI, and installs and compiles lists that run under Proton or Wine. This is a first beta, and it will keep getting fixes with each release (PR #3092)
+* Added a button next to a manual download's file name that copies it, for finding the file on a download page with Ctrl+F (PR #3090)
+* Mega, Google Drive and MediaFire files download more reliably (PR #3091)
+* Wabbajack updates the launcher again; launchers had not been updated since 3.0 (PR #3092)
+* An install or compile frees its memory when it finishes (PR #3092)
+* Updated 7-Zip to 26.01 (PR #3092)
+
+#### Version - 4.3.1.0 - 10/17/2026
+* Nexus manual downloads open the file's download page directly, so only Slow download is left to press (PR #3089)
+* Added "Open the next one automatically" to manual downloads: once a file starts arriving, the next file's page opens on its own (PR #3089)
+
+#### Version - 4.3.0.2 - 10/16/2026
+* HOTFIX: Fixed Wabbajack CDN files that failed to download being sent to the manual downloads list with a link that could not download them. CDN downloads are retried for longer now; an author's file that still fails links to its download page on the Wabbajack site, and anything else shows as a failed download with a retry button. The manual download card also says why each file has to be downloaded by hand PR #3088
+
+#### Version - 4.3.0.1 - 10/15/2026
+* HOTFIX: Fixed the manual downloads list sometimes coming up empty in preflight, leaving the install waiting on files it never showed PR #3085
+
+#### Version - 4.3.0.0 - 10/15/2026
+* Replaced the WPF app with an Avalonia one PR #3035
+* Added preflight, a checklist that runs before every install: game, archives, game files, Nexus login, manual and automated downloads, disk space. Preflight now does all the downloading, manual downloads come first, and files you download in the browser are picked up from your Downloads folder PRs #2989-#3004
+* Added game file repair from Steam: missing or wrong-version game files, Creation Kit files and Creation Club content are fetched into the downloads folder, and a list can be installed without the game installed. Needs a Steam login in Wabbajack PRs #3005-#3031, #3071
+* Removed WebView2. Nexus login now happens in your browser PR #3027
+* Fixed corrupt archives not being detected and reported, temp file collisions, endless retries on moves that can't succeed, and "database is locked" errors PRs #2975, #2978, #3010, #3045
+* Fixed interrupted downloads resuming from the wrong position PR #3054
+* Compiler: compiles the profile whose modlist.txt you picked, takes files from as few archives as possible, handles games that aren't installed, and "Load compiler settings" points a loaded file at this machine PRs #3044, #3046-#3049
+* Fixed screen size remapping in game ini files and the downloads path not being remapped in config files PRs #3043, #3059
+* Fixed several broken CLI verbs PR #3042
+* Fixed the gallery's tag mapping, wabbajack:// links, a loading overlay that stayed up after direct downloads, and a crash on an empty gallery PR #3066
+* Fixed a crash suggesting an install folder for list names with a dash, and WJ guessing the collection revision after a publish instead of using the one Nexus returns PRs #3065, #3067
+* Fixed Starfield BA2 archives losing their compression settings PR #3069
+* Fixed modlist images remaining stale due to not being picked up by the list validation actions ([@januarysnow](https://github.com/januarysnow)) PRs #2966, #3038
+* Fixed othergames being ignored in CLI installs ([@vadimtrifonov](https://github.com/wabbajack-tools/wabbajack/pull/3029)) PR #3029
+* Add Dune: Awakening support- ([@Fluffernuttersandwich](https://github.com/wabbajack-tools/wabbajack/pull/3036)) PR #3036
+* Added offline tests for the compiler, installer, downloaders, CLI, Nexus collections, Steam repair and modlist file compatibility; CI now runs about 2,100 tests without a network
 
 #### Version - 4.2.3.0 - 09/09/2026
 * Added initial suppoprt for STALKER 2 ([@Fluffernuttersandwich](https://github.com/Fluffernuttersandwich)) PR #2963

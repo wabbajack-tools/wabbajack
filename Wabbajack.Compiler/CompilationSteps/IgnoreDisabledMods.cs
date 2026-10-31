@@ -24,7 +24,11 @@ public class IgnoreDisabledMods : ACompilationStep
         }
 
         _allEnabledMods = _mo2Compiler._settings.AllProfiles
-            .SelectMany(p => _mo2Compiler._settings.Source.Combine("profiles", p, "modlist.txt").ReadAllLines())
+            // Profile names come from otherprofiles.txt as typed, which on Linux need not match the folder's case.
+            .Select(p => _mo2Compiler._settings.Source.FindIgnoringCase(
+                RelativePath.FromParts(new[] {"profiles", p, "modlist.txt"})))
+            .Where(file => file.FileExists())
+            .SelectMany(file => file.ReadAllLines())
             .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
             .Select(line => line[1..].ToRelativePath().RelativeTo(_mo2Compiler.MO2ModsFolder))
             .Concat(_mo2Compiler.Mo2Settings.AlwaysEnabled.Select(r => r.RelativeTo(_mo2Compiler.Settings.Source)))

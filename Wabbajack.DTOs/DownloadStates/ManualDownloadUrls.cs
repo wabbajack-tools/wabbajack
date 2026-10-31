@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Wabbajack.DTOs.DownloadStates;
 
@@ -40,8 +41,14 @@ public static class ManualDownloadUrls
                 target = new ManualDownloadTarget(http.Url, "Direct download", DefaultInstructions);
                 return true;
             case WabbajackCDN cdn:
-                target = new ManualDownloadTarget(cdn.Url, "Wabbajack CDN", DefaultInstructions);
-                return true;
+                // The CDN address is a definition and numbered parts, not a file, so a browser opening it downloads
+                // nothing the user could hand back. A file a list author uploaded has a download page on the build
+                // server that puts the parts back together in the browser; anything else on the CDN has no page, and
+                // a CDN file that will not download is then a failed download with a retry.
+                target = AuthoredFilePage(cdn.Url) is { } page
+                    ? new ManualDownloadTarget(page, "Wabbajack CDN", DefaultInstructions)
+                    : null;
+                return target != null;
             case GoogleDrive googleDrive:
                 target = new ManualDownloadTarget(
                     new Uri($"https://drive.google.com/uc?id={googleDrive.Id}&export=download"),
@@ -75,9 +82,39 @@ public static class ManualDownloadUrls
     ///         there.
     ///     </para>
     /// </summary>
+    /// <summary>
+    ///     The build server's download page for an authored file, from its CDN address: the file's id is the first
+    ///     path segment on authored-files.wabbajack.org, or on wabbajack.b-cdn.net, the name it had before.
+    /// </summary>
+    public static Uri? AuthoredFilePage(Uri cdnUrl)
+    {
+        if (!cdnUrl.Host.Equals("authored-files.wabbajack.org", StringComparison.OrdinalIgnoreCase) &&
+            !cdnUrl.Host.Equals("wabbajack.b-cdn.net", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var id = cdnUrl.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        return string.IsNullOrEmpty(id) ? null : new Uri($"https://build.wabbajack.org/authored_files/download/{id}");
+    }
+
+    /// <summary>Nexus Mods' download page for one file: the slow/fast choice, with the download a click away.</summary>
+    public static Uri NexusDownloadPopup(long fileId, long nexusGameId)
+    {
+        return new Uri(
+            $"https://www.nexusmods.com/Core/Libs/Common/Widgets/DownloadPopUp?id={fileId}&game_id={nexusGameId}");
+    }
+
     private static ManualDownloadTarget NexusTarget(Nexus nexus)
     {
         var meta = nexus.Game.MetaData();
+
+        // The page Nexus's own "Manual download" button opens: the slow/fast download choice for exactly this
+        // file. Sending the user there saves finding the file on the Files tab and clicking through to it, two
+        // of the three clicks a manual download used to cost. It is addressed by file id and the game's numeric
+        // id rather than its domain, so a game without one keeps the Files tab link below.
+        if (nexus.FileID > 0 && meta.NexusGameId > 0)
+            return new ManualDownloadTarget(NexusDownloadPopup(nexus.FileID, meta.NexusGameId), "Nexus Mods",
+                "Press Slow download on this page");
+
         var page = $"https://www.nexusmods.com/{meta.NexusDomain}/mods/{nexus.ModID}?tab=files";
         var url = nexus.FileID > 0 ? new Uri($"{page}&file_id={nexus.FileID}") : new Uri(page);
 

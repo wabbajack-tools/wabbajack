@@ -90,6 +90,19 @@ public class CreationRestorer : IGameFileRestorer
     }
 
     /// <summary>
+    ///     Never a stand-in for a missing install, whatever the account owns. Creations are add-ons to a
+    ///     game rather than the game, so a machine with no Skyrim Special Edition folder is missing files
+    ///     nothing here publishes - and the ticket that asks Bethesda for a Creation is minted by a library
+    ///     that lives in that same folder, so this source does not work at all without it.
+    /// </summary>
+    public Task<GameSourceResult> CanSourceGame(Game game, CancellationToken token)
+    {
+        return Task.FromResult(new GameSourceResult(GameSourceOutcome.NoSource,
+            "Bethesda publishes Creations for Skyrim Special Edition, not the game itself, so they are no " +
+            "substitute for having it installed."));
+    }
+
+    /// <summary>
     ///     What fetching Creations for these games asks of the user, said only when one of them actually has
     ///     Creations to fetch - which today means Skyrim Special Edition and nothing else. A repair that
     ///     reaches none of this adds nothing to say, and a warning shown every time is a warning nobody
@@ -129,9 +142,15 @@ public class CreationRestorer : IGameFileRestorer
     ///         it is. Whether the copy published now is the one this list wants is decided where it is
     ///         decided for every other game file: by <c>Archive.Hash</c>, on the bytes that come out.
     ///     </para>
+    ///     <para>
+    ///         <paramref name="wanted" /> is not used, and there is nothing to gain by using its size: a
+    ///         Creation is fetched as one <c>.ckm</c> that carries both of its files, so by the time either
+    ///         file's size is known the download that would have been skipped has already happened.
+    ///         <c>Archive.Hash</c> still decides whether what comes out is what the list wanted.
+    ///     </para>
     /// </summary>
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-        AbsolutePath output, CancellationToken token)
+        AbsolutePath output, CancellationToken token, GameFileIdentity? wanted = null)
     {
         if (game != SupportedGame)
             return new GameFileRestoreResult(GameFileRestoreOutcome.NoSource, null,

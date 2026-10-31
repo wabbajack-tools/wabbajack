@@ -45,9 +45,29 @@ public sealed class FakeGameFileRestorer : IGameFileRestorer
     /// <summary>Games whose repair carries <see cref="Consequence" />. Empty, which is the ordinary case.</summary>
     public HashSet<Game> ConsequentialGames { get; } = new();
 
+    /// <summary>
+    ///     What this answers when asked whether it could stand in for a game that is not installed. NoSource
+    ///     by default, so a test has to opt in to the install-without-the-game path rather than fall into it.
+    /// </summary>
+    public GameSourceResult GameSource { get; set; } =
+        new(GameSourceOutcome.NoSource, "This source does not carry that game.");
+
+    /// <summary>Every game <see cref="CanSourceGame" /> was asked about, in order.</summary>
+    public List<Game> AskedToSource { get; } = new();
+
+    /// <summary>Set to make <see cref="CanSourceGame" /> throw, standing in for a store nobody can reach.</summary>
+    public Func<Exception>? SourceThrows { get; set; }
+
     public GameFileRestorerStatus Status()
     {
         return new GameFileRestorerStatus(Ready, Ready ? "Logged in as tester" : NotReadyReason);
+    }
+
+    public Task<GameSourceResult> CanSourceGame(Game game, CancellationToken token)
+    {
+        AskedToSource.Add(game);
+        if (SourceThrows != null) throw SourceThrows();
+        return Task.FromResult(GameSource);
     }
 
     public IReadOnlyList<string> Consequences(IEnumerable<Game> games)
@@ -58,10 +78,10 @@ public sealed class FakeGameFileRestorer : IGameFileRestorer
     }
 
     public async Task<GameFileRestoreResult> Restore(Game game, string? version, RelativePath gameFile,
-        AbsolutePath output, CancellationToken token)
+        AbsolutePath output, CancellationToken token, GameFileIdentity? wanted = null)
     {
-        var wanted = gameFile.ToString();
-        Asked.Add((game, version, wanted));
+        var path = gameFile.ToString();
+        Asked.Add((game, version, path));
 
         if (!Ready) return new GameFileRestoreResult(GameFileRestoreOutcome.NotReady, version, NotReadyReason);
         if (Throws != null) throw Throws();
@@ -70,9 +90,9 @@ public sealed class FakeGameFileRestorer : IGameFileRestorer
             return new GameFileRestoreResult(GameFileRestoreOutcome.VersionUnknown, version,
                 $"The index has no record of {game} {version}.");
 
-        if (!Files.TryGetValue((version, wanted), out var content))
+        if (!Files.TryGetValue((version, path), out var content))
             return new GameFileRestoreResult(GameFileRestoreOutcome.FileNotFound, version,
-                $"Nothing published at {version ?? "the current build"} contains \"{wanted}\".");
+                $"Nothing published at {version ?? "the current build"} contains \"{path}\".");
 
         output.Parent.CreateDirectory();
         await output.WriteAllBytesAsync(Encoding.UTF8.GetBytes(content), token);

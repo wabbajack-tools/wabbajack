@@ -1,0 +1,49 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Settings"
+                          xmlns:v="using:Wabbajack.App.Avalonia.Views.Settings"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          x:Class="Wabbajack.App.Avalonia.Views.Settings.AboutView"
+                          x:TypeArguments="vm:AboutVM"
+                          x:DataType="vm:AboutVM">
+    <Border Classes="settingsCard">
+        <Grid x:Name="AboutGrid" Margin="16" VerticalAlignment="Center" RowDefinitions="Auto,Auto,16,Auto,16,Auto">
+            <!-- WPF: Width = the grid's width / 2.25, set from code-behind. -->
+            <Image x:Name="Logo" Grid.Row="0" Source="{StaticResource WabbajackLegacyLogo}" />
+            <TextBlock Grid.Row="1" FontSize="36" HorizontalAlignment="Center" Text="Wabbajack" />
+            <!--
+                WPF had the heart inline in the text. Its inline layout made the line 27px tall, with the heart
+                1px and the words 6px from the top; Avalonia's inline icon gives a 22px line with the words 4px
+                down, which moved the whole card. So the line is laid out as a row, at WPF's measurements.
+            -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Height="27">
+                <StackPanel.Styles>
+                    <Style Selector="TextBlock">
+                        <Setter Property="FontSize" Value="18" />
+                        <Setter Property="FontWeight" Value="Regular" />
+                        <Setter Property="VerticalAlignment" Value="Top" />
+                        <Setter Property="Margin" Value="0,2,0,0" />
+                    </Style>
+                </StackPanel.Styles>
+                <TextBlock Text="Made with " />
+                <ic:SymbolIcon Symbol="Heart" IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}"
+                               FontSize="22" Width="22" VerticalAlignment="Top" />
+                <TextBlock Text=" by the " />
+                <TextBlock Text="Wabbajack team" Foreground="{StaticResource PrimaryBrush}" FontWeight="Bold" />
+            </StackPanel>
+            <ItemsControl Grid.Row="5" HorizontalAlignment="Center" ItemsSource="{Binding Contributors}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ContributorVM">
+                        <v:ContributorView Margin="24,0,0,0" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

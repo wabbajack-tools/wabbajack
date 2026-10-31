@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
@@ -38,6 +39,11 @@ public class IncludeThisProfile : ACompilationStep
 
         var e = source.EvolveTo<InlineFile>();
         e.SourceDataID = await _compiler.IncludeFile(data);
+        // modlist.txt is stored cleaned of disabled mods, so the hash and size have to be the stored data's
+        // rather than the source file's. Left as the source's, the installer cached the uncleaned hash for the
+        // cleaned file it wrote, and a later compile of that install gave the hash to the wrong file.
+        e.Hash = await data.Hash();
+        e.Size = data.Length;
         return e;
     }
 
