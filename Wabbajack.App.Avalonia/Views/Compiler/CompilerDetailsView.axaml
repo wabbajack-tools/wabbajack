@@ -107,7 +107,7 @@
 
     <ScrollViewer x:Name="SettingsScrollViewer" Background="Transparent" HorizontalScrollBarVisibility="Disabled"
                   VerticalScrollBarVisibility="Auto">
-        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
             <StackPanel Classes="field">
                 <DockPanel HorizontalAlignment="Stretch">
                     <TextBlock Classes="title" Text="Author" />
@@ -205,14 +205,40 @@
                 </CheckBox>
             </StackPanel>
 
-            <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Classes="field">
+            <StackPanel Grid.Row="9" Classes="field">
                 <CheckBox x:Name="AutoGenerateReportSetting" Margin="0,8,0,8"
                           ToolTip.Tip="If ticked, Wabbajack will generate an HTML report next to the .wabbajack after compilation.">
                     <TextBlock Text="Auto-generate Modlist HTML Report" FontSize="10" VerticalAlignment="Center" />
                 </CheckBox>
             </StackPanel>
 
+            <StackPanel Grid.Row="9" Grid.Column="1" Classes="field">
+                <CheckBox x:Name="UtilityListSetting" Margin="0,8,0,8"
+                          ToolTip.Tip="Select this if your modlist is a baseline of essentials that other people are meant to build their own setups on top of, rather than a list to play as-is.">
+                    <TextBlock Text="Utility List" FontSize="10" VerticalAlignment="Center" />
+                </CheckBox>
+            </StackPanel>
+
             <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Classes="field"
+                        ToolTip.Tip="Tags shown and searchable in the Wabbajack gallery. Only tags from the gallery's allowed list can be selected.">
+                <DockPanel>
+                    <TextBlock Classes="title" Text="Gallery tags" />
+                    <TextBlock Classes="optional" Text="Optional" />
+                </DockPanel>
+                <ListBox x:Name="TagsSetting" Classes="profiles" SelectionMode="Multiple,Toggle"
+                         AutoScrollToSelectedItem="False" MaxHeight="150">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <ic:SymbolIcon x:Name="Check" Grid.Column="0" FontSize="13" Symbol="Checkmark" />
+                                <TextBlock Grid.Column="2" Padding="4,8,0,8" Text="{Binding}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="11" Grid.ColumnSpan="2" Classes="field"
                         ToolTip.Tip="Wabbajack will include selected profiles as part of the modlist alongside your main selected MO2 profile.">
                 <TextBlock Classes="title" Text="Additional profile(s)" />
                 <ListBox x:Name="AdditionalProfilesSetting" Classes="profiles" SelectionMode="Multiple,Toggle"
