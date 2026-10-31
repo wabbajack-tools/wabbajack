@@ -11,4 +11,7 @@ public static class MetricNames
 
     /// <summary>A Bethesda.net sign-in with a Steam app ticket. The subject is the game.</summary>
     public const string BethesdaLogin = "bethesda_login";
+
+    /// <summary>An account changing Nexus Mods tier. The subject is which way; see <c>NexusTier.Change</c>.</summary>
+    public const string NexusTierChange = "nexus_tier_change";
 }

@@ -23,6 +23,7 @@ using Wabbajack.App.Avalonia.ViewModels.Gallery;
 using Wabbajack.App.Avalonia.ViewModels.Installers;
 using Wabbajack.App.Avalonia.ViewModels.Settings;
 using Wabbajack.Common;
+using Wabbajack.Installer.Preflight;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
 
@@ -45,7 +46,8 @@ public partial class MainWindowVM : ViewModel
     private readonly ILogger<MainWindowVM> _logger;
 
     public MainWindowVM(IServiceProvider services, Navigator navigator, ModListDetailsVM modListDetails,
-        ILogger<MainWindowVM> logger, SystemParametersConstructor systemParams, HttpClient httpClient, Client wjClient)
+        ILogger<MainWindowVM> logger, SystemParametersConstructor systemParams, HttpClient httpClient, Client wjClient,
+        INexusLoginProbe nexusLogin)
     {
         _services = services;
         _logger = logger;
@@ -128,14 +130,17 @@ public partial class MainWindowVM : ViewModel
 
         NavigateTo(ScreenType.Home);
 
-        LogStartup(fileVersion, systemParams, httpClient, wjClient);
+        LogStartup(fileVersion, systemParams, httpClient, wjClient, nexusLogin);
     }
 
     /// <summary>
     ///     The block every WPF log opens with, which support reads first: versions, paths, the machine, its drives
-    ///     and its TLS setup. It also lands in the installer's log pane. The two start metrics go with it.
+    ///     and its TLS setup. It also lands in the installer's log pane. The two start metrics go with it, as does
+    ///     the one look at the Nexus account a launch gets: preflight only asks when Nexus files are missing, so a
+    ///     conversion would otherwise wait for the user's next install that needs some.
     /// </summary>
-    private void LogStartup(string? fileVersion, SystemParametersConstructor systemParams, HttpClient httpClient, Client wjClient)
+    private void LogStartup(string? fileVersion, SystemParametersConstructor systemParams, HttpClient httpClient, Client wjClient,
+        INexusLoginProbe nexusLogin)
     {
         try
         {
@@ -172,6 +177,7 @@ public partial class MainWindowVM : ViewModel
 
             Task.Run(() => wjClient.SendMetric("started_wabbajack", fileVersion)).FireAndForget();
             Task.Run(() => wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha)).FireAndForget();
+            Task.Run(() => nexusLogin.Probe(CancellationToken.None)).FireAndForget();
         }
         catch (Exception ex)
         {

@@ -526,6 +526,14 @@ refreshes an expired token on the way to every authenticated call, so an offline
 post a doomed refresh once per request; the old behaviour hid that by writing the failure and never trying
 again at all.
 
+**Nexus tier metrics carry the tier and nothing else.** `finish_install_{premium|free|logged_out|unknown}` goes
+out beside `finish_install` from `Rules/FinishInstallMetrics`, and `nexus_tier_change` from `NexusTierTracker`,
+which wraps the login probe so every check of the account feeds it, the launch-time one in `MainWindowVM`
+included. The tracker's memory is one boolean in `encrypted/nexus-state` beside the metrics key: no account id
+is stored or sent, so swapping accounts reads as a conversion, and these are broad numbers that can bear that.
+Both pass `rebound: false`, because `Client.SendMetric` otherwise exits the process on a 403 or a 500. Neither
+can fail an install or hold a preflight row for more than a few seconds.
+
 `CanDownload` answers "can this machine download from Nexus Mods" and nothing else; the collection upload
 and download paths build their own GraphQL requests with `Authorization: Bearer`, so they need an unexpired
 OAuth access token specifically and read the stored state for one. A stored API key passes `CanDownload`
