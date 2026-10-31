@@ -10,7 +10,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using TexGen;
-using TexGen.Gpu;
 using Wabbajack.DTOs.Texture;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -30,7 +29,12 @@ namespace Wabbajack.Hashing.PHash;
 public class TexGenImageLoader : IImageLoader
 {
     private readonly ILogger<TexGenImageLoader> _logger;
-    private readonly Lazy<GpuDevice> _device;
+
+    /// <summary>
+    ///     The GPU while it works; the CPU from the first texture it fails or hangs on. A broken CUDA or OpenCL
+    ///     driver costs speed, not the install.
+    /// </summary>
+    private readonly FallbackConverter _converter;
 
     public TexGenImageLoader() : this(NullLogger<TexGenImageLoader>.Instance)
     {
@@ -39,23 +43,7 @@ public class TexGenImageLoader : IImageLoader
     public TexGenImageLoader(ILogger<TexGenImageLoader> logger)
     {
         _logger = logger;
-        _device = new Lazy<GpuDevice>(CreateDevice, LazyThreadSafetyMode.ExecutionAndPublication);
-    }
-
-    private GpuDevice CreateDevice()
-    {
-        try
-        {
-            var device = GpuDevice.Create();
-            _logger.LogInformation("Textures are converted on {Device}", device.Description);
-            return device;
-        }
-        catch (Exception ex)
-        {
-            // A broken CUDA or OpenCL driver should cost speed, not the install.
-            _logger.LogWarning(ex, "No usable GPU for texture conversion, using the CPU");
-            return GpuDevice.Create(GpuBackend.Cpu);
-        }
+        _converter = new FallbackConverter(log: message => _logger.LogWarning("Textures: {Message}", message));
     }
 
     public async ValueTask<ImageState> Load(AbsolutePath path)
@@ -161,7 +149,7 @@ public class TexGenImageLoader : IImageLoader
             token.ThrowIfCancellationRequested();
             var working = ImageIO.DecodeToWorking(source.Images[slice * meta.MipLevels]);
             if (!floatTarget) working = ToRgba8(working);
-            var result = Converter.Convert(working, options, _device.Value);
+            var result = _converter.Convert(working, options, token);
             converted ??= result.Metadata;
             images.AddRange(result.Images);
         }
