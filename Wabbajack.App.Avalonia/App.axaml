@@ -1,0 +1,48 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Wabbajack.App.Avalonia.App"
+             RequestedThemeVariant="Dark">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://Wabbajack/Themes/Palette.axaml" />
+                <ResourceInclude Source="avares://Wabbajack/Themes/Logos.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <FontFamily x:Key="PrimaryFont">avares://Wabbajack/Assets/Fonts#Gabarito</FontFamily>
+
+            <!--
+                Resources Fluent's TextBox template reads, pinned to the WPF theme. Fluent changes a TextBox's
+                fill and border on hover and focus and thickens the border when focused; the WPF TextBox did
+                none of that, so every state gets the same values. These are looked up before the theme's.
+            -->
+            <StaticResource x:Key="TextControlBackground" ResourceKey="TextBoxBackground" />
+            <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="TextBoxBackground" />
+            <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="TextBoxBackground" />
+            <StaticResource x:Key="TextControlBackgroundDisabled" ResourceKey="TextBoxDisabledBackground" />
+            <StaticResource x:Key="TextControlBorderBrush" ResourceKey="TextBoxBorder" />
+            <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="TextBoxBorder" />
+            <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="TextBoxBorder" />
+            <StaticResource x:Key="TextControlBorderBrushDisabled" ResourceKey="TextBoxDisabledBackground" />
+            <StaticResource x:Key="TextControlForeground" ResourceKey="ForegroundBrush" />
+            <StaticResource x:Key="TextControlForegroundPointerOver" ResourceKey="ForegroundBrush" />
+            <StaticResource x:Key="TextControlForegroundFocused" ResourceKey="ForegroundBrush" />
+            <StaticResource x:Key="TextControlForegroundDisabled" ResourceKey="TextBoxDisabledForeground" />
+            <Thickness x:Key="TextControlBorderThemeThickness">1</Thickness>
+            <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+            <!-- WPF drew the watermark in the text colour at half opacity; Fluent's watermark is already half. -->
+            <StaticResource x:Key="TextControlPlaceholderForeground" ResourceKey="ForegroundBrush" />
+            <StaticResource x:Key="TextControlPlaceholderForegroundPointerOver" ResourceKey="ForegroundBrush" />
+            <StaticResource x:Key="TextControlPlaceholderForegroundFocused" ResourceKey="ForegroundBrush" />
+        </ResourceDictionary>
+    </Application.Resources>
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/Controls.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/InputControls.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/CommonControls.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/RangeSlider.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/MultiSelectComboBox.axaml" />
+        <StyleInclude Source="avares://Wabbajack/Themes/DataGrid.axaml" />
+    </Application.Styles>
+</Application>

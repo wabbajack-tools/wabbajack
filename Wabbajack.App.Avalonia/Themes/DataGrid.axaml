@@ -1,0 +1,274 @@
+<!--
+    The WPF theme's DataGrid styles (Styles.xaml, "DataGrid styles"), rebuilt as Avalonia templates. Each block
+    names the WPF style it reproduces; sizes, brushes and states are that style's, and where the WPF style leaned
+    on WPF's own DataGrid defaults the comment says which default is being reproduced.
+
+    This file builds on Avalonia.Controls.DataGrid's Fluent theme, which is not part of FluentTheme. App.axaml
+    must include it before this file:
+        <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+        ...
+        <StyleInclude Source="avares://Wabbajack/Themes/DataGrid.axaml" />
+    and after InputControls.axaml, whose ScrollBar style the grid's vertical bar takes.
+
+    Every template here is replaced rather than restyled, so the Fluent theme's state rules, which reach into its
+    own named template parts (BackgroundRectangle, FocusVisual, CurrencyVisual, SortIcon), find nothing to
+    change. Its plain setters (FontSize 15 and MinHeight 32 on cells, FontSize 12 on headers, and so on) still
+    apply unless a style here sets the property, which is why several setters below restate a WPF default.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        DataGrid. Headers 42px tall and rows 36px, on DataGridBackgroundBrush in a Border with an 8px radius
+        and no border. The WPF template has no select-all button in the top-left corner, so the column headers
+        start at the grid's left edge while each row still carries its row header; there is no horizontal
+        scroll bar (it is commented out in the WPF template); and the vertical bar sits in a column of its own
+        beside the rows, not beside the headers. The Border does not clip to its corners, as WPF's did not.
+    -->
+    <Style Selector="DataGrid">
+        <Setter Property="ColumnHeaderHeight" Value="42" />
+        <Setter Property="RowHeight" Value="36" />
+        <Setter Property="Background" Value="{StaticResource DataGridBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="RowDetailsVisibilityMode" Value="VisibleWhenSelected" />
+        <!-- WPF defaults the Fluent theme or Avalonia's DataGrid set otherwise: row and column headers both
+             shown, columns resizable and reorderable by dragging a header. -->
+        <Setter Property="HeadersVisibility" Value="All" />
+        <Setter Property="CanUserResizeColumns" Value="True" />
+        <Setter Property="CanUserReorderColumns" Value="True" />
+        <!--
+            Grid lines are GridLinesBrush, which is transparent. WPF still reserves 1px for each line inside the
+            cell (right and bottom) within the 36px row; Avalonia puts the horizontal line outside the row,
+            which would make every row 37px. So the lines are off here and the cell template reserves the
+            same 1px itself.
+        -->
+        <Setter Property="GridLinesVisibility" Value="None" />
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource GridLinesBrush}" />
+        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource GridLinesBrush}" />
+        <!-- The grid hands this to its scroll bar when the template is applied; the WPF bar never hides. -->
+        <Setter Property="ScrollViewer.AllowAutoHide" Value="False" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="DataGridBorder"
+                        Padding="{TemplateBinding Padding}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="8">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*">
+                        <DataGridColumnHeadersPresenter Name="PART_ColumnHeadersPresenter" Grid.Row="0" Grid.Column="0" />
+                        <!-- WPF's ScrollContentPresenter clipped the rows to the viewport; without the clip,
+                             a row wider than the viewport would draw under the scroll bar. -->
+                        <DataGridRowsPresenter Name="PART_RowsPresenter" Grid.Row="1" Grid.Column="0"
+                                               Grid.RowSpan="1" Grid.ColumnSpan="1" ClipToBounds="True"
+                                               ScrollViewer.IsScrollInertiaEnabled="{TemplateBinding IsScrollInertiaEnabled}">
+                            <DataGridRowsPresenter.GestureRecognizers>
+                                <ScrollGestureRecognizer CanHorizontallyScroll="True" CanVerticallyScroll="True" />
+                            </DataGridRowsPresenter.GestureRecognizers>
+                        </DataGridRowsPresenter>
+                        <ScrollBar Name="PART_VerticalScrollbar" Grid.Row="1" Grid.Column="1" Orientation="Vertical" />
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <!-- The Fluent theme spans its rows presenter under its overlay scroll bars. -->
+    <Style Selector="DataGrid /template/ DataGridRowsPresenter#PART_RowsPresenter">
+        <Setter Property="Grid.RowSpan" Value="1" />
+        <Setter Property="Grid.ColumnSpan" Value="1" />
+    </Style>
+
+    <!--
+        DataGridColumnHeader: padding 3, a transparent 1,1,0,1 border (DataGridHeaderBorderBrush) on
+        DataGridHeaderBackgroundBrush, content left-aligned (WPF's default) and vertically centred, in the
+        grid's own font size. Hover fills it with DataGridHeaderMouseOverBrush and turns the text black.
+        No sort arrow: the WPF template draws none. The 8px ColumnHeaderGripperStyle thumbs at each edge are
+        not reproduced as elements; Avalonia's header resizes from a fixed 5px region at each edge and shows
+        the same SizeWE cursor there.
+    -->
+    <Style Selector="DataGridColumnHeader">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="Background" Value="{StaticResource DataGridHeaderBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DataGridHeaderBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1,1,0,1" />
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontSize" Value="{Binding $parent[DataGrid].FontSize}" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="HeaderBorder"
+                        Padding="{TemplateBinding Padding}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="DataGrid:not(.archives) DataGridColumnHeader:pointerover">
+        <Setter Property="Background" Value="{StaticResource DataGridHeaderMouseOverBrush}" />
+        <Setter Property="Foreground" Value="Black" />
+    </Style>
+
+    <!--
+        DataGridRowHeader: a 1px border in DataGridBackgroundBrush around DataGridBackgroundBrush, with no content,
+        so it sizes itself to 2px wide (the grid's RowHeaderWidth is left automatic, as in WPF) and shows as a 2px
+        strip of the grid background at the left of every row, alternate and selected rows included. The
+        RowHeaderGripperStyle thumbs resized rows in WPF; Avalonia's DataGrid cannot resize rows.
+    -->
+    <Style Selector="DataGridRowHeader">
+        <Setter Property="Background" Value="{StaticResource DataGridBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DataGridBackgroundBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="PART_Root"
+                        Padding="{TemplateBinding Padding}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <ContentPresenter VerticalAlignment="Center" Content="{TemplateBinding Content}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!--
+        DataGridRowStyle: a borderless Border in DataGridRowBackgroundBrush holding the row header and the cells.
+        Hover (when not selected) takes MouseOverListItem; selected takes DataGridRowSelectedBrush with a 3px
+        radius and black text. Selection looks the same whether or not the grid has focus. WPF keyed this style
+        and the only grid (the modlist details pane) based its rows on it, so it is applied to every row here;
+        that grid's own changes are under DataGrid.archives below.
+    -->
+    <Style Selector="DataGridRow">
+        <Setter Property="Background" Value="{StaticResource DataGridRowBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <!-- WPF's VerticalContentAlignment Center is omitted: Avalonia's row has no such property, and the
+             WPF row template never read it. -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="RowBorder"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="0"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                    <DataGridFrozenGrid Name="PART_Root" ColumnDefinitions="Auto,*" RowDefinitions="*,Auto,Auto">
+                        <DataGridRowHeader Name="PART_RowHeader" Grid.RowSpan="3" DataGridFrozenGrid.IsFrozen="True" />
+                        <DataGridCellsPresenter Name="PART_CellsPresenter" Grid.Column="1" DataGridFrozenGrid.IsFrozen="True" />
+                        <DataGridDetailsPresenter Name="PART_DetailsPresenter" Grid.Row="1" Grid.Column="1" />
+                        <Rectangle Name="PART_BottomGridLine" Grid.Row="2" Grid.Column="1" Height="1" HorizontalAlignment="Stretch" />
+                    </DataGridFrozenGrid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="DataGrid:not(.archives) DataGridRow:pointerover:not(:selected) /template/ Border#RowBorder">
+        <Setter Property="Background" Value="{StaticResource MouseOverListItem}" />
+    </Style>
+    <Style Selector="DataGridRow:selected">
+        <Setter Property="Foreground" Value="Black" />
+    </Style>
+    <Style Selector="DataGridRow:selected /template/ Border#RowBorder">
+        <Setter Property="Background" Value="{StaticResource DataGridRowSelectedBrush}" />
+        <Setter Property="CornerRadius" Value="3" />
+    </Style>
+
+    <!--
+        DataGridCellStyle: transparent, no border, no padding, content vertically centred and stretched across
+        the cell, in the grid's own font size (the Fluent theme would make it 15). The Border stops 1px short
+        of the right and bottom edges: that is the space WPF keeps inside every cell for its (transparent) grid
+        lines, so text trims and centres where it did. No focus or current-cell rectangle: WPF's focus brush was
+        set on a zero-thickness border, so nothing was ever drawn. Selected cells take black text; disabled
+        cells SystemColors.GrayTextBrush, which is #6D6D6D on Windows.
+    -->
+    <Style Selector="DataGridCell">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="FontSize" Value="{Binding $parent[DataGrid].FontSize}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="CellBorder" Margin="0,0,1,1"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Center"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="DataGridCell:selected">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="Black" />
+    </Style>
+    <Style Selector="DataGridCell:disabled">
+        <Setter Property="Foreground" Value="#6D6D6D" />
+    </Style>
+
+    <!--
+        The modlist details pane's archive list (ModListDetailsView's ArchivesDataGrid): 13px text, and every
+        second row in ComplementaryPrimary12Brush (WPF's AlternatingRowBackground; nth-child counts from 1, so
+        2n is WPF's alternation index 1).
+    -->
+    <Style Selector="DataGrid.archives">
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="DataGrid.archives DataGridRow:nth-child(2n)">
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary12Brush}" />
+    </Style>
+
+    <!--
+        Its ColumnHeaderStyle replaced the theme's header style outright (no BasedOn), leaving WPF's own Aero2
+        header template, which draws a plain border once a Background is set: no padding, no border, no hover
+        change, no sort arrow. The header is bold, 8px in from its column, and centred vertically at its own
+        height rather than filling the 42px row, on ComplementaryPrimary08Brush (the grid's colour, so the
+        strip does not show).
+    -->
+    <Style Selector="DataGrid.archives DataGridColumnHeader">
+        <Setter Property="Margin" Value="8,0,0,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <!--
+        Its row template: the cells sit 8px in from each side of the row (the column widths do not allow for
+        that, so the last 8px of the last column run past the viewport and are clipped, as in WPF). Selection
+        keeps square corners. Hover highlights, and shows a hand, only on rows the view marks nexus, since only
+        a Nexus archive opens anything when clicked; selection still wins over hover.
+    -->
+    <Style Selector="DataGrid.archives DataGridRow /template/ DataGridCellsPresenter#PART_CellsPresenter">
+        <Setter Property="Margin" Value="8,0,8,0" />
+    </Style>
+    <Style Selector="DataGrid.archives DataGridRow:selected /template/ Border#RowBorder">
+        <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="DataGrid.archives DataGridRow.nexus:pointerover">
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="DataGrid.archives DataGridRow.nexus:pointerover:not(:selected) /template/ Border#RowBorder">
+        <Setter Property="Background" Value="{StaticResource MouseOverListItem}" />
+    </Style>
+</Styles>

@@ -1,5 +1,6 @@
 using System;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Hashing.xxHash64;
@@ -11,31 +12,65 @@ namespace Wabbajack.Services.OSIntegrated.TokenProviders;
 
 public class WabbajackApiTokenProvider : ITokenProvider<WabbajackApiState>
 {
-    private AbsolutePath MetricsPath => KnownFolders.WabbajackAppLocal.Combine("encrypted", "metrics-key");
-    private AbsolutePath AuthorKeyPath => KnownFolders.WabbajackAppLocal.Combine("author-api-key.txt");
+    private readonly AbsolutePath _appLocal;
+
+    /// <summary>
+    ///     Every call to the Wabbajack API asks for the metrics key, and on a fresh machine the first few ask at
+    ///     once. Unguarded, each of them found no key and created one, colliding on the file; static because the
+    ///     file is one per machine, whichever instance asks.
+    /// </summary>
+    private static readonly SemaphoreSlim MetricsLock = new(1, 1);
+
+    private string? _metricsKey;
+
+    public WabbajackApiTokenProvider() : this(KnownFolders.WabbajackAppLocal)
+    {
+    }
+
+    internal WabbajackApiTokenProvider(AbsolutePath appLocal)
+    {
+        _appLocal = appLocal;
+    }
+
+    private AbsolutePath MetricsPath => _appLocal.Combine("encrypted", "metrics-key");
+    private AbsolutePath AuthorKeyPath => _appLocal.Combine("author-api-key.txt");
 
     public async ValueTask<WabbajackApiState?> Get()
     {
-        if (!MetricsPath.FileExists())
-            await CreateMetricsKey();
-
-        string wjToken;
-        try
-        {
-            wjToken = (await MetricsPath.FromEncryptedJsonFile<string>())!;
-        }
-        catch (CryptographicException)
-        {
-            MetricsPath.Delete();
-            await CreateMetricsKey();
-            wjToken = (await MetricsPath.FromEncryptedJsonFile<string>())!;
-        }
-
         return new WabbajackApiState
         {
-            MetricsKey = wjToken,
+            MetricsKey = await MetricsKey(),
             AuthorKey = AuthorKeyPath.FileExists() ? (await AuthorKeyPath.ReadAllTextAsync()).Trim() : null
         };
+    }
+
+    private async Task<string> MetricsKey()
+    {
+        await MetricsLock.WaitAsync();
+        try
+        {
+            if (_metricsKey != null) return _metricsKey;
+
+            if (!MetricsPath.FileExists())
+                await CreateMetricsKey();
+
+            try
+            {
+                _metricsKey = (await MetricsPath.FromEncryptedJsonFile<string>())!;
+            }
+            catch (CryptographicException)
+            {
+                MetricsPath.Delete();
+                await CreateMetricsKey();
+                _metricsKey = (await MetricsPath.FromEncryptedJsonFile<string>())!;
+            }
+
+            return _metricsKey;
+        }
+        finally
+        {
+            MetricsLock.Release();
+        }
     }
 
     public ValueTask SetToken(WabbajackApiState val)

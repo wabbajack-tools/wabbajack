@@ -33,7 +33,10 @@ internal class Program
     // yet and stuff might break.
     public static void Main(string[] args)
     {
+        // Rooted at the launcher's folder: the default is the working directory, watched recursively, which a
+        // Linux desktop sets to the home folder.
         var host = Host.CreateDefaultBuilder(Array.Empty<string>())
+            .UseContentRoot(AppContext.BaseDirectory)
             .ConfigureLogging(c => { c.ClearProviders(); })
             .ConfigureServices((host, services) =>
             {

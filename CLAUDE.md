@@ -3,8 +3,10 @@
 An automated modlist installer. It reproduces a modding setup on another machine by recording where every
 file came from, then downloading and rebuilding it, without redistributing any mods.
 
-Two things ship: a WPF desktop app (`Wabbajack.App.Wpf`) and a CLI (`Wabbajack.CLI`). The ~60 remaining
-projects are libraries behind them.
+Two things ship: an Avalonia desktop app (`Wabbajack.App.Avalonia`, built as `Wabbajack.exe`) and a CLI
+(`Wabbajack.CLI`). The ~60 remaining projects are libraries behind them. The Avalonia app replaced a WPF
+one screen for screen; the WPF project is gone, and git history has it. The app and the CLI are published as single files (`SingleFile.targets`), with the external tools under
+`Extractors` and `Tools` kept beside the exe.
 
 ## Build and test
 
@@ -27,6 +29,31 @@ offline lane stays trustworthy.
 
 Building from Linux or macOS needs `/p:EnableWindowsTargeting=true`, which is what the CI workflow passes.
 
+Releases come from the Create Release workflow. `release.ps1` builds, signs and zips the Windows app, CLI and
+launcher and creates the GitHub draft; `release-linux.sh` publishes the app and CLI for linux-x64 into
+`{version}-linux-x64.tar.gz`, and the launcher into `Wabbajack-linux-x64.tar.gz` (unsigned, other platforms'
+tools left out). The Windows job is untouched by Linux: the Linux tarballs are built in a job of their own and
+attached, and uploaded to Nexus once the repository variables `NEXUS_LINUX_FILE_ID` and
+`NEXUS_LINUX_LAUNCHER_FILE_ID` hold their file ids, by a job that runs only after the Windows release is
+published. Both scripts read the version from the top of `CHANGELOG.md`.
+
+**The launcher updates the app, and the app updates the launcher.** `LauncherUpdater` replaces the launcher
+beside a launcher-laid-out install with the newest stable release's (`Wabbajack.exe`, or the launcher in
+`Wabbajack-linux-x64.tar.gz`), compared by the SHA-256 digest GitHub publishes for each asset, since launchers
+carry no Wabbajack version. From 3.0 until this was rewritten the WPF updater never replaced one (it read the
+release list with Newtonsoft attributes through System.Text.Json), so launchers going back to 2021 are still in
+use, and every launcher runs before the app that would replace it.
+
+**So every release has to suit the old launchers.** On GitHub they take the highest tag
+that is exactly four numbers, prereleases included, and its `{tag}.zip`; on Nexus, the first file whose name
+ends in `.zip` and parses as a version. The Linux launcher asks Nexus first too, with a premium login, and
+takes only `{version}-linux-x64.tar.gz`, from Nexus or from stable GitHub releases, so Linux downloads count on
+the mod page as Windows ones do. Betas (the Create Beta Build workflow, `BETA=beta.N`) are handed out by hand: an unsigned
+prerelease tagged `{version}-beta.N`, which no launcher picks up, and never on Nexus.
+`Wabbajack.Launcher.Test` holds those rules, the old launchers' selection code included, against a release
+shaped as the workflows publish it; `WABBAJACK_LAUNCHER_RELEASES` points a launcher at another release list to
+try one against releases that are not published.
+
 ### Credentials
 
 `NEXUS_API_KEY` is read straight from the environment by `NexusApi.cs`. With it set, the `RequiresOAuth`
@@ -48,7 +75,7 @@ Projects are small and single-purpose. The name says what is inside.
 | Network clients | `Wabbajack.Networking.*` |
 | Serialization | `Wabbajack.DTOs` plus the `Wabbajack.DTOs.ConverterGenerators` source generator |
 | Wiring | `Wabbajack.Services.OSIntegrated` registers nearly everything in DI |
-| UI | `Wabbajack.App.Wpf` (ReactiveUI), `Wabbajack.Launcher` |
+| UI | `Wabbajack.App.Avalonia` (Avalonia, ReactiveUI), `Wabbajack.Launcher` |
 
 Packages are pinned centrally in `Directory.Packages.props`. A `<PackageReference>` carries no version.
 
@@ -61,7 +88,7 @@ NuGet does. So: keep it as an ordinary pinned `PackageReference`, never vendor o
 its types inside `Wabbajack.Networking.Steam` rather than letting them spread. This is the one copyleft
 dependency in the tree; adding another is a fresh decision, not a precedent.
 
-Logs are written to a `logs` folder next to the executable, configured in `App.xaml.cs`.
+Logs are written to a `logs` folder next to the executable, configured in the Avalonia app's `Program.cs`.
 
 ## Conventions
 
@@ -74,6 +101,24 @@ Logs are written to a `logs` folder next to the executable, configured in `App.x
 - Most projects set `<Nullable>enable</Nullable>` while suppressing several nullable warnings via `NoWarn`.
 - Files are CRLF. Some shell tools rewrite a whole file to LF, which buries a small change in a whole-file
   diff, so check `git diff --stat` after editing outside an editor.
+
+## Windows and Linux
+
+The app and the CLI run on both. A platform difference belongs in the one place that owns it, not in an
+`OperatingSystem.IsWindows()` check where it is used:
+
+- **The user's desktop** (message boxes, the file manager, a terminal, shortcuts, file associations, the window
+  frame, screen and VRAM, where Modlists goes): `IDesktop` in `Wabbajack.App.Avalonia/Services/Desktop`, with
+  `WindowsDesktop` and `LinuxDesktop`; `Desktop.Current` is chosen once.
+- **The launcher**: `ILauncherPlatform` in `Wabbajack.Launcher/Platforms`. The Windows one must keep behaving as
+  launchers already installed do, since each runs before the app that would replace it.
+- **Paths and files**: `WindowsProgramPaths` and `WinePrefixes` (paths as MO2 and the game see them under Wine),
+  `CaseInsensitiveLookup` and `PathCasing` (Windows casing on a case-sensitive file system), `Volumes` (which
+  volume, free space, moving within one), `PlatformExecutable` (a program's file name), `KnownFolders`.
+- **Smaller primitives** keep their own check inside them: `ProcessHelper`, `TimerResolution`,
+  `ChildProcessTracker`, `ExecutableVersion`, `ProtectedData`, the extractor's 7-Zip arguments.
+
+Anything that is not Windows is treated as Linux; macOS has no desktop or launcher platform of its own yet.
 
 ## Things worth knowing before changing them
 
@@ -144,6 +189,34 @@ check could fail a run that would have succeeded. It now runs at 350, reads the 
 already built, and hashes nothing itself. The *missing* versus *mismatched* distinction is still decided by
 the file's own path, because that is what tells the repair below whether today's build will do.
 
+**A game that is not installed does not have to stop a run.** What an install takes from the game is its
+files, and the installer looks for those by hash across the downloads folder as well as the game folders —
+which is the whole reason the repair puts fetched files in downloads. So when the folder cannot be found,
+game-installed asks `IGameFileRestorer.CanSourceGame`, and a source that says the account owns the game
+there turns the old failure into a `Warning`: the run carries on with no game folder, game-files lists
+every file the list takes from the game as missing, and the repair fetches them. The Warning still has to
+be acknowledged, because installing a list for a game that is not on the machine is a decision — the
+modlist installs, but anything in it that points at a game folder (MO2's game path, a launcher) has nowhere
+to point until the game is installed. That is also why the CLI cannot do it: `PreflightInstall` treats any
+unacknowledged Warning as not ready, exactly as it already does for a low disk-space warning.
+
+The three conditions the user asked for are one question, because only the store can answer the third:
+`SteamGameFileRestorer.CanSourceGame` wants a game with a Steam app id, a session (a stored login is used,
+nobody is prompted), and `CheckAccessAsync` on the app's own id — which is what says the account owns it.
+`DepotAccess.Unconfirmed` stays its own answer for the reason it exists elsewhere: a licence list that never
+arrived is not an account that owns nothing. `CreationRestorer` answers `NoSource` — Creations are add-ons
+to a game rather than the game — so the composite's ordinary fall-through rules decide what the user is
+told. It is only ever asked when the folder is missing, so an ordinary install pays nothing for it, and a
+folder the *user* named and that is not there is still a plain failure: they said where the game is.
+
+game-installed records the answer as `PreflightBlackboard.SourcedGames`, which is what game-files reads in
+place of `IGameLocator.TryGetSteamBuildId` — that one is read out of a local install, and there is none, so
+without it the row listing every game file as missing would offer no way to get any of them.
+`StandardInstaller.Begin` matches: it locates a game folder rather than demanding one, keeps `GameInvalid`
+for a folder that was named and is not there, and lets an install with no game folder run. Nothing below it
+needs one, and a list that turns out to be missing something says so through the missing-archive check,
+which names the files.
+
 **Fetching game files is optional, and never writes to the game folder.** `Rules/GameFileRepair` takes what
 game-files put on the blackboard and asks `IGameFileRestorer` — declared in `Wabbajack.Downloaders.GameFile`,
 beside `GameFileDownloader` and `IGameLocator` — for "this file of this game at this version". That seam
@@ -158,6 +231,63 @@ needs — a file that fails it is deleted. The whole thing is opt-in: game-files
 `PreflightAction.RepairGameFiles` only when the game came from Steam, a user with no login is told what one
 would buy rather than having it happen to them, and a host that registers no `IGameFileRestorer` behaves
 exactly as before. The CLI drives it with `repair-game-files`.
+
+**`Archive.Hash` is the last word, so it goes with the question.** `Restore` takes a `GameFileIdentity` —
+the hash and size the modlist recorded — and both change what a source can do.
+
+The size is a cheap refusal. Deciding a fetched file is the wrong one after fetching it is correct and
+ruinously expensive: a list built against a version the store has moved past fails that check on nearly
+every file, and Skyrim's four texture archives alone are about five gigabytes downloaded to establish
+something the depot manifest already said. `SteamGameFileRestorer` skips a candidate whose manifest entry
+is another size — per candidate, since one depot carrying the wrong copy says nothing about the next — and
+reports "the copy Steam publishes now is a different file" instead of "no manifest lists that file". Sizes
+match far more often than hashes do, so this is a pre-filter and not a substitute: everything that *is*
+fetched is still hashed, and anything that fails is still deleted.
+
+**The hash is an identity, and it beats every version question.** `ISteamManifestIndex.Find` asks the
+content index which manifest carries a file with these bytes, and `Restore` asks it before anything else:
+it needs no version string, so it answers for a build whose number nobody recorded and for a list whose
+recorded version was never indexed. Everything about that path falls through rather than failing — an
+entry naming a manifest Steam no longer serves, a depot this account cannot open, an index that is simply
+down — because the index is a GitHub repo and a repair must not depend on it being up. A companion app's
+licence is taken the same way it is everywhere else: only when a depot of it is about to be read.
+`CreationRestorer` ignores the identity deliberately — a Creation arrives as one `.ckm` carrying both of
+its files, so by the time either file's size is known the download is already paid for.
+
+**Steam cannot enumerate a depot's history, so the index is built by hand.** PICS says what a depot publishes *now* and nothing else. Any
+manifest can be fetched by id — the CDN serves it with a request code to an entitled account — so
+everything about an older build depends on somebody having written its ids down while they had it. There
+are exactly two places they come from: a machine with that build installed, whose `appmanifest_<app>.acf`
+records a manifest id per depot (`IGameLocator.TryGetSteamManifests`), or someone recording them while the
+build is current. `hash-game-files` therefore writes `{version}_steam_manifests.json` beside the hashes it
+was already writing: the hashes can be produced again by anyone who still has the files, and the ids
+cannot.
+
+**A manifest never says what a file hashes to.** It carries a path, a size and Valve's SHA-1; a modlist
+carries an xxHash64. Nothing connects the two but the bytes, so `index-steam-depots` fetches a build once,
+hashes every file and writes down what came out — into `{Game}/steam_depots/{xx}.json` in
+`indexed-game-files`, sharded by the first byte of the hash so a lookup is one small file over HTTP. The
+folder is named for the store whose ids are in it, beside the `{version}_steam_manifests.json` files it
+belongs with; `_indexed.json` sorts above the shards and records which manifests have been read. Four ways
+to say which: `--version` (the ids the index already holds for a build, which is how one command indexes a
+build nobody has had installed for years), `--installed` (this machine's, the only route to a version
+nobody wrote down), an explicit `--depot`/`--manifest`, or today's public build. Nothing is kept — each
+file is hashed into a temporary folder and deleted.
+
+**The SHA-1 in the manifest is what makes a second build affordable.** Every entry records it, and a file
+whose SHA-1 the index has already seen takes that build's xxHash64 without being fetched: the same bytes
+are the same bytes wherever they were published. Skyrim Special Edition's six recorded builds are
+otherwise six whole downloads of a game that barely changed between them; with it they are one download
+and five sets of differences. It costs about forty bytes an entry, which is the cheapest trade in the
+index.
+
+`GameFileIndexFolder` is the disk side, and it **merges**: the index is a repository several people add to
+one build at a time over years, so a run that rewrote a shard from what it fetched today would delete every
+other build's files from it. An entry is keyed by app, depot, manifest and path, so the same file in a
+dozen builds is a dozen entries under one hash — which is the redundancy that makes a repair likely to find
+a copy the account can actually open. Shards are written every twenty-five files and after every manifest,
+`indexed.json` marks only the manifests that were read all the way through, and a re-run skips both what it
+has and what it finished, so stopping a fifteen-gigabyte run costs the file in flight.
 
 **The Creation Kit is not a game, and does not need to be one.** Steam gives it an app of its own —
 1946180 for Skyrim SE, 1946160 for Fallout 4, 202480 for Skyrim, 2722710 for Starfield — with its own
@@ -267,13 +397,13 @@ half: an answer from a source that actually tried always beats a decline, so `No
 when *every* source declined. Among sources that tried, the ranking is
 `GameFileRepair.Informativeness`'s. `CompositeGameFileRestorerTests` is the table.
 
-Both hosts wire the pair the same way: `App.xaml.cs` and `Wabbajack.CLI/Program.cs` call
+Both hosts wire the pair the same way: the app's `Program.cs` and `Wabbajack.CLI/Program.cs` call
 `AddBethesdaCreations()` and then `AddSteamAppTicket()` after `AddSteam()`. The second is what registers
 `CreationRestorer`, because it is the call that says this host will talk to the local Steam client, and a
 restorer with no ticket source in reach could only throw; it calls `AddBethesdaCreations()` itself so the
 two halves cannot be half-wired. A host that registers neither behaves exactly as it does today.
 
-**The WPF side of it.** `App.xaml.cs` calls `AddSteam`, registering its own `SteamGuardPrompt` first
+**The app side of it.** `Program.cs` calls `AddSteam`, registering its own `SteamGuardPrompt` first
 because `AddSteam`'s `TryAdd`ed default raises an intervention this app answers by throwing. The prompt is
 a singleton publishing whatever Steam Guard is asking as a `Pending` request; the pane binds to it and
 answers, and null out of the two code questions is the only way out of SteamKit's infinite retry loop.
@@ -287,6 +417,18 @@ preflight and by the Logins settings tile, which exists mainly so a saved login 
 is not a download source and nothing needs it logged in ahead of time. `GameFilesVM` owns the game-files
 card and the whole sequence behind `repair-game-files`: log in if there is no login, fetch with per-file
 progress, then re-run the check, which is what decides whether the run carries on.
+
+**Counts, not lists, wherever a check has more than a handful of files to talk about.** A checklist row is
+one ellipsized line and the game-files card repeats it, so naming twenty files said nothing and hid the one
+sentence that mattered; `GameFilesCheck` now puts counts and the reason in `Message` and keeps the names in
+`Detail`. The card bands its files the way the download list does — `ArchiveGroupVM` headers over
+`ArchiveRowVM` rows, one flat list, `ArchiveListTemplateSelector` between them — as Downloaded /
+Downloading / Couldn't be fetched / Remaining, every band shut and an empty one left out entirely, so a
+list that takes forty files from the game reads as four numbers. `ArchiveGroupVM` therefore carries only
+what it draws; which rows fall in a band belongs to whoever built it, because the two panels band by
+different things. And a repair's failures are counted by their message rather than reported file by file:
+they are almost always the same sentence (a game version nobody indexed fails every file with it), and
+naming one file made it read like a problem with that file.
 
 Preflight is the only thing that downloads. `AInstaller` has no download path of its own: `Begin` hashes
 the downloads folder once and returns `DownloadFailed` if anything the list still needs is absent, so every
@@ -314,6 +456,21 @@ Mods files" on the first pass and halts for a login on the second, contradicting
 is built on — a rerouted Nexus download without a login goes to the manual queue rather than stopping the
 run.
 
+**The proxy is a second reroute, and it has to happen at plan time.** The proxy (wabbajack-tools/proxy-server)
+keeps copies of Mega, Google Drive and MediaFire files, stored the way the CDN stores an authored file:
+`{ProxyUrl}{hash}/definition.json.gz` and `/parts/{n}`. Its `index.json` lists every file it holds with its
+size, and the plan loads it once beside the mirror list (`IDownloadPolicySource.ProxyIndex`) and calls
+`ArchiveDownloadPipeline.Proxy` right after the mirror reroute: an archive whose state nothing automated can
+fetch, and whose hash *and size* are in the index, becomes a `WabbajackCDN` download from the proxy. It has
+to be there and not in `DownloadOne`, because manual-downloads runs first and opens a browser page for
+everything the split sends to the queue. The index is one cached file for the whole run, so being proxied
+costs no request per archive, and an index that will not load leaves those archives manual, exactly as
+before. `PreflightBlackboard.Proxied` keeps the state the list gave each one: `Placed` writes the `.meta`
+from it, so a list compiled from this install points at Mega rather than the proxy, and `ToManual` restores
+it, so a proxied download that fails goes to the queue with the original page (a proxy address has none).
+Each proxied download sends `proxy_download` with the hash, and each fallback `proxy_failed`; the proxy's
+usage report is built from those.
+
 Splitting by state type is only half of it. An archive whose state is automated still needs a downloader the
 dispatcher has, one that will `Prepare()`, and a URL the allow-list permits, and none of those takes a
 download to establish, so `ArchiveDownloadPipeline.Screen` settles them while the plan is being computed.
@@ -334,7 +491,7 @@ suite's way into the raw API; it is simply not a login. Whatever `NexusLoginChec
 something the download path can deliver, and the row says *how* the user is authenticated: a stored API key
 reads "Logged in as X (API key)", and `NEXUS_API_KEY` with nothing stored reads as logged out with a detail
 naming the variable, because the variable working everywhere else is exactly what makes it confusing. The
-WPF Nexus tile (`NexusLoginManager`) asks the same predicate rather than testing the stored token itself,
+Nexus tile in Settings (`NexusLoginManager`) asks the same predicate rather than testing the stored token itself,
 which is what kept a stored API key reading "logged out" there and "Logged in (API key)" in preflight.
 The predicate is true for a credential Nexus has since revoked, so `TriggerLogin` carries no `canExecute`:
 "your login has expired, log in again" is a row whose `LoggedIn` is true, and a `ReactiveCommand` that
@@ -343,9 +500,9 @@ thread. Nothing executes a sibling command either — `ToggleLogin` calls the wo
 the tile's only one, so it falls through to the login when logging out cannot change anything: `LoggedIn`
 means a usable credential is in reach, not that there is a file to delete, and a host that supplies
 `NEXUS_OAUTH_INFO` would otherwise get a button reading "Log out" for ever. A login stored by the browser
-shadows the variable, so that fall-through is a real way out. One login window at a time, too —
-`MainWindowVM` serialises browser windows, so a second request would open behind the first rather than
-being dropped.
+shadows the variable, so that fall-through is a real way out. One login at a time, too —
+`NexusOAuthLogin` refuses a second while one is in flight (`AlreadyRunning`) rather than opening another
+browser window.
 
 A source is only reported when there is something to send with it. `GetAuthInfo` rejects an empty API key
 either side, and equally an OAuth state carrying no access token — which is not hypothetical: a refused
@@ -368,6 +525,14 @@ A refused refresh also stands for `RefreshRetryDelay` (a minute) before another 
 refreshes an expired token on the way to every authenticated call, so an offline machine would otherwise
 post a doomed refresh once per request; the old behaviour hid that by writing the failure and never trying
 again at all.
+
+**Nexus tier metrics carry the tier and nothing else.** `finish_install_{premium|free|logged_out|unknown}` goes
+out beside `finish_install` from `Rules/FinishInstallMetrics`, and `nexus_tier_change` from `NexusTierTracker`,
+which wraps the login probe so every check of the account feeds it, the launch-time one in `MainWindowVM`
+included. The tracker's memory is one boolean in `encrypted/nexus-state` beside the metrics key: no account id
+is stored or sent, so swapping accounts reads as a conversion, and these are broad numbers that can bear that.
+Both pass `rebound: false`, because `Client.SendMetric` otherwise exits the process on a 403 or a 500. Neither
+can fail an install or hold a preflight row for more than a few seconds.
 
 `CanDownload` answers "can this machine download from Nexus Mods" and nothing else; the collection upload
 and download paths build their own GraphQL requests with `Authorization: Bearer`, so they need an unexpired
@@ -406,8 +571,24 @@ builds a synthetic modlist, compiles it and installs it; `Wabbajack.Installer.Te
 `TestData/MO2AndSKSETest.wabbajack`. Extending these reaches real compile and install behaviour without a
 game install or a large download.
 
+**Nexus Mods collections are tested against Nexus' own published contract, not against what the code sends.**
+Nexus changes the collections APIs without notice. `Wabbajack.Compiler.Test/NexusCollections/Contract` holds
+snapshots of the parts Wabbajack uses: the v3 operations from `https://api.nexusmods.com/openapi.yaml`, and
+every GraphQL field the queries in `NexusGraphQL` select, introspected from the live schema. `FakeNexus` is
+built from those snapshots and checks every request against them, so the real uploader and downloader run end
+to end offline. `NexusContractLiveTests` (network; the signed-in schema test needs a Nexus login) compare the
+snapshots with what Nexus serves now and send each query live. When they fail, run them with
+`NEXUS_CONTRACT_UPDATE=1` to rewrite the snapshots, review the diff, and let the offline tests show what the
+code has to change. All GraphQL queries live in `NexusGraphQL` so they can be checked; add new ones there.
+`NexusCollectionPublishTests` goes the whole way round against the real service: it publishes Halgari's Helper as
+a draft revision of one test collection (id kept in `%LOCALAPPDATA%\Wabbajack\nexus-publish-test.json`) and
+installs it back. It publishes under whoever is logged in, so it runs only with `WABBAJACK_NEXUS_PUBLISH=1`.
+Nexus replaces a collection's draft revision in place, so repeated runs leave one draft, never a pile.
+
 Reach for a pure function plus a table of cases where behaviour is fiddly and the consequences are
 destructive; `FileDeletionRulesTests` is the model. Concurrency bugs need a sample large enough to fail
 every run rather than one run in three, so prefer tens of thousands of iterations over a few hundred.
 
-The WPF project has close to no test coverage and is not a good place to add it.
+The app has little test coverage: `Wabbajack.App.Avalonia.Test` holds its pure pieces (link filtering, the
+Nexus login's store rule, the failure article, a JIT check of the view models). Put logic somewhere it can be
+tested like that rather than testing views.

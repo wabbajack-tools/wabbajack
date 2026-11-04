@@ -26,6 +26,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Get App Version from CHANGELOG.md
         shell: bash
@@ -43,10 +45,7 @@ jobs:
         with:
           global-json-file: global.json
 
+      # The offline lane on every branch, main included. The RequiresNetwork and RequiresOAuth tests need a
+      # Steam login, an installed game or a Nexus login that a runner never has, so on main they only failed.
       - name: Test
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: dotnet test /p:EnableWindowsTargeting=true
-
-      - name: Test
-        if: ${{ github.ref != 'refs/heads/main' }}
         run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=RequiresOAuth&Category!=RequiresNetwork"

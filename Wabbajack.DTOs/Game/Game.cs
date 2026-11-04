@@ -54,4 +54,5 @@ public enum Game
     [Description("NieR:Automata")] NieRAutomata,
     [Description("American McGee's Alice")] AmericanMcGeesAlice,
     [Description("Alice: Madness Returns")] AliceMadnessReturns,
+    [Description("Dune: Awakening")] DuneAwakening,
 }

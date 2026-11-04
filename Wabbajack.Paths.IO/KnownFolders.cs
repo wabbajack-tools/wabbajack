@@ -31,12 +31,18 @@ public static class KnownFolders
 
     public static bool IsInSpecialFolder(this AbsolutePath candidate, out Environment.SpecialFolder? specialFolder)
     {
+        // Off Windows several special folders are the home folder itself, and everything a user owns is under it,
+        // so there only the home folder proper is refused, not what is inside it.
+        var home = OperatingSystem.IsWindows()
+            ? default
+            : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).ToAbsolutePath();
         foreach (var val in Enum.GetValues<Environment.SpecialFolder>())
         {
             specialFolder = val;
             AbsolutePath specialPath = Environment.GetFolderPath(val).ToAbsolutePath();
+            var isHome = home != default && specialPath == home;
             if ((candidate.ToString().Length > 0 && candidate == specialPath)
-                || KnownFolders.IsSubDirectoryOf(candidate.ToString(), specialPath.ToString()))
+                || (!isHome && KnownFolders.IsSubDirectoryOf(candidate.ToString(), specialPath.ToString())))
             {
                 return true;
             }
@@ -84,8 +90,9 @@ public static class KnownFolders
 
     /// <summary>
     ///     The user's Downloads folder. On Windows this is the shell's known folder, which follows a user who
-    ///     has relocated it; elsewhere, and if the shell call fails, it is <c>Downloads</c> under the profile.
-    ///     Never throws; the folder may not exist.
+    ///     has relocated it; on Linux the desktop's XDG download folder, which does the same and is named in the
+    ///     user's language; failing either, <c>Downloads</c> under the profile. Never throws; the folder may not
+    ///     exist.
     /// </summary>
     public static AbsolutePath Downloads
     {
@@ -95,6 +102,10 @@ public static class KnownFolders
             {
                 var known = TryGetKnownFolder(FolderIdDownloads);
                 if (known != default) return known;
+            }
+            else if (XdgUserDirs.Get("DOWNLOAD") is { } xdg)
+            {
+                return xdg.ToAbsolutePath();
             }
 
             var profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);

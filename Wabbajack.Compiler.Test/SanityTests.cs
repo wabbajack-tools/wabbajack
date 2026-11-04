@@ -11,14 +11,13 @@ using Wabbajack.DTOs;
 using Wabbajack.DTOs.Directives;
 using Wabbajack.DTOs.Texture;
 using Wabbajack.Hashing.PHash;
+using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
 using Xunit;
 
 namespace Wabbajack.Compiler.Test;
 
-// Test fixtures are downloaded from authored-files.wabbajack.org, so the whole class needs network.
-[Trait("Category", "RequiresNetwork")]
 public class CompilerSanityTests : IAsyncLifetime
 {
     private readonly FileExtractor.FileExtractor _fileExtractor;
@@ -51,9 +50,7 @@ public class CompilerSanityTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _mod = await _harness.InstallMod(Ext.Zip,
-            new Uri(
-                "https://authored-files.wabbajack.org/Tonal%20Architect_WJ_TEST_FILES.zip_9cb97a01-3354-4077-9e4a-7e808d47794f"));
+        _mod = await _harness.InstallGeneratedMod();
     }
 
     public Task DisposeAsync()
@@ -88,6 +85,25 @@ public class CompilerSanityTests : IAsyncLifetime
             Assert.Equal(_modlist.Archives.First().Hash, directive.ArchiveHashPath.Hash);
 
         await InstallAndValidate();
+    }
+
+    [Fact]
+    public async Task ProfileModlistDirectiveDescribesTheInstalledFile()
+    {
+        // A disabled mod is left out of the modlist.txt the list stores, so what is stored differs from the
+        // source file. The directive has to describe what is stored: the installer caches its hash for the file
+        // it writes, and a compile of that install trusts the cache.
+        _harness.AddMod("Disabled Mod");
+
+        _modlist = await _harness.Compile();
+        Assert.NotNull(_modlist);
+        var directive = _modlist!.Directives.Single(d => d.To.FileName == "modlist.txt".ToRelativePath());
+
+        Assert.True(await _harness.Install());
+        var installed = _harness.InstalledPath(_harness._source.Combine(directive.To));
+
+        Assert.Equal(installed.Size(), directive.Size);
+        Assert.Equal(await installed.Hash(CancellationToken.None), directive.Hash);
     }
 
     [Fact]

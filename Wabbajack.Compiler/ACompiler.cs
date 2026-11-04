@@ -255,8 +255,10 @@ public abstract class ACompiler
                 {
                     if (!_locator.TryFindLocation(ag, out var path))
                     {
+                        // Carry on with the other games: OtherGames comes first, so returning here skipped
+                        // the list's own game, and GamesWithHashes below was never filled in.
                         _logger.LogWarning("Game {game} was to be used in compilation but it is not installed", ag);
-                        return;
+                        continue;
                     }
 
                     var mainFile = ag.MetaData().MainExecutable!.Value.RelativeTo(path);
@@ -264,7 +266,7 @@ public abstract class ACompiler
                     if (!mainFile.FileExists())
                         _logger.LogWarning("Main file {file} for {game} does not exist", mainFile, ag);
 
-                    var versionInfo = FileVersionInfo.GetVersionInfo(mainFile.ToString());
+                    var versionInfo = ExecutableVersion.Read(mainFile.ToString());
                     var gameVersion = versionInfo.FileVersion ?? "0.0.0.0";
 
                     // Some Unreal Engine games expose the engine changelist as their executable
@@ -632,6 +634,65 @@ public abstract class ACompiler
         var manifest = new Manifest(ModList);
         await using var of = _settings.OutputFile.Open(FileMode.Create, FileAccess.Write);
         await _dtos.Serialize(manifest, of);
+    }
+
+    /// <summary>
+    ///     Re-picks the archive behind every plain <see cref="FromArchive" /> once all files are matched, so the
+    ///     list names as few archives as it can; see <see cref="ArchiveChooser" />. DirectMatch's own order of
+    ///     preference still decides which archives are candidates for a file: copies with the same file name
+    ///     first, downloads before game files. Inside the chosen archive the shallowest copy is used.
+    ///     Directives of other kinds keep their archive, and those archives count as needed.
+    /// </summary>
+    public void ChooseArchiveSources()
+    {
+        NextStep("Building", "Choosing Archives");
+
+        var direct = InstallDirectives.Where(d => d.GetType() == typeof(FromArchive)).Cast<FromArchive>().ToList();
+        if (direct.Count == 0) return;
+
+        var sizes = IndexedArchives.GroupBy(a => a.File.Hash).ToDictionary(g => g.Key, g => g.First().File.Size);
+        var ids = new Dictionary<Hash, int>();
+        var archiveSizes = new List<long>();
+
+        int IdOf(Hash archive)
+        {
+            if (ids.TryGetValue(archive, out var id)) return id;
+            ids[archive] = archiveSizes.Count;
+            archiveSizes.Add(sizes.GetValueOrDefault(archive));
+            return archiveSizes.Count - 1;
+        }
+
+        var copies = new VirtualFile[direct.Count][];
+        var candidates = new int[direct.Count][];
+        for (var i = 0; i < direct.Count; i++)
+        {
+            // IndexedFiles is ordered shallowest first, so the first copy per archive is the one to use.
+            var found = IndexedFiles[direct[i].Hash];
+            var named = found.Where(f => f.Name.FileName == direct[i].To.FileName).ToList();
+            IEnumerable<VirtualFile> eligible = found;
+            if (named.Count > 0)
+            {
+                var best = named.Min(f => DirectMatch.GetFilePriority(this, f));
+                eligible = named.Where(f => DirectMatch.GetFilePriority(this, f) == best);
+            }
+
+            copies[i] = eligible.GroupBy(f => f.TopParent.Hash).Select(g => g.First()).ToArray();
+            candidates[i] = copies[i].Select(f => IdOf(f.TopParent.Hash)).ToArray();
+        }
+
+        var alreadyNeeded = InstallDirectives.OfType<FromArchive>()
+            .Where(d => d.GetType() != typeof(FromArchive))
+            .Select(d => IdOf(d.ArchiveHashPath.Hash))
+            .ToHashSet();
+
+        var before = direct.Select(d => d.ArchiveHashPath.Hash).Distinct().Count();
+        var chosen = ArchiveChooser.Choose(candidates, archiveSizes, alreadyNeeded);
+        for (var i = 0; i < direct.Count; i++)
+            direct[i].ArchiveHashPath = copies[i][Array.IndexOf(candidates[i], chosen[i])].MakeRelativePaths();
+
+        var after = direct.Select(d => d.ArchiveHashPath.Hash).Distinct().Count();
+        _logger.LogInformation("Files copied from archives come from {After} archives, {Saved} fewer than matched",
+            after, before - after);
     }
 
     public async Task GatherArchives()

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SteamKit2;
 using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
+using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Networking.Steam.DTOs;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -41,6 +42,15 @@ public class SteamGameFileRestorerTests
     private static RelativePath File(string path)
     {
         return path.ToRelativePath();
+    }
+
+    /// <summary>
+    ///     What a caller knows about the file it wants. The hash defaults to one nothing is indexed under,
+    ///     so a test about sizes falls through the content index the way an unindexed game does.
+    /// </summary>
+    private static GameFileIdentity Wanted(long size, Hash? hash = null)
+    {
+        return new GameFileIdentity(hash ?? new Hash(0xDEADBEEF), size);
     }
 
     [Fact]
@@ -157,6 +167,206 @@ public class SteamGameFileRestorerTests
         Assert.Empty(_index.Asked);
         Assert.Equal(new[] {(SkyrimSE, 1u, 100ul), (SkyrimSE, 2u, 200ul)}, _content.Searched);
         Assert.Equal((SkyrimSE, 2u, 200ul, "Data\\Dawnguard.esm"), Assert.Single(_content.Downloaded));
+    }
+
+    /// <summary>
+    ///     The content index is asked first when the caller said which bytes it wants, and its answer is
+    ///     taken straight: the manifest it names is not one the game publishes now and no version was asked
+    ///     for, so nothing else in this class could have found it. This is the case a list built against a
+    ///     build Steam has moved past falls into.
+    /// </summary>
+    [Fact]
+    public async Task TheContentIndexIsAskedFirstAndItsAnswerIsFetchedDirectly()
+    {
+        var hash = new Hash(0x1234567812345678);
+        _session.IsLoggedIn = true;
+        _index.Content[hash] = new[]
+        {
+            new IndexedGameFile
+            {
+                Hash = hash, Size = 42, App = SkyrimSE, Depot = 9, Manifest = 900, Path = "Data\\Dawnguard.esm"
+            }
+        };
+        _content.Manifests[(9u, 900ul)] = new[] {"Data\\Dawnguard.esm"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, "1.6.1170.0",
+            File("Data/Dawnguard.esm"), "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None,
+            Wanted(42, hash));
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Contains("content index", result.Detail);
+        Assert.Equal((SkyrimSE, 9u, 900ul, "Data\\Dawnguard.esm"), Assert.Single(_content.Downloaded));
+
+        // Nothing else was asked: not the version index, not the depots the game publishes today.
+        Assert.Empty(_index.Asked);
+        Assert.Empty(_content.Searched);
+    }
+
+    /// <summary>
+    ///     A file the index has nothing on falls through to the search it always did, and the index is asked
+    ///     once rather than not at all - a game nobody has indexed must cost one 404 and no more.
+    /// </summary>
+    [Fact]
+    public async Task AnUnindexedFileFallsBackToSearchingTheDepots()
+    {
+        var hash = new Hash(0xABCDEF);
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, Wanted(1, hash));
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Equal(hash, Assert.Single(_index.Looked));
+        Assert.Equal((SkyrimSE, 2u, 200ul, "Data\\Dawnguard.esm"), Assert.Single(_content.Downloaded));
+    }
+
+    /// <summary>
+    ///     An index entry that cannot be read - a manifest Steam has stopped serving, a depot this account
+    ///     cannot open - is one copy failing rather than the file being unobtainable, so the next copy and
+    ///     then the ordinary search still happen.
+    /// </summary>
+    [Fact]
+    public async Task ACopyTheIndexNamesThatCannotBeReadFallsThrough()
+    {
+        var hash = new Hash(0x5150);
+        _session.IsLoggedIn = true;
+        _content.Refuses.Add(9);
+        _index.Content[hash] = new[]
+        {
+            new IndexedGameFile
+                {Hash = hash, Size = 1, App = SkyrimSE, Depot = 9, Manifest = 900, Path = "Data\\Skyrim.esm"},
+            new IndexedGameFile
+                {Hash = hash, Size = 1, App = SkyrimSE, Depot = 8, Manifest = 800, Path = "Data\\Skyrim.esm"}
+        };
+        _content.Manifests[(9u, 900ul)] = new[] {"Data\\Skyrim.esm"};
+        _content.Manifests[(8u, 800ul)] = new[] {"Data\\Skyrim.esm"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Skyrim.esm"),
+            "c:\\out\\Skyrim.esm".ToAbsolutePath(), CancellationToken.None, Wanted(1, hash));
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Equal((SkyrimSE, 8u, 800ul, "Data\\Skyrim.esm"), Assert.Single(_content.Downloaded));
+    }
+
+    /// <summary>
+    ///     The index is somebody's GitHub repo, so a repair cannot depend on it being up: one that cannot be
+    ///     read is a search by version, not a failure.
+    /// </summary>
+    [Fact]
+    public async Task AnIndexThatCannotBeReadIsNotAFailedRepair()
+    {
+        _session.IsLoggedIn = true;
+        _index.FindThrows = () => new Exception("GitHub is having a day");
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, Wanted(1));
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Single(_content.Downloaded);
+    }
+
+    /// <summary>
+    ///     A caller that says nothing about the file it wants asks nothing of the content index: there is
+    ///     nothing to look up without a hash.
+    /// </summary>
+    [Fact]
+    public async Task WithNoIdentityTheIndexIsNotAsked()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+
+        await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None);
+
+        Assert.Empty(_index.Looked);
+    }
+
+    /// <summary>
+    ///     A copy of the file that is the wrong size is not the file being asked for, and the manifest says
+    ///     so before a byte is fetched. This is the ordinary case for a list built against a game version
+    ///     the store has moved past: the caller hashes everything that comes back and throws away what does
+    ///     not match, so without this Skyrim's textures are downloaded to establish what their size already
+    ///     said.
+    /// </summary>
+    [Fact]
+    public async Task AFileOfAnotherSizeIsNotDownloadedAtAll()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+        _content.Sizes["Data\\Dawnguard.esm"] = 25884488;
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, Wanted(25884000));
+
+        Assert.Equal(GameFileRestoreOutcome.FileNotFound, result.Outcome);
+        Assert.Contains("different file", result.Detail);
+        Assert.Contains("25884488", result.Detail);
+        Assert.Contains("25884000", result.Detail);
+
+        // Searched, and deliberately not fetched.
+        Assert.NotEmpty(_content.Searched);
+        Assert.Empty(_content.Downloaded);
+    }
+
+    [Fact]
+    public async Task AFileOfTheRightSizeIsFetchedAsUsual()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+        _content.Sizes["Data\\Dawnguard.esm"] = 25884488;
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None, Wanted(25884488));
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Single(_content.Downloaded);
+    }
+
+    /// <summary>
+    ///     A caller that does not know how big the file should be gets what it always got: every manifest
+    ///     carrying the name is a candidate.
+    /// </summary>
+    [Fact]
+    public async Task WithNoExpectedSizeNothingIsPreChecked()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Dawnguard.esm"};
+        _content.Sizes["Data\\Dawnguard.esm"] = 25884488;
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Dawnguard.esm"),
+            "c:\\out\\Dawnguard.esm".ToAbsolutePath(), CancellationToken.None);
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+    }
+
+    /// <summary>
+    ///     The size is checked per candidate rather than once: a depot that carries the wrong copy does not
+    ///     say anything about the next one, and the file wanted may well be in it.
+    /// </summary>
+    [Fact]
+    public async Task ADepotWithTheWrongCopyDoesNotStopTheSearch()
+    {
+        _session.IsLoggedIn = true;
+        _content.Current.Add(new DepotManifestId(1, 100));
+        _content.Current.Add(new DepotManifestId(2, 200));
+        _content.Manifests[(1u, 100ul)] = new[] {"Data\\Skyrim.esm"};
+        _content.Manifests[(2u, 200ul)] = new[] {"Data\\Skyrim.esm"};
+        _content.Sizes["1:Data\\Skyrim.esm"] = 10;
+        _content.Sizes["2:Data\\Skyrim.esm"] = 20;
+
+        var result = await Restorer().Restore(Game.SkyrimSpecialEdition, null, File("Data/Skyrim.esm"),
+            "c:\\out\\Skyrim.esm".ToAbsolutePath(), CancellationToken.None, Wanted(20));
+
+        Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
+        Assert.Equal((SkyrimSE, 2u, 200ul, "Data\\Skyrim.esm"), Assert.Single(_content.Downloaded));
     }
 
     /// <summary>
@@ -466,200 +676,5 @@ public class SteamGameFileRestorerTests
 
         Assert.Equal(GameFileRestoreOutcome.Fetched, result.Outcome);
         Assert.Empty(_content.FreeLicensesAsked);
-    }
-
-    private sealed class FakeIndex : ISteamManifestIndex
-    {
-        public Dictionary<string, SteamManifest[]> Versions { get; } = new(StringComparer.OrdinalIgnoreCase);
-        public List<(Game Game, string Version)> Asked { get; } = new();
-
-        public Task<SteamManifest[]> Get(Game game, string version, CancellationToken token)
-        {
-            Asked.Add((game, version));
-            return Task.FromResult(Versions.TryGetValue(version, out var manifests)
-                ? manifests
-                : Array.Empty<SteamManifest>());
-        }
-    }
-
-    /// <summary>
-    ///     A depot that is a list of file names. <see cref="DepotPaths.Find" /> does the matching for real,
-    ///     since that is the part a wrong answer would put the wrong bytes on somebody's disk.
-    /// </summary>
-    private sealed class FakeContentClient : ISteamContentClient
-    {
-        /// <summary>What each app publishes on its public branch.</summary>
-        public Dictionary<uint, List<DepotManifestId>> Published { get; } = new();
-
-        /// <summary>What the game itself publishes, which is what most of these tests are about.</summary>
-        public List<DepotManifestId> Current => Publishes(SkyrimSE);
-
-        public Dictionary<(uint Depot, ulong Manifest), string[]> Manifests { get; } = new();
-
-        /// <summary>Depots the account has no licence for.</summary>
-        public HashSet<uint> Refuses { get; } = new();
-
-        /// <summary>
-        ///     Apps Steam will not so much as describe without a licence, which is what an account that has
-        ///     never installed the Creation Kit meets: the PICS access token is refused, so there is no
-        ///     depot list to be had.
-        /// </summary>
-        public HashSet<uint> NeedsLicense { get; } = new();
-
-        /// <summary>Apps the account already holds a licence for.</summary>
-        public HashSet<uint> Licensed { get; } = new();
-
-        /// <summary>Apps Steam will hand out a free licence for when asked.</summary>
-        public HashSet<uint> GrantsFreeLicense { get; } = new();
-
-        /// <summary>Apps the restorer asked this client about.</summary>
-        public List<uint> FreeLicensesAsked { get; } = new();
-
-        /// <summary>
-        ///     Apps Steam was actually asked to grant - which is the one that matters, because it is the
-        ///     one that puts a package in somebody's library. An app already licensed never reaches it.
-        /// </summary>
-        public List<uint> GrantsRequested { get; } = new();
-
-        public List<DepotManifestId> Publishes(uint app)
-        {
-            if (!Published.TryGetValue(app, out var depots)) Published[app] = depots = new List<DepotManifestId>();
-            return depots;
-        }
-
-        public List<(uint App, uint Depot, ulong Manifest)> Searched { get; } = new();
-        public List<(uint App, uint Depot, ulong Manifest, string Path)> Downloaded { get; } = new();
-
-        public Task<AppInfo> GetAppInfo(uint appId)
-        {
-            return Task.FromResult(new AppInfo());
-        }
-
-        public Task<ulong?> GetCurrentManifestIdAsync(uint appId, uint depotId,
-            string branch = SteamContentClient.PublicBranch)
-        {
-            return Task.FromResult(Current.FirstOrDefault(c => c.DepotId == depotId)?.ManifestId);
-        }
-
-        public Task<IReadOnlyList<DepotManifestId>> GetCurrentDepotsAsync(uint appId,
-            string branch = SteamContentClient.PublicBranch)
-        {
-            if (NeedsLicense.Contains(appId) && !Licensed.Contains(appId))
-                throw new SteamException($"Cannot get app token for {appId}", EResult.Invalid, EResult.Invalid);
-
-            return Task.FromResult<IReadOnlyList<DepotManifestId>>(Publishes(appId).ToArray());
-        }
-
-        public Task<DepotAccess> CheckAccessAsync(uint appId, uint depotId, CancellationToken token)
-        {
-            return Task.FromResult(Refuses.Contains(depotId) ? DepotAccess.NotEntitled : DepotAccess.Granted);
-        }
-
-        /// <summary>
-        ///     The contract <see cref="ISteamContentClient.EnsureFreeLicenseAsync" /> documents: a licence
-        ///     already held is never asked for again, and the answer is remembered either way.
-        /// </summary>
-        public Task<bool> EnsureFreeLicenseAsync(uint appId, CancellationToken token)
-        {
-            FreeLicensesAsked.Add(appId);
-
-            if (Licensed.Contains(appId)) return Task.FromResult(true);
-
-            GrantsRequested.Add(appId);
-            if (!GrantsFreeLicense.Contains(appId)) return Task.FromResult(false);
-
-            Licensed.Add(appId);
-            return Task.FromResult(true);
-        }
-
-        public Task EnsureAccessAsync(uint appId, uint depotId, CancellationToken token)
-        {
-            if (Refuses.Contains(depotId))
-                throw new SteamNoEntitlementException(
-                    $"The Steam account holds no licence for depot {depotId} of app {appId}", appId, depotId);
-            return Task.CompletedTask;
-        }
-
-        public Task<IReadOnlyList<DepotFile>> ListFilesAsync(uint appId, uint depotId, ulong manifestId,
-            CancellationToken token, string branch = SteamContentClient.PublicBranch)
-        {
-            return Task.FromResult<IReadOnlyList<DepotFile>>(Files(depotId, manifestId));
-        }
-
-        public async Task<DepotFile?> FindFileAsync(uint appId, uint depotId, ulong manifestId, string depotPath,
-            CancellationToken token, string branch = SteamContentClient.PublicBranch)
-        {
-            await EnsureAccessAsync(appId, depotId, token);
-            Searched.Add((appId, depotId, manifestId));
-            return Match(depotId, manifestId, depotPath);
-        }
-
-        public async Task<DepotFile> DownloadFileAsync(uint appId, uint depotId, ulong manifestId, string depotPath,
-            AbsolutePath output, CancellationToken token, IJob? parentJob = null,
-            string branch = SteamContentClient.PublicBranch)
-        {
-            await EnsureAccessAsync(appId, depotId, token);
-            var found = Match(depotId, manifestId, depotPath)
-                        ?? throw new SteamFileNotInDepotException($"No '{depotPath}' in {depotId}", depotPath);
-
-            Downloaded.Add((appId, depotId, manifestId, found.Path));
-            return found;
-        }
-
-        /// <summary>The real matching rule, since a wrong answer here is wrong bytes on somebody's disk.</summary>
-        private DepotFile? Match(uint depotId, ulong manifestId, string depotPath)
-        {
-            var names = Manifests.TryGetValue((depotId, manifestId), out var listed)
-                ? listed
-                : Array.Empty<string>();
-
-            var match = names.FirstOrDefault(n => DepotPaths.AreSame(n, depotPath)) ??
-                        names.SingleOrDefault(n => DepotPaths.EndsWithPath(n, depotPath));
-
-            return match == null ? null : new DepotFile(match, 1, string.Empty);
-        }
-
-        private DepotFile[] Files(uint depotId, ulong manifestId)
-        {
-            return Manifests.TryGetValue((depotId, manifestId), out var names)
-                ? names.Select(n => new DepotFile(n, 1, string.Empty)).ToArray()
-                : Array.Empty<DepotFile>();
-        }
-    }
-
-    private sealed class FakeSession : ISteamSession
-    {
-        public bool LoggedInWithStoredToken { get; private set; }
-        public bool IsLoggedIn { get; set; }
-        public string? AccountName => "tester";
-        public bool HaveStoredToken { get; set; }
-
-        public Task<SteamLoginResult> LoginWithStoredTokenAsync(CancellationToken token)
-        {
-            if (!HaveStoredToken) throw new SteamLoginRequiredException("There is no saved Steam login.");
-            LoggedInWithStoredToken = true;
-            IsLoggedIn = true;
-            return Task.FromResult(new SteamLoginResult("tester", 1, true, null));
-        }
-
-        public Task<SteamLoginResult> LoginWithQrCodeAsync(Action<string> onChallengeUrl, CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
-
-        public Task<SteamLoginResult> LoginWithCredentialsAsync(string username, string password,
-            CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
-
-        public ValueTask<SteamLogoutResult> LogoutAsync()
-        {
-            return ValueTask.FromResult(SteamLogoutResult.NothingStored);
-        }
-
-        public void Dispose()
-        {
-        }
     }
 }

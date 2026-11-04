@@ -94,10 +94,28 @@ public class BethesdaApiClient
 
         _logger.LogInformation("Signed in to Bethesda.net as {Username} with a Steam app ticket", Username ?? "an unnamed account");
 
-        using var fulfillment = await Post("/vccs/fulfillment/update_first_party_entitlements",
-            new Dictionary<string, object> {["token"] = hex}, token);
-        EnsureSucceeded(fulfillment, "/vccs/fulfillment/update_first_party_entitlements");
+        // A session whose entitlements were never updated is not signed in: kept, the next caller would skip
+        // signing in and be told it may not own Creations it does own.
+        try
+        {
+            using var fulfillment = await Post("/vccs/fulfillment/update_first_party_entitlements",
+                new Dictionary<string, object> {["token"] = hex}, token);
+            EnsureSucceeded(fulfillment, "/vccs/fulfillment/update_first_party_entitlements");
+        }
+        catch
+        {
+            SessionToken = null;
+            throw;
+        }
+
+        SignedIn?.Invoke();
     }
+
+    /// <summary>
+    ///     Raised once a sign-in has gone all the way through, entitlements included, so a host can count how
+    ///     often the Bethesda.net path is used. Carries nothing about the account.
+    /// </summary>
+    public event Action? SignedIn;
 
     /// <summary>
     ///     Resolves content ids to the best <c>.ckm</c> for each. An id that comes back with no record is

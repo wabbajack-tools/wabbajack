@@ -25,6 +25,7 @@ public class FileLoadingTests : IAsyncDisposable
             _imageLoaders = new IImageLoader[]
             {
                 new CrossPlatformImageLoader(),
+                new TexGenImageLoader(),
                 new TexConvImageLoader(_tmp)
             };
         }
@@ -33,6 +34,7 @@ public class FileLoadingTests : IAsyncDisposable
             _imageLoaders = new IImageLoader[]
             {
                 new CrossPlatformImageLoader(),
+                new TexGenImageLoader(),
             };
         }
     }

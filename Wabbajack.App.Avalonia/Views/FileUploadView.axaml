@@ -1,0 +1,111 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels"
+                          x:Class="Wabbajack.App.Avalonia.Views.FileUploadView"
+                          x:TypeArguments="vm:FileUploadVM"
+                          x:DataType="vm:FileUploadVM">
+    <!--
+        The CDN upload pane: a heading and close button over a rounded drop area that shows one of three states,
+        choosing a file, uploading (a spinning arrow and the percentage), and done (the URL and what next).
+    -->
+    <UserControl.Styles>
+        <!-- The implicit Hyperlink style: primary and bold, a paler primary under the pointer. -->
+        <Style Selector="Button.hyperlink.upload">
+            <Setter Property="FontSize" Value="36" />
+        </Style>
+        <Style Selector="Button.hyperlink.url">
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+        <!--
+            WPF's storyboard on SpinTransform.Angle. Avalonia animates a transform's angle, not the whole
+            RenderTransform, so the icon carries a RotateTransform for this to turn.
+        -->
+        <Style Selector="ic|SymbolIcon#LoadingIcon">
+            <Style.Animations>
+                <Animation Duration="0:0:2" IterationCount="Infinite">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="0" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RotateTransform.Angle" Value="360" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </UserControl.Styles>
+
+    <Border x:Name="AuthorFiles">
+        <Grid RowDefinitions="Auto,16,*">
+            <TextBlock FontSize="20" FontWeight="Bold" Text="Upload file" />
+
+            <Button x:Name="CloseButton" Classes="main" Background="Transparent" BorderThickness="0"
+                    HorizontalAlignment="Right" Padding="16" Margin="-16,-16,-16,0" VerticalAlignment="Center"
+                    AutomationProperties.AutomationId="CloseUploadButton">
+                <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            </Button>
+
+            <Rectangle x:Name="UploadBackground" Grid.Row="2" DragDrop.AllowDrop="True"
+                       Fill="{StaticResource ComplementaryPrimary08Brush}" RadiusX="8" RadiusY="8" />
+
+            <Grid x:Name="StartUploadGrid" Grid.Row="2" VerticalAlignment="Center" RowDefinitions="Auto,24,Auto,8,Auto">
+                <ic:SymbolIcon x:Name="StartUploadIcon" Foreground="{StaticResource PrimaryBrush}" Grid.Row="0" FontSize="108"
+                               Symbol="ArrowCircleDown" />
+
+                <!-- A TextBlock holding a Hyperlink and a Run in WPF; the link is a button here. -->
+                <StackPanel x:Name="DragToUploadText" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button x:Name="ChooseFileHyperlink" Classes="hyperlink upload">
+                        <TextBlock Text="Choose a file" FontSize="36" FontWeight="Bold" />
+                    </Button>
+                    <TextBlock FontSize="36" Text=" or drag &amp; drop" />
+                </StackPanel>
+
+                <TextBlock x:Name="FairUseText" Grid.Row="4" HorizontalAlignment="Center" FontSize="13"
+                           Text="Please only upload files in accordance with the CDN usage policy on the wiki." />
+            </Grid>
+
+            <Grid x:Name="UploadingGrid" Grid.Row="2" VerticalAlignment="Center" IsVisible="False"
+                  RowDefinitions="Auto,24,Auto,8,Auto">
+                <ic:SymbolIcon x:Name="LoadingIcon" Grid.Row="0" Foreground="{StaticResource PrimaryBrush}" FontSize="108"
+                               Symbol="ArrowClockwise" RenderTransformOrigin="50%,50%">
+                    <ic:SymbolIcon.RenderTransform>
+                        <RotateTransform />
+                    </ic:SymbolIcon.RenderTransform>
+                </ic:SymbolIcon>
+
+                <!-- WPF put a space between the runs for the line breaks between them. -->
+                <TextBlock x:Name="UploadingTextBlock" Grid.Row="2" HorizontalAlignment="Center" FontSize="36">
+                    <Run Text="Uploading... " /><Run x:Name="ProgressText" Text="0%" Foreground="{StaticResource PrimaryBrush}" /><Run Text=" complete" />
+                </TextBlock>
+            </Grid>
+
+            <Grid x:Name="UploadCompletedGrid" Grid.Row="2" VerticalAlignment="Center" IsVisible="False"
+                  RowDefinitions="Auto,16,Auto,8,Auto,16,Auto">
+                <ic:SymbolIcon x:Name="UploadCompletedIcon" Foreground="{StaticResource PrimaryBrush}" Grid.Row="0"
+                               FontSize="108" Symbol="CheckmarkCircle" />
+
+                <TextBlock x:Name="UploadCompleteText" Grid.Row="2" HorizontalAlignment="Center" FontSize="36"
+                           Text="Upload complete!" />
+
+                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="Saved to " FontSize="13" VerticalAlignment="Center" />
+                    <Button x:Name="FileUrlHyperlink" Classes="hyperlink url" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <ic:SymbolIcon Symbol="ClipboardArrowRight" FontSize="20" Width="24" Height="20" />
+                            <TextBlock x:Name="FileUrlText" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <Grid HorizontalAlignment="Center" Grid.Row="6" ColumnDefinitions="Auto,16,Auto">
+                    <c:WJButton x:Name="BrowseUploadsButton" ButtonStyle="SemiTransparent" Grid.Column="0"
+                                HorizontalAlignment="Center" Icon="DocumentMultiple" Text="Browse uploads" />
+                    <c:WJButton x:Name="UploadMoreFilesButton" ButtonStyle="Color" Grid.Column="2"
+                                HorizontalAlignment="Center" Icon="DocumentArrowUp" Text="Upload more files" />
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

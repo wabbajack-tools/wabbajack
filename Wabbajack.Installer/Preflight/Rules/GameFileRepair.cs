@@ -68,9 +68,10 @@ public enum GameFileRepairStatus
 ///     "the index has no record of 1.5.97.0" tells the user what to do and "nothing the game publishes now
 ///     contains that file" does not.
 /// </param>
+/// <param name="Source">The source that supplied a repaired file: "Steam" or "Bethesda".</param>
 public sealed record GameFileRepairResult(Archive Archive, GameFileRepairStatus Status, string Message,
     string? Version = null, AbsolutePath Placed = default,
-    GameFileRestoreOutcome? RestoreOutcome = null)
+    GameFileRestoreOutcome? RestoreOutcome = null, string? Source = null)
 {
     public string VersionDescription => Version ?? "the current build";
 }
@@ -146,7 +147,24 @@ public static class GameFileRepair
             progress.Report(++done, work.Count, $"Fetching game files from {restorer.SourceName}");
         }
 
+        foreach (var (action, subject) in UsageMetrics(work, results))
+            ctx.SendMetric(action, subject);
+
         return results;
+    }
+
+    /// <summary>
+    ///     One ping per source and game that this run placed files from, so how often the Steam and Bethesda
+    ///     sources are used can be counted. Only the source and the game are sent: nothing about the account,
+    ///     the files or the list.
+    /// </summary>
+    public static IEnumerable<(string Action, string Subject)> UsageMetrics(
+        IReadOnlyList<RepairableGameFile> work, IReadOnlyList<GameFileRepairResult> results)
+    {
+        return work.Zip(results)
+            .Where(p => p.Second.Status == GameFileRepairStatus.Repaired && p.Second.Source != null)
+            .Select(p => ($"game_files_from_{p.Second.Source!.ToLowerInvariant()}", p.First.State.Game.ToString()))
+            .Distinct();
     }
 
     /// <summary>
@@ -232,7 +250,13 @@ public static class GameFileRepair
 
         try
         {
-            var fetched = await restorer.Restore(item.State.Game, version, item.State.GameFile, incoming, token);
+            // What the modlist knows about the file goes with the request. The hash is an identity a source
+            // can look up - which is how a file from a build nobody can name any more is still found - and
+            // the size is a refusal it can make without downloading anything. Everything fetched is hashed
+            // below and anything that is not what the list asked for is deleted, so without this a list
+            // built against a version the store has moved past downloads most of a game to throw it away.
+            var fetched = await restorer.Restore(item.State.Game, version, item.State.GameFile, incoming, token,
+                new GameFileIdentity(item.Archive.Hash, item.Archive.Size));
 
             if (!fetched.Fetched)
             {
@@ -272,7 +296,7 @@ public static class GameFileRepair
 
             return new GameFileRepairResult(item.Archive, GameFileRepairStatus.Repaired,
                 $"Fetched from {restorer.SourceName} and placed in the downloads folder.",
-                fetched.Version ?? version, destination);
+                fetched.Version ?? version, destination, Source: fetched.Source ?? restorer.SourceName);
         }
         catch (OperationCanceledException)
         {

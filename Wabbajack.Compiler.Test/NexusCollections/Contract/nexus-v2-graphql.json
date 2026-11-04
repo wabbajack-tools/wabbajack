@@ -1,0 +1,183 @@
+{
+  "queryType": "Query",
+  "source": "https://api.nexusmods.com/v2/graphql",
+  "types": {
+    "Collection": {
+      "description": {
+        "args": {},
+        "deprecated": false,
+        "type": "String!"
+      },
+      "draftRevisionNumber": {
+        "args": {},
+        "deprecated": false,
+        "type": "Int"
+      },
+      "game": {
+        "args": {},
+        "deprecated": false,
+        "type": "Game!"
+      },
+      "id": {
+        "args": {},
+        "deprecated": false,
+        "type": "Int!"
+      },
+      "name": {
+        "args": {},
+        "deprecated": false,
+        "type": "String!"
+      },
+      "slug": {
+        "args": {},
+        "deprecated": false,
+        "type": "String!"
+      },
+      "summary": {
+        "args": {},
+        "deprecated": false,
+        "type": "String!"
+      }
+    },
+    "CollectionPage": {
+      "nodes": {
+        "args": {},
+        "deprecated": false,
+        "type": "[Collection!]!"
+      }
+    },
+    "CollectionRevision": {
+      "collection": {
+        "args": {},
+        "deprecated": false,
+        "type": "Collection!"
+      },
+      "collectionId": {
+        "args": {},
+        "deprecated": false,
+        "type": "Int!"
+      },
+      "downloadLink": {
+        "args": {},
+        "deprecated": false,
+        "type": "String!"
+      },
+      "id": {
+        "args": {},
+        "deprecated": false,
+        "type": "Int!"
+      },
+      "revisionNumber": {
+        "args": {},
+        "deprecated": false,
+        "type": "Int!"
+      }
+    },
+    "Game": {
+      "domainName": {
+        "args": {},
+        "deprecated": false,
+        "type": "String!"
+      },
+      "id": {
+        "args": {},
+        "deprecated": false,
+        "type": "Int!"
+      },
+      "name": {
+        "args": {},
+        "deprecated": false,
+        "type": "String!"
+      }
+    },
+    "Query": {
+      "collection": {
+        "args": {
+          "domainName": {
+            "hasDefault": false,
+            "type": "String"
+          },
+          "slug": {
+            "hasDefault": false,
+            "type": "String"
+          },
+          "viewAdultContent": {
+            "hasDefault": false,
+            "type": "Boolean"
+          }
+        },
+        "deprecated": false,
+        "type": "Collection!"
+      },
+      "collectionRevision": {
+        "args": {
+          "domainName": {
+            "hasDefault": false,
+            "type": "String"
+          },
+          "revision": {
+            "hasDefault": false,
+            "type": "Int"
+          },
+          "slug": {
+            "hasDefault": false,
+            "type": "String"
+          },
+          "viewAdultContent": {
+            "hasDefault": false,
+            "type": "Boolean"
+          }
+        },
+        "deprecated": false,
+        "type": "CollectionRevision!"
+      },
+      "myCollections": {
+        "args": {
+          "count": {
+            "hasDefault": false,
+            "type": "Int"
+          },
+          "facets": {
+            "hasDefault": false,
+            "type": "CollectionsFacet"
+          },
+          "filter": {
+            "hasDefault": false,
+            "type": "CollectionsFilter"
+          },
+          "offset": {
+            "hasDefault": false,
+            "type": "Int"
+          },
+          "postFilter": {
+            "hasDefault": false,
+            "type": "CollectionsFilter"
+          },
+          "sortBy": {
+            "hasDefault": false,
+            "type": "String"
+          },
+          "sortDirection": {
+            "hasDefault": false,
+            "type": "String"
+          },
+          "viewAdultContent": {
+            "hasDefault": false,
+            "type": "Boolean"
+          },
+          "viewUnderModeration": {
+            "hasDefault": false,
+            "type": "Boolean"
+          },
+          "viewUnlisted": {
+            "hasDefault": false,
+            "type": "Boolean"
+          }
+        },
+        "deprecated": true,
+        "deprecationReason": "Deprecated- Use collectionsV2.",
+        "type": "CollectionPage!"
+      }
+    }
+  }
+}

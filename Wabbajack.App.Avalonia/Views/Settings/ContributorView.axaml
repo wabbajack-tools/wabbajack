@@ -1,0 +1,45 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Settings"
+                          x:Class="Wabbajack.App.Avalonia.Views.Settings.ContributorView"
+                          x:TypeArguments="vm:ContributorVM"
+                          x:DataType="vm:ContributorVM">
+    <UserControl.Styles>
+        <!--
+            AvatarButton. It set no BasedOn, so WPF's own default button template drew it: a transparent round
+            button over the avatar at a quarter opacity, which on hover took that template's light blue fill.
+        -->
+        <Style Selector="Button.avatar">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Opacity" Value="0.25" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="ZIndex" Value="2" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" CornerRadius="64" />
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.avatar:pointerover">
+            <Setter Property="Background" Value="#BEE6FD" />
+        </Style>
+        <Style Selector="Button.avatar:pressed">
+            <Setter Property="Background" Value="#C4E5F6" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{StaticResource BackgroundBrush}">
+        <Grid VerticalAlignment="Center">
+            <Button Classes="avatar" Command="{Binding OpenProfileCommand}"
+                    ToolTip.Tip="{Binding Contributor.Login}" ToolTip.ShowDelay="0"
+                    AutomationProperties.Name="{Binding Contributor.Login}" />
+            <Border CornerRadius="64" Width="36" Height="36" ClipToBounds="True">
+                <Image Source="{Binding Avatar}" Stretch="UniformToFill" />
+            </Border>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

@@ -40,14 +40,15 @@ public class VerifyModlistInstall
         {
             new OptionDefinition(typeof(AbsolutePath), "m", "modlistLocation",
                 "The .wabbajack file used to install the modlist"),
-            new OptionDefinition(typeof(AbsolutePath), "i", "installFolder", "The installation folder of the modlist")
+            new OptionDefinition(typeof(AbsolutePath), "i", "installFolder", "The installation folder of the modlist"),
+            new OptionDefinition(typeof(bool), "r", "open", "Open the HTML report in a browser when done")
         });
 
     private readonly IResource<FileHashCache> _limiter;
     private readonly TemporaryFileManager _temporaryFileManager;
 
 
-    public async Task<int> Run(AbsolutePath modlistLocation, AbsolutePath installFolder, CancellationToken token)
+    public async Task<int> Run(AbsolutePath modlistLocation, AbsolutePath installFolder, bool open, CancellationToken token)
     {
         _logger.LogInformation("Loading modlist {ModList}", modlistLocation);
         var list = await StandardInstaller.LoadFromFile(_dtos, modlistLocation);
@@ -135,14 +136,13 @@ public class VerifyModlistInstall
         }
 
         _logger.LogInformation("Report written to {Report}", reportFile.Path);
-        
-        Process.Start(new ProcessStartInfo("cmd.exe", $"start /c \"{reportFile.Path}\"")
-        {
-            CreateNoWindow = true,
-        });
 
+        // Opening a browser is opt-in: this verb also runs unattended, where a launched browser either
+        // goes nowhere or holds the caller's output pipe open.
+        if (open)
+            Process.Start(new ProcessStartInfo(reportFile.Path.ToString()) { UseShellExecute = true });
 
-        return 0;
+        return errors.Count == 0 ? 0 : 1;
     }
 
     private async Task<Result?> VerifyBSA(AbsolutePath dest, CreateBSA bsa, Dictionary<RelativePath, Directive> byTo, CancellationToken token)

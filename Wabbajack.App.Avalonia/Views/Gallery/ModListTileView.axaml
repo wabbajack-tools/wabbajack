@@ -1,0 +1,173 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Gallery"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          x:Class="Wabbajack.App.Avalonia.Views.Gallery.ModListTileView"
+                          x:TypeArguments="vm:BaseModListMetadataVM"
+                          x:DataType="vm:BaseModListMetadataVM">
+    <!--
+        A gallery tile. "hot" is the pointer over the tile (code-behind); it shows the game name, the title for
+        lists whose image carries it, brightens the top glow, darkens the bottom, and for an unavailable list
+        blurs the image and says why. The button is MainButtonStyle with a local transparent background, which
+        is why hovering it draws no fill: WPF's local value outranked the template's hover setter too.
+    -->
+    <UserControl.Styles>
+        <Style Selector="Button.tile">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" CornerRadius="16">
+                        <ContentPresenter Name="Presenter" Content="{TemplateBinding Content}" Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.tile:pointerover">
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style Selector="Rectangle.topGlow">
+            <Setter Property="Opacity" Value="0.05" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.hot Rectangle.topGlow">
+            <Setter Property="Opacity" Value="0.3" />
+        </Style>
+        <Style Selector="Rectangle.hoverShade">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.hot Rectangle.hoverShade">
+            <Setter Property="Opacity" Value="0.75" />
+        </Style>
+    </UserControl.Styles>
+
+    <Button x:Name="ModlistButton" Classes="tile" Command="{Binding DetailsCommand}"
+            AutomationProperties.Name="{Binding Metadata.Title}">
+        <!-- WPF: DropShadowEffect BlurRadius 25, Opacity 0.25, ShadowDepth 3 at 315 degrees. -->
+        <Border x:Name="ModListTile" Margin="8,0,8,16" CornerRadius="8" BoxShadow="2 2 25 0 #40000000">
+            <Border Background="{StaticResource DarkSecondaryBrush}" CornerRadius="8" ClipToBounds="True">
+                <!-- 16:9 of the fixed width, so the tile's size is known before its image arrives. -->
+                <Grid Width="476" Height="267.75" ClipToBounds="True">
+                    <c:ProgressRing Width="60" Height="60" Foreground="#CCD8BAF8"
+                                    IsActive="{Binding LoadingImageLock.IsLoading}"
+                                    IsVisible="{Binding LoadingImageLock.IsLoading}" />
+
+                    <!-- Title, author and sizes: always for an image without the title in it, else on hover. -->
+                    <Grid x:Name="TitleOverlay" Margin="8,0,0,8" ZIndex="1" RowDefinitions="*,Auto,Auto">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MaxWidth="400" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="1" VerticalAlignment="Top" FontWeight="Bold" TextWrapping="Wrap" FontSize="24"
+                                   Margin="0,0,0,2" MaxWidth="400" Text="{Binding Metadata.Title}" />
+                        <TextBlock Grid.Row="2" VerticalAlignment="Bottom" TextWrapping="Wrap" FontSize="13">
+                            <Run Text="by" Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                            <Run Text="{Binding Metadata.Author}" />
+                        </TextBlock>
+                        <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Orientation="Horizontal"
+                                    VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                            <ic:SymbolIcon Height="14" Margin="0,0,4,0" VerticalAlignment="Bottom" FontSize="13"
+                                           Foreground="{StaticResource Transparent66ForegroundBrush}"
+                                           Symbol="ArrowDownload" IconVariant="Filled" />
+                            <TextBlock x:Name="DownloadSizeRun" Height="14" Margin="0,0,8,0" VerticalAlignment="Bottom" FontSize="13"
+                                       Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                            <ic:SymbolIcon Height="14" Margin="0,0,4,0" VerticalAlignment="Bottom" FontSize="13"
+                                           Foreground="{StaticResource Transparent66ForegroundBrush}"
+                                           Symbol="Games" IconVariant="Filled" />
+                            <TextBlock x:Name="InstallSizeRun" Height="14" Margin="0,0,8,0" VerticalAlignment="Bottom" FontSize="13"
+                                       Foreground="{StaticResource Transparent66ForegroundBrush}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Game icon, the game's name on hover, and the NSFW and Unavailable marks. -->
+                    <Grid Margin="8,8,0,0" VerticalAlignment="Top" HorizontalAlignment="Stretch" ZIndex="1"
+                          ColumnDefinitions="Auto,4,Auto,*,Auto,8,Auto">
+                        <Border x:Name="GameIcon" Grid.Column="0" Width="26" Height="26" CornerRadius="6" ClipToBounds="True">
+                            <Image Source="{Binding GameIcon}" Stretch="Fill" />
+                        </Border>
+                        <Panel x:Name="GameNamePill" Grid.Column="2">
+                            <Border Background="{StaticResource WindowBackgroundBrush}" Opacity="0.66" Height="26" CornerRadius="4"
+                                    Width="{Binding #GameName.Bounds.Width, Converter={x:Static c:PlusConverter.Sixteen}}" />
+                            <TextBlock x:Name="GameName" Text="{Binding GameMetaData.HumanFriendlyGameName}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.85" />
+                        </Panel>
+                        <Panel Grid.Column="4" HorizontalAlignment="Right" IsVisible="{Binding Metadata.NSFW}">
+                            <Rectangle Margin="-4" Fill="{StaticResource NSFWBrush}"
+                                       Width="{Binding #NSFW.Bounds.Width}" Height="{Binding #NSFW.Bounds.Height}">
+                                <Rectangle.Effect>
+                                    <BlurEffect Radius="30" />
+                                </Rectangle.Effect>
+                            </Rectangle>
+                            <Border Background="{StaticResource NSFWBrush}" Height="26" CornerRadius="4"
+                                    Width="{Binding #NSFW.Bounds.Width, Converter={x:Static c:PlusConverter.Sixteen}}" />
+                            <TextBlock x:Name="NSFW" Text="NSFW" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.85" />
+                        </Panel>
+                        <Panel Grid.Column="6" Margin="0,0,8,0" HorizontalAlignment="Right" IsVisible="{Binding IsBroken}">
+                            <Rectangle Margin="-4" Fill="{StaticResource UnavailableBrush}"
+                                       Width="{Binding #Unavailable.Bounds.Width}" Height="{Binding #Unavailable.Bounds.Height}">
+                                <Rectangle.Effect>
+                                    <BlurEffect Radius="30" />
+                                </Rectangle.Effect>
+                            </Rectangle>
+                            <Border Background="{StaticResource UnavailableBrush}" Height="26" CornerRadius="4"
+                                    Width="{Binding #Unavailable.Bounds.Width, Converter={x:Static c:PlusConverter.Sixteen}}" />
+                            <TextBlock x:Name="Unavailable" Text="Unavailable" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.85" />
+                        </Panel>
+                    </Grid>
+
+                    <!-- The image; blurred and shaded red on hover when the list is unavailable. -->
+                    <Border x:Name="ImageHost">
+                        <Image x:Name="ModlistImage" Source="{Binding Image}" Stretch="UniformToFill" />
+                    </Border>
+                    <Panel x:Name="BrokenShade" Opacity="0.75" Background="{StaticResource UnavailableDarkBrush}" IsVisible="False" />
+
+                    <Rectangle Classes="topGlow" Height="120" Margin="-80,-95,-80,0" VerticalAlignment="Top" Fill="White">
+                        <Rectangle.Effect>
+                            <BlurEffect Radius="100" />
+                        </Rectangle.Effect>
+                    </Rectangle>
+                    <!-- An image with its own title darkens at the bottom only on hover; one without, always. -->
+                    <Rectangle Classes="hoverShade" Height="120" Margin="-80,0,-80,-75" VerticalAlignment="Bottom" Fill="Black"
+                               IsVisible="{Binding ImageContainsTitle}">
+                        <Rectangle.Effect>
+                            <BlurEffect Radius="100" />
+                        </Rectangle.Effect>
+                    </Rectangle>
+                    <Rectangle Height="120" Margin="-80,0,-80,-75" VerticalAlignment="Bottom" Fill="Black" Opacity="0.75"
+                               IsVisible="{Binding !ImageContainsTitle}">
+                        <Rectangle.Effect>
+                            <BlurEffect Radius="100" />
+                        </Rectangle.Effect>
+                    </Rectangle>
+
+                    <TextBlock x:Name="BrokenText" Margin="16" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"
+                               TextAlignment="Left" TextWrapping="Wrap" IsVisible="False"
+                               Text="A game or mod update has made the list unavailable for installation. The modlist requires an update from its author before it is installable. Contact the author(s) for more information.">
+                        <TextBlock.Effect>
+                            <DropShadowEffect OffsetX="2.12" OffsetY="2.12" BlurRadius="10" Opacity="0.5" Color="{StaticResource BackgroundColor}" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </Grid>
+            </Border>
+        </Border>
+    </Button>
+</rxui:ReactiveUserControl>

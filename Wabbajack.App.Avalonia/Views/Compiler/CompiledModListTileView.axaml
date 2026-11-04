@@ -1,0 +1,108 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Compiler"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          x:Class="Wabbajack.App.Avalonia.Views.Compiler.CompiledModListTileView"
+                          x:TypeArguments="vm:CompiledModListTileVM"
+                          x:DataType="vm:CompiledModListTileVM">
+    <UserControl.Styles>
+        <!-- "hot": the pointer is over the tile and not over its delete button (code-behind). -->
+        <Style Selector="Border#Panel">
+            <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        </Style>
+        <Style Selector="Grid.hot Border#Panel">
+            <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
+        </Style>
+        <Style Selector="Grid.hot TextBlock.tileText">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+        <Style Selector="Rectangle.glow">
+            <Setter Property="Opacity" Value="0.15" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Grid.hot Rectangle.glow">
+            <Setter Property="Opacity" Value="0.2" />
+        </Style>
+
+        <!--
+            TransparentButtonStyleDanger: MainButtonStyle's shape with no fill; hovered, the template's dark
+            fill and primary text, with its own icon rule turning the icon Filled.
+        -->
+        <Style Selector="Button.deleteTile">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="1" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter Name="Presenter" Content="{TemplateBinding Content}" Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.deleteTile:pointerover">
+            <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.deleteTile:pressed">
+            <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+        </Style>
+        <Style Selector="Button.deleteTile:pointerover ic|SymbolIcon">
+            <Setter Property="IconVariant" Value="Filled" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid x:Name="Tile" Margin="16,0,16,16" Background="Transparent">
+        <!--
+            WPF rounded the panel by masking it with a 10px-radius border inset 1px, and gave it a drop shadow
+            that the same mask then cut away. A clipped rounded border is the same shape; the shadow was never
+            visible.
+        -->
+        <Border x:Name="Panel" CornerRadius="10" Margin="1" ClipToBounds="True">
+            <StackPanel Margin="-1">
+                <Grid Width="300" Height="169" Background="{StaticResource DarkSecondaryBrush}" ClipToBounds="True">
+                    <c:ProgressRing IsActive="{Binding LoadingImageLock.IsLoading}" IsVisible="{Binding LoadingImageLock.IsLoading}" />
+                    <Image x:Name="ModlistImage" Stretch="UniformToFill" />
+                    <Rectangle Classes="glow" Height="120" Margin="-80,-75,-80,0" VerticalAlignment="Top" Fill="White">
+                        <Rectangle.Effect>
+                            <BlurEffect Radius="100" />
+                        </Rectangle.Effect>
+                    </Rectangle>
+                    <Rectangle Classes="glow" Height="120" Margin="-80,0,-80,-75" VerticalAlignment="Bottom" Fill="Black">
+                        <Rectangle.Effect>
+                            <BlurEffect Radius="100" />
+                        </Rectangle.Effect>
+                    </Rectangle>
+                    <!-- WPF put the version label 242px down in a 169px box, so it was never seen; it is not carried over. -->
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                    <TextBlock Classes="tileText" Grid.Row="0" FontSize="20" Margin="8,8,8,0"
+                               Text="{Binding CompilerSettings.ModListName}" />
+                    <TextBlock Classes="tileText" Grid.Row="1" FontSize="13" Opacity="0.5" Margin="8"
+                               Text="{Binding CompilerSettings.Source}" />
+                    <Button x:Name="DeleteButton" Classes="deleteTile" Grid.Column="2" Width="32" Height="32"
+                            Margin="0,4,0,0" VerticalAlignment="Top"
+                            AutomationProperties.Name="Forget this modlist"
+                            Command="{Binding DeleteModListCommand}">
+                        <ic:SymbolIcon Symbol="DismissCircle" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</rxui:ReactiveUserControl>

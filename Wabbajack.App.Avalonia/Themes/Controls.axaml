@@ -1,0 +1,454 @@
+<!--
+    The WPF button styles the shell and Home use, rebuilt as Avalonia classes. Each block names the WPF
+    style it stands for, and every state (hover, pressed, disabled) carries the values that style had,
+    including the rules WPF kept in Style.Resources: icons inside a main button are always the primary
+    colour and turn Filled on hover, and every icon on the active nav item is Filled.
+
+    Buttons here get their own template rather than Fluent's, as they did in WPF. The presenter is not
+    called PART_ContentPresenter on purpose: Fluent's hover and pressed rules target that name, and would
+    otherwise paint their own colours over these.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ic="using:FluentIcons.Avalonia"
+        xmlns:conv="using:Wabbajack.App.Avalonia.Converters"
+        xmlns:c="using:Wabbajack.App.Avalonia.Controls">
+
+    <!-- The implicit Window and TextBlock styles. WPF's TextBlock set no colour (it inherits) and a
+         13px size; Avalonia's default is 14. -->
+    <!-- WPF also had an implicit UserControl style, but implicit styles only match the exact type, so it
+         never reached a view; it is not carried over. -->
+    <Style Selector="Window">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
+    </Style>
+    <Style Selector="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}" />
+        <Setter Property="FontSize" Value="13" />
+        <!-- Lines as tall as WPF made them; see WpfLineHeightConverter. -->
+        <Setter Property="LineHeight">
+            <MultiBinding Converter="{x:Static conv:WpfLineHeightConverter.Instance}">
+                <Binding Path="FontSize" RelativeSource="{RelativeSource Self}" />
+                <Binding Path="FontFamily" RelativeSource="{RelativeSource Self}" />
+            </MultiBinding>
+        </Setter>
+    </Style>
+
+    <!--
+        Fluent clips a ContentControl and every UserControl to its bounds; WPF's clipped neither. The gallery
+        relies on that: its tile list has a -16 bottom margin so it runs into the pane's padding.
+    -->
+    <Style Selector="ContentControl, :is(UserControl)">
+        <Setter Property="ClipToBounds" Value="False" />
+    </Style>
+
+    <!--
+        WPF's LineHeight="20" on 13px text. WPF puts a line's extra height below the text; Avalonia's
+        LineHeight centres it, which draws the text 2px lower. LineSpacing adds the extra below instead:
+        a 13px line is 16px (set above), and 16 + 4 is WPF's 20.
+    -->
+    <Style Selector="TextBlock.wpfLineHeight20">
+        <Setter Property="LineSpacing" Value="4" />
+    </Style>
+
+    <!-- WPF buttons stretch to their slot unless told otherwise; Fluent's sit left and centred. -->
+    <Style Selector="Button.main, Button.bare">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- MainButtonStyle (and MainButtonBaseStyle beneath it). -->
+    <Style Selector="Button.main">
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="1" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                    <ContentPresenter Name="Presenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.main:pointerover">
+        <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource PressedButtonForeground}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.main:pressed">
+        <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource PressedButtonForeground}" />
+    </Style>
+    <Style Selector="Button.main:disabled">
+        <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+        <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
+    </Style>
+    <Style Selector="Button.main ic|SymbolIcon">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.main:pointerover ic|SymbolIcon">
+        <Setter Property="IconVariant" Value="Filled" />
+    </Style>
+
+    <!-- MainButtonStyleLessRounded: the same button with an 8px radius and primary text on hover. -->
+    <Style Selector="Button.main.lessRounded">
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Button.main.lessRounded:pointerover">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <!--
+        MainNavButtonStyle and ActiveNavButtonStyle. WPF swapped between the two in code; here the view
+        toggles the active class. The accent bar was part of the active template, sitting at the button's
+        left edge whatever the content alignment, so it is part of this template too.
+    -->
+    <Style Selector="Button.main.nav">
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <!-- Set on each button in NavigationView.xaml; the same on all four, so kept here. -->
+        <Setter Property="Height" Value="95" />
+        <Setter Property="Margin" Value="8,0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                    <Grid>
+                        <Border Name="Accent" Width="5" Height="40" CornerRadius="3" HorizontalAlignment="Left"
+                                Background="{StaticResource PrimaryBrush}" IsVisible="False" />
+                        <ContentPresenter Name="Presenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.main.nav:pointerover">
+        <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+    </Style>
+    <Style Selector="Button.main.nav.active">
+        <Setter Property="Background" Value="{StaticResource WindowHoverBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.main.nav.active:pointerover">
+        <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+    </Style>
+    <Style Selector="Button.main.nav.active:pressed">
+        <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+    </Style>
+    <Style Selector="Button.main.nav.active /template/ Border#Accent">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Button.main.nav.active ic|SymbolIcon">
+        <Setter Property="IconVariant" Value="Filled" />
+    </Style>
+
+    <!--
+        BigButtonStyle + BigColorButtonStyle. Its own icon rule replaced the main button's in WPF, so the
+        icon is the background colour, turns primary on hover, and does not turn Filled.
+    -->
+    <Style Selector="Button.main.big">
+        <Setter Property="MinHeight" Value="96" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Button.main.big.color">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="Button.main.big.color:pointerover">
+        <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PressedButtonForeground}" />
+    </Style>
+    <Style Selector="Button.main.big.color:pressed">
+        <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource PressedButtonForeground}" />
+    </Style>
+    <Style Selector="Button.main.big.color ic|SymbolIcon">
+        <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="Button.main.big.color:pointerover ic|SymbolIcon">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="IconVariant" Value="Regular" />
+    </Style>
+
+    <!-- IconBareButtonStyle: the window buttons. No fill; hover recolours and fills the icon. -->
+    <Style Selector="Button.bare">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                    <ContentPresenter Name="Presenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.bare:pointerover">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.bare:pressed">
+        <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="Button.bare:disabled">
+        <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+    </Style>
+    <Style Selector="Button.bare:pointerover ic|SymbolIcon">
+        <Setter Property="IconVariant" Value="Filled" />
+    </Style>
+
+    <!-- The implicit Hyperlink style: primary, bold, no underline, a paler primary on hover. -->
+    <Style Selector="Button.hyperlink">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="13" />
+        <!-- Top, like the text either side of it, which keeps its extra line height below (see above). -->
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ContentPresenter Name="Presenter"
+                                  Background="{TemplateBinding Background}"
+                                  Content="{TemplateBinding Content}"
+                                  Margin="{TemplateBinding Padding}" />
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.hyperlink:pointerover">
+        <Setter Property="Foreground" Value="{StaticResource ComplementaryPrimary50Brush}" />
+    </Style>
+
+    <!--
+        WJButton (Controls/WJButton.cs). WJButtonStyle is MainButtonStyle with its template replaced: a 4px
+        radius, no border, and none of the template's triggers, so hover comes from MainButtonBaseStyle's
+        style triggers alone. Its own icon rule replaced the main button's, so a Mono button's icon takes the
+        text colour and does not turn Filled on hover.
+    -->
+    <Style Selector="Button.wj">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="1" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                    <ContentPresenter Name="Presenter"
+                                      Content="{TemplateBinding Content}"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.wj:pointerover">
+        <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.wj:pressed">
+        <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <!--
+        DisabledButtonForeground is a 25% white, and WPF blends translucent text (the icons are glyphs too) in
+        gamma space, which lands brighter than a plain blend: on the 16 tone a disabled button has, WPF draws it at
+        131 grey where 25% plainly would give 110. #62 is the plain blend that lands on WPF's, measured.
+    -->
+    <Style Selector="Button.wj:disabled">
+        <Setter Property="Foreground" Value="#62E5E5E8" />
+        <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
+    </Style>
+    <Style Selector="Button.wj:disabled ic|SymbolIcon">
+        <Setter Property="Foreground" Value="#62E5E5E8" />
+    </Style>
+
+    <!-- WJColorButtonStyle: primary fill, dark text and icon; the icon turns primary on hover. -->
+    <Style Selector="Button.wj.wjColor">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="Button.wj.wjColor:pointerover">
+        <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.wj.wjColor:pressed">
+        <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+    </Style>
+    <Style Selector="Button.wj.wjColor ic|SymbolIcon">
+        <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="Button.wj.wjColor:pointerover ic|SymbolIcon">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.wj.wjColor:disabled ic|SymbolIcon">
+        <Setter Property="Foreground" Value="#62E5E5E8" />
+    </Style>
+
+    <!-- WJDangerButtonStyle: Mono until hovered, then red. -->
+    <Style Selector="Button.wj.wjDanger:pointerover">
+        <Setter Property="Background" Value="{StaticResource MouseOverDangerButtonBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource MouseOverDangerButtonForeground}" />
+    </Style>
+
+    <!-- WJSemiTransparentButtonStyle. -->
+    <Style Selector="Button.wj.wjSemi">
+        <Setter Property="Background" Value="{StaticResource Transparent08PrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.wj.wjSemi:pointerover">
+        <Setter Property="Background" Value="{StaticResource Transparent16PrimaryBrush}" />
+    </Style>
+
+    <!--
+        MainButtonBaseStyle's disabled trigger. In WPF a trigger outranks every setter, including those of the
+        Color and SemiTransparent styles built on it, so a disabled one of those is grey like the rest. Here a
+        later style wins instead, so the disabled state is restated after them.
+    -->
+    <Style Selector="Button.wj.wjColor:disabled, Button.wj.wjSemi:disabled">
+        <Setter Property="Foreground" Value="#62E5E5E8" />
+        <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
+    </Style>
+
+    <!--
+        TransparentButtonStyle: MainButtonStyle's 16px, 1px-bordered shape with no fill, a dark fill on hover,
+        and its own icon rule, which turns the icon Filled on hover.
+    -->
+    <Style Selector="Button.wj.wjTransparent">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="16" />
+    </Style>
+    <Style Selector="Button.wj.wjTransparent:pointerover">
+        <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.wj.wjTransparent:pressed">
+        <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.wj.wjTransparent:pointerover ic|SymbolIcon">
+        <Setter Property="IconVariant" Value="Filled" />
+    </Style>
+
+    <!--
+        MainTextBoxStyle: a flat 4px box in the 08 tone that neither hover nor focus changes. Fluent's own
+        TextBox template is kept and its colours are pinned through the resources it reads (FluentOverrides).
+    -->
+    <Style Selector="TextBox">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Height" Value="36" />
+        <!-- Fluent sets a 64x32 minimum; WPF had none, and the performance boxes are 32 wide. -->
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    </Style>
+    <!-- WPF's template put the watermark 4px further in than the text box's padding. -->
+    <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
+        <Setter Property="Margin" Value="4,0,0,0" />
+    </Style>
+    <!-- WPF's text view sits 2px in from the padding on each side, measured on the compiler form and the pickers. -->
+    <Style Selector="TextBox /template/ TextPresenter#PART_TextPresenter">
+        <Setter Property="Margin" Value="2,0,2,0" />
+    </Style>
+
+    <!--
+        AttentionBorder (Controls/AttentionBorder.cs), from CustomControls.xaml: a 1px border that swings
+        between two colours, with its fill, over 1.5 seconds and back, for as long as it is not hovered.
+    -->
+    <Style Selector="c|AttentionBorder">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Frame" BorderThickness="1"
+                        Background="{StaticResource WindowBackgroundBrush}"
+                        BorderBrush="{StaticResource DarkerSecondaryBrush}">
+                    <ContentPresenter Content="{TemplateBinding Content}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="c|AttentionBorder:not(:pointerover) /template/ Border#Frame">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite" PlaybackDirection="Alternate">
+                <KeyFrame Cue="0%">
+                    <Setter Property="BorderBrush" Value="{StaticResource DarkerSecondaryBrush}" />
+                    <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                    <Setter Property="Background" Value="{StaticResource SecondaryBackgroundBrush}" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="c|AttentionBorder:failure /template/ Border#Frame">
+        <Setter Property="BorderBrush" Value="#700d1c" />
+        <Setter Property="Background" Value="#1c0307" />
+    </Style>
+    <Style Selector="c|AttentionBorder:failure:not(:pointerover) /template/ Border#Frame">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite" PlaybackDirection="Alternate">
+                <KeyFrame Cue="0%">
+                    <Setter Property="BorderBrush" Value="#700d1c" />
+                    <Setter Property="Background" Value="#1c0307" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="BorderBrush" Value="#ff0026" />
+                    <Setter Property="Background" Value="#540914" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- The Home cards: a 3px outline in the 08 tone, 16 radius, no fill. -->
+    <Style Selector="Border.card">
+        <Setter Property="BorderBrush" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        <Setter Property="BorderThickness" Value="3" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Margin" Value="0,0,16,16" />
+    </Style>
+</Styles>

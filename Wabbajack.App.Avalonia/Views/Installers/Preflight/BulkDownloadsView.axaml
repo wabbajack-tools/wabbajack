@@ -1,0 +1,31 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:pvm="using:Wabbajack.App.Avalonia.ViewModels.Installers.Preflight"
+                          x:Class="Wabbajack.App.Avalonia.Views.Installers.Preflight.BulkDownloadsView"
+                          x:TypeArguments="pvm:BulkDownloadsVM"
+                          x:DataType="pvm:BulkDownloadsVM">
+    <UserControl.Styles>
+        <StyleInclude Source="avares://Wabbajack/Views/Installers/Preflight/ArchiveRowResources.axaml" />
+    </UserControl.Styles>
+    <!--
+        The automated downloads: every archive in one virtualized list of band headers and rows, with the
+        totals and a stop button under it. WPF masked the list to an 8px-radius rectangle inside a -1 margin;
+        the clipping border does the same, and the mask's greyscale text with it.
+    -->
+    <Grid RowDefinitions="*,Auto">
+        <!-- The list sits in a star row: an Auto row would give it infinite height and nothing to virtualize. -->
+        <Border Margin="-1" CornerRadius="8" ClipToBounds="True" RenderOptions.TextRenderingMode="Antialias">
+            <ListBox x:Name="RowsList" Classes="archives" ItemTemplate="{StaticResource ArchiveListTemplates}" />
+        </Border>
+
+        <Grid Grid.Row="1" Margin="0,8,0,0" ColumnDefinitions="*,Auto">
+            <!-- Transparent66ForegroundBrush over the pane: WPF's gamma-space blend lands on the plain #C9 blend. -->
+            <TextBlock x:Name="FooterText" FontSize="12" Foreground="#C9E5E5E8" VerticalAlignment="Center"
+                       Margin="4,0,0,0" TextTrimming="CharacterEllipsis" />
+            <c:WJButton x:Name="StopButton" Grid.Column="1" ButtonStyle="Mono" Text="Stop downloads" Icon="Stop"
+                        IconVariant="Filled" IconSize="14" Width="160" Height="28" HorizontalAlignment="Right" />
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>

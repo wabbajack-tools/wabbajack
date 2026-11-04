@@ -17,7 +17,8 @@ namespace Wabbajack.CLI.Verbs;
 
 public class Reset
 {
-    private const string WabbajackExecutableName = "Wabbajack.exe";
+    // The app's process name on every platform: Windows reports it without the .exe.
+    private const string WabbajackProcessName = "Wabbajack";
     private readonly ILogger<Reset> _logger;
 
     public Reset(ILogger<Reset> logger)
@@ -31,7 +32,7 @@ public class Reset
     public async Task<int> Run()
     {
         Console.WriteLine("Checking if Wabbajack is running...");
-        var wabbajackProcess = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(WabbajackExecutableName)).FirstOrDefault();
+        var wabbajackProcess = Process.GetProcessesByName(WabbajackProcessName).FirstOrDefault();
         string? fileName = wabbajackProcess?.MainModule?.FileName;
         if(wabbajackProcess != null)
         {

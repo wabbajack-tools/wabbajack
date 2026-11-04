@@ -34,6 +34,11 @@ public static class ChildProcessTracker
         if (Environment.OSVersion.Version < new Version(6, 2))
             return;
 
+        // _WINDOWS says where this was built, not where it runs: a Linux build published from Windows has this
+        // code, and kernel32 to call it with is not there.
+        if (!OperatingSystem.IsWindows())
+            return;
+
         // The job name is optional (and can be null) but it helps with diagnostics.
         //  If it's not null, it has to be unique. Use SysInternals' Handle command-line
         //  utility: handle -a ChildProcessTracker

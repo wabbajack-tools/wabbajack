@@ -118,7 +118,8 @@ public class ModListHarness
     ///     the install's downloads folder right now, which is how an update over an existing install with
     ///     archives it no longer needs is exercised.
     /// </summary>
-    public async Task<InstallResult> InstallWithResult(bool prePlaceDownloads = true)
+    public async Task<InstallResult> InstallWithResult(bool prePlaceDownloads = true,
+        Action<StandardInstaller>? configureInstaller = null)
     {
         // The installer no longer downloads: what compiling used has to be in place before Begin.
         if (prePlaceDownloads)
@@ -126,6 +127,7 @@ public class ModListHarness
         using var scope = _serviceProvider.CreateScope();
         await ConfigureInstall(scope.ServiceProvider);
         var installer = scope.ServiceProvider.GetService<StandardInstaller>()!;
+        configureInstaller?.Invoke(installer);
 
         return await installer.Begin(CancellationToken.None);
     }
@@ -197,6 +199,12 @@ public class ModListHarness
         return url;
     }
 
+    /// <summary>The source profile being compiled; its <c>modlist.txt</c> is written when the compile starts.</summary>
+    public AbsolutePath ProfileFolder => _source.Combine(Consts.MO2Profiles, _profileName);
+
+    /// <summary>The game folder the install is given, which is not the one the compiler saw.</summary>
+    public AbsolutePath InstallGameFolder => _gameFolder;
+
     /// <summary>Path of a file in the folder the compiler reads archives from.</summary>
     public AbsolutePath DownloadPath(string fileName)
     {
@@ -207,6 +215,24 @@ public class ModListHarness
     public AbsolutePath InstallDownloadPath(string fileName)
     {
         return _installDownloads.Combine(fileName);
+    }
+
+    /// <summary>
+    ///     Adds the <see cref="Offline.GeneratedFixture" /> archive as a download and its contents as an enabled
+    ///     mod, the way <see cref="InstallMod" /> does for a downloaded one. Its download URL is answered by
+    ///     <see cref="Offline.OfflineServers" />, which the compiler asks when it checks the link still works.
+    /// </summary>
+    public async Task<Mod> InstallGeneratedMod()
+    {
+        var archive = await Offline.GeneratedFixture.Create(_downloadPath);
+        await archive.WithExtension(Ext.Meta).WriteAllLinesAsync(
+            new[] {"[General]", $"directURL={Offline.OfflineServers.FixtureUrl}"},
+            CancellationToken.None);
+
+        var mod = AddMod(Offline.GeneratedFixture.Name);
+        mod.EnabledIn.Add(_profileName);
+        await mod.AddFromArchive(archive);
+        return mod;
     }
 
     public async Task<Mod> InstallMod(Extension ext, Uri uri)

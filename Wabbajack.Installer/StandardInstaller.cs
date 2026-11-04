@@ -27,6 +27,8 @@ using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Installer.Preflight;
+using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Installer.Utilities;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -38,15 +40,18 @@ namespace Wabbajack.Installer;
 
 public class StandardInstaller : AInstaller<StandardInstaller>
 {
+    private readonly INexusLoginProbe _nexusLogin;
 
     public StandardInstaller(ILogger<StandardInstaller> logger,
         InstallerConfiguration config,
         IGameLocator gameLocator, FileExtractor.FileExtractor extractor,
         DTOSerializer jsonSerializer, Context vfs, FileHashCache fileHashCache,
-        DownloadDispatcher downloadDispatcher, ParallelOptions parallelOptions, IResource<IInstaller> limiter, Client wjClient, IImageLoader imageLoader) :
+        DownloadDispatcher downloadDispatcher, ParallelOptions parallelOptions, IResource<IInstaller> limiter, Client wjClient, IImageLoader imageLoader,
+        INexusLoginProbe nexusLogin) :
         base(logger, config, gameLocator, extractor, jsonSerializer, vfs, fileHashCache, downloadDispatcher,
             parallelOptions, limiter, wjClient, imageLoader)
     {
+        _nexusLogin = nexusLogin;
         // One per NextStep call a full Begin makes: Configuring Installer, then OptimizeModlist's
         // Looking for files to delete / Deleting outdated files (only when there are any) / Cleaning
         // empty folders / Looking for unmodified files / Updating ModList, then Hashing Archives,
@@ -68,46 +73,52 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             provider.GetRequiredService<ParallelOptions>(),
             provider.GetRequiredService<IResource<IInstaller>>(),
             provider.GetRequiredService<Client>(),
-            provider.GetRequiredService<IImageLoader>());
+            provider.GetRequiredService<IImageLoader>(),
+            provider.GetRequiredService<INexusLoginProbe>());
     }
 
     public override async Task<InstallResult> Begin(CancellationToken token)
     {
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
         _logger.LogInformation("Installing: {Name} - {Version}", _configuration.ModList.Name, _configuration.ModList.Version);
-        await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
         NextStep(Consts.StepPreparing, "Configuring Installer", 0);
         _logger.LogInformation("Configuring Processor");
 
-        if (_configuration.GameFolder == default)
-            _configuration.GameFolder = _gameLocator.GameLocation(_configuration.Game);
+        // Located rather than demanded. An install with no game folder is a real one now: preflight lets a
+        // run carry on when the game is not installed and a source can supply the files it takes from the
+        // game, and those files are in the downloads folder by the time this runs. HashArchives looks for
+        // every archive by hash across downloads and the game folders alike and never dereferences
+        // GameFileSource.GameFile, so nothing below needs a game folder to exist - and if something this
+        // list needs is not in downloads after all, the missing-archive check a few lines down says so with
+        // the names of the files rather than with "this game isn't installed".
+        if (_configuration.GameFolder == default &&
+            _gameLocator.TryFindLocation(_configuration.Game, out var located))
+            _configuration.GameFolder = located;
 
-        if (_configuration.GameFolder == default)
-        {
-            var otherGame = _configuration.Game.MetaData().CommonlyConfusedWith
-                .Where(g => _gameLocator.IsInstalled(g)).Select(g => g.MetaData()).FirstOrDefault();
-            if (otherGame != null)
-            {
-                _logger.LogError(
-                    "In order to do a proper install Wabbajack needs to know where your {lookingFor} folder resides. However this game doesn't seem to be installed, we did however find an installed " +
-                    "copy of {otherGame}, did you install the wrong game?",
-                    _configuration.Game.MetaData().HumanFriendlyGameName, otherGame.HumanFriendlyGameName);
-            }
-            else
-                _logger.LogError(
-                    "In order to do a proper install Wabbajack needs to know where your {lookingFor} folder resides. However this game doesn't seem to be installed.",
-                    _configuration.Game.MetaData().HumanFriendlyGameName);
-
-            return InstallResult.GameMissing;
-        }
-
-        if (!_configuration.GameFolder.DirectoryExists())
+        if (_configuration.GameFolder != default && !_configuration.GameFolder.DirectoryExists())
         {
             _logger.LogError("Located game {game} at \"{gameFolder}\" but the folder does not exist!",
                 _configuration.Game, _configuration.GameFolder);
             return InstallResult.GameInvalid;
         }
 
+        if (_configuration.GameFolder == default)
+        {
+            var otherGame = _configuration.Game.MetaData().CommonlyConfusedWith
+                .Where(g => _gameLocator.IsInstalled(g)).Select(g => g.MetaData()).FirstOrDefault();
+
+            // Worth a line either way: anything the modlist points at the game folder - MO2's game path,
+            // a launcher's working directory - is written with nothing in it, and the user will have to
+            // point it somewhere once they install the game.
+            _logger.LogWarning(
+                "{lookingFor} is not installed on this machine. The modlist will be installed from the downloads " +
+                "folder, but anything in it that refers to the game folder will have no path to use until the " +
+                "game is installed.{confused}",
+                _configuration.Game.MetaData().HumanFriendlyGameName,
+                otherGame != null
+                    ? $" An installed copy of {otherGame.HumanFriendlyGameName} was found - did you install the wrong game?"
+                    : string.Empty);
+        }
 
         _logger.LogInformation("Install Folder: {InstallFolder}", _configuration.Install);
         _logger.LogInformation("Downloads Folder: {DownloadFolder}", _configuration.Downloads);
@@ -116,6 +127,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         _configuration.Install.CreateDirectory();
         _configuration.Downloads.CreateDirectory();
+
+        UnifyPathCasing();
 
         var optimizeResult = await OptimizeModlist(token);
         if (!optimizeResult) return InstallResult.Cancelled;
@@ -135,6 +148,11 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
             return InstallResult.DownloadFailed;
         }
+
+        // Counted here rather than on entry: downloading is preflight's now and happens before Begin, and an
+        // install the checks above turn away (no game folder where one was named, an archive missing) never
+        // got as far as installing anything.
+        await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
 
         await ExtractModlist(token);
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
@@ -167,7 +185,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         SetScreenSizeInPrefs();
 
         await ExtractedModlistFolder!.DisposeAsync();
-        await _wjClient.SendMetric(MetricNames.FinishInstall, ModList.Name);
+        await new FinishInstallMetrics(_wjClient, _nexusLogin, _logger).Send(ModList.Name);
 
         NextStep(Consts.StepFinished, "Finished", 1);
         _logger.LogInformation("Finished Installation");
@@ -184,7 +202,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         var iniData = iniFile.LoadIniFile();
         var settings = iniData["Settings"];
-        settings["download_directory"] = _configuration.Downloads.ToString().Replace("\\", "/");
+        settings["download_directory"] = _configuration.Downloads.ToWindowsProgramPath().Replace("\\", "/");
         iniData.SaveIniFile(iniFile);
         return Task.CompletedTask;
     }
@@ -426,7 +444,10 @@ public class StandardInstaller : AInstaller<StandardInstaller>
                         if (!Consts.KnownModifiedFiles.Contains(directive.To.FileName))
                             ThrowOnNonMatchingHash(directive, hash);
 
-                        await FileHashCache.FileHashWriteCache(outPath, directive.Hash);
+                        // The hash of what was written. For a known-modified file it can differ from the
+                        // directive's (lists compiled before modlist.txt's hash was fixed), and caching the
+                        // directive's would describe this file as another one.
+                        await FileHashCache.FileHashWriteCache(outPath, hash);
                         break;
                 }
             });
@@ -438,73 +459,39 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         // Don't remap files for Native Game Compiler games
         if (!profilesPath.DirectoryExists()) return;
-        if (_configuration.SystemParameters == null)
-            _logger.LogWarning("No SystemParameters set, ignoring ini settings for system parameters");
+
+        // The CLI has no screen to measure, so it passes none and the files stay as the list ships them.
+        if (_configuration.SystemParameters is not { } system)
+        {
+            _logger.LogInformation("No screen size given, leaving the ini files' screen size and VRAM as the list ships them");
+            return;
+        }
 
         var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
         config.CommentRegex = new Regex(@"^(#|;)(.*)");
         var oblivionPath = (RelativePath) "Oblivion.ini";
 
-        if (profilesPath.DirectoryExists())
-        {
-            foreach (var file in profilesPath.EnumerateFiles()
-                         .Where(f => ((string) f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
-                try
-                {
-                    var parser = new FileIniDataParser(new IniDataParser(config));
-                    var data = parser.ReadFile(file.ToString());
-                    var modified = false;
-                    if (data.Sections["Display"] != null)
-                        if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
-                        {
-                            data.Sections["Display"]["iSize W"] =
-                                _configuration.SystemParameters!.ScreenWidth.ToString(CultureInfo.CurrentCulture);
-                            data.Sections["Display"]["iSize H"] =
-                                _configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
-                            modified = true;
-                        }
+        var width = system.ScreenWidth.ToString(CultureInfo.CurrentCulture);
+        var height = system.ScreenHeight.ToString(CultureInfo.CurrentCulture);
 
-                    if (data.Sections["MEMORY"] != null)
-                        if (data.Sections["MEMORY"]["VideoMemorySizeMb"] != null)
-                        {
-                            data.Sections["MEMORY"]["VideoMemorySizeMb"] =
-                                _configuration.SystemParameters!.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture);
-                            modified = true;
-                        }
-
-                    if (!modified) continue;
-                    parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
-                    _logger.LogTrace("Remapped screen size in {file}", file);
-                }
-                catch (Exception ex)
+        foreach (var file in profilesPath.EnumerateFiles()
+                     .Where(f => ((string) f.FileName).EndsWith("refs.ini") || f.FileName == oblivionPath))
+            RemapIni(file, text =>
+            {
+                if (IniLineEditor.Contains(text, "Display", "iSize W") && IniLineEditor.Contains(text, "Display", "iSize H"))
                 {
-                    _logger.LogCritical(ex, "Skipping screen size remap for {file} due to parse error.", file);
+                    text = IniLineEditor.Set(text, "Display", "iSize W", width);
+                    text = IniLineEditor.Set(text, "Display", "iSize H", height);
                 }
-        }
+
+                return IniLineEditor.Set(text, "MEMORY", "VideoMemorySizeMb",
+                    system.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture));
+            });
 
         var tweaksPath = (RelativePath) "SSEDisplayTweaks.ini";
         foreach (var file in _configuration.Install.EnumerateFiles()
             .Where(f => f.FileName == tweaksPath))
-            try
-            {
-                var parser = new FileIniDataParser(new IniDataParser(config));
-                var data = parser.ReadFile(file.ToString());
-                var modified = false;
-                if (data.Sections["Render"] != null)
-                    if (data.Sections["Render"]["Resolution"] != null)
-                    {
-                        data.Sections["Render"]["Resolution"] =
-                            $"{_configuration.SystemParameters!.ScreenWidth.ToString(CultureInfo.CurrentCulture)}x{_configuration.SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture)}";
-                        modified = true;
-                    }
-
-                if (modified)
-                    parser.WriteFile(file.ToString(), data, new UTF8Encoding(false));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogCritical(ex, "Skipping screen size remap for {file} due to parse error.", file);
-            }
+            RemapIni(file, text => IniLineEditor.Set(text, "Render", "Resolution", $"{width}x{height}"));
 
         // The Witcher 3
         if (_configuration.Game == Game.Witcher3)
@@ -529,28 +516,57 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         }
     }
 
+    private void RemapIni(AbsolutePath file, Func<string, string> edit)
+    {
+        try
+        {
+            // Latin-1 maps every byte to one char and back, so whatever encoding the file is in, the bytes
+            // the edit does not touch are written back unchanged.
+            var original = File.ReadAllText(file.ToString(), Encoding.Latin1);
+            var updated = edit(original);
+            if (updated == original) return;
+
+            File.WriteAllText(file.ToString(), updated, Encoding.Latin1);
+            _logger.LogTrace("Remapped screen size in {file}", file);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not remap screen size in {file}", file);
+        }
+    }
+
     private async Task WriteRemappedFile(RemappedInlineFile directive)
     {
         var data = Encoding.UTF8.GetString(await LoadBytesFromPath(directive.SourceDataID));
 
-        var gameFolder = _configuration.GameFolder.ToString();
+        // These files are read by MO2 and the game's tools, which on Linux run under Wine and want Z:\ paths.
+        // Wabbajack's own compiler settings are the exception: the app reads those, natively.
+        Func<AbsolutePath, string> spell = IsReadByWabbajack(directive.To)
+            ? path => path.ToString()
+            : path => path.ToWindowsProgramPath();
+        var gameFolder = spell(_configuration.GameFolder);
+        var installFolder = spell(_configuration.Install);
+        var downloadsFolder = spell(_configuration.Downloads);
 
         data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, gameFolder);
         data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, gameFolder.Replace("\\", "\\\\"));
         data = data.Replace(Consts.GAME_PATH_MAGIC_FORWARD, gameFolder.Replace("\\", "/"));
 
-        data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, _configuration.Install.ToString());
-        data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK,
-            _configuration.Install.ToString().Replace("\\", "\\\\"));
-        data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, _configuration.Install.ToString().Replace("\\", "/"));
+        data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, installFolder);
+        data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, installFolder.Replace("\\", "\\\\"));
+        data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, installFolder.Replace("\\", "/"));
 
-        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_BACK, _configuration.Downloads.ToString());
-        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK,
-            _configuration.Downloads.ToString().Replace("\\", "\\\\"));
-        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD,
-            _configuration.Downloads.ToString().Replace("\\", "/"));
+        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_BACK, downloadsFolder);
+        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK, downloadsFolder.Replace("\\", "\\\\"));
+        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD, downloadsFolder.Replace("\\", "/"));
 
         await _configuration.Install.Combine(directive.To).WriteAllTextAsync(data);
+    }
+
+    /// <summary>A .compiler_settings file, which the app loads to compile the list again, rather than MO2.</summary>
+    public static bool IsReadByWabbajack(RelativePath file)
+    {
+        return file.Extension == Ext.CompilerSettings || file.Extension == new Extension(".mo2_compiler_settings");
     }
 
     public async Task GenerateZEditMerges(CancellationToken token)

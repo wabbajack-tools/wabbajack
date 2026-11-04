@@ -1,0 +1,206 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:conv="using:Wabbajack.App.Avalonia.Converters"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Compiler"
+                          x:Class="Wabbajack.App.Avalonia.Views.Compiler.CompilerFileManagerView"
+                          x:TypeArguments="vm:CompilerFileManagerVM"
+                          x:DataType="vm:CompilerFileManagerVM">
+    <UserControl.Styles>
+        <!--
+            The implicit TreeView style: the 08 tone, 1px of padding, and a ScrollViewer straight inside that
+            scrolls by pixel. The view turns the horizontal bar off.
+        -->
+        <Style Selector="TreeView#FileTreeView">
+            <Setter Property="Background" Value="{StaticResource TreeViewBackground}" />
+            <Setter Property="Padding" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd">
+                        <ScrollViewer Name="PART_ScrollViewer" Padding="{TemplateBinding Padding}"
+                                      Background="{TemplateBinding Background}"
+                                      HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <!--
+            The FileTreeViewItem style (on top of the TreeViewItem one): a 4px-radius row, 1px below the one
+            above, indented 16px a level plus the 4px every level's panel is inset by. The row holds the
+            expander, the item's icon, its name, and the box of compiler states, which shows while the item has
+            a state or the row is hovered.
+        -->
+        <Style Selector="TreeView#FileTreeView TreeViewItem" x:DataType="vm:FileTreeItemVM">
+            <Setter Property="Background">
+                <MultiBinding Converter="{x:Static conv:CompilerConverters.RowBackground}">
+                    <Binding Path="ContainsNoMatchIncludes" />
+                    <Binding Path="ContainsIncludes" />
+                    <Binding Path="ContainsIgnores" />
+                    <Binding Path="ContainsAlwaysEnableds" />
+                    <Binding Path="CompilerFileState" />
+                </MultiBinding>
+            </Setter>
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+            <Setter Property="MinHeight" Value="21" />
+            <Setter Property="Padding" Value="4,6,4,6" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <StackPanel Margin="4,0,0,0">
+                        <Border Name="Bd" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Margin="0,1,0,0">
+                            <Grid ColumnDefinitions="16,*"
+                                  Margin="{Binding Level, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:CompilerConverters.TreeIndent}}">
+                                <ToggleButton Name="Expander" Classes="treeExpander" Grid.Column="0"
+                                              ClickMode="Press" Focusable="False"
+                                              IsVisible="{ReflectionBinding HasItems}"
+                                              IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                                <ContentPresenter Name="PART_HeaderPresenter" Grid.Column="1"
+                                                  HorizontalAlignment="Stretch"
+                                                  Content="{TemplateBinding Header}"
+                                                  ContentTemplate="{TemplateBinding HeaderTemplate}" />
+                            </Grid>
+                        </Border>
+                        <ItemsPresenter Name="PART_ItemsPresenter" IsVisible="{TemplateBinding IsExpanded}"
+                                        ItemsPanel="{TemplateBinding ItemsPanel}" />
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="TreeView#FileTreeView TreeViewItem:selected /template/ Border#Bd">
+            <Setter Property="Background" Value="{StaticResource SelectedListItem}" />
+        </Style>
+        <Style Selector="TreeView#FileTreeView TreeViewItem:selected">
+            <Setter Property="Foreground" Value="{StaticResource SelectedListItemForeground}" />
+        </Style>
+        <Style Selector="TreeView#FileTreeView TreeViewItem:not(:selected) /template/ Border#Bd:pointerover">
+            <Setter Property="Background" Value="{StaticResource MouseOverListItem}" />
+        </Style>
+        <Style Selector="TreeView#FileTreeView TreeViewItem:disabled">
+            <Setter Property="Foreground" Value="{StaticResource TreeViewDisabledForeground}" />
+        </Style>
+
+        <!-- The states box: out of the layout until the item has a state, the row is hovered, or it is in use. -->
+        <Style Selector="c|MultiSelectComboBox.fileStates">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="c|MultiSelectComboBox.fileStates.hasStates, c|MultiSelectComboBox.fileStates.rowHover, c|MultiSelectComboBox.fileStates:dropdownopen, c|MultiSelectComboBox.fileStates:editmode">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <!--
+            TreeViewToggleButtonStyle: a small triangle, filled and turned to point down-right while expanded, an
+            outline pointing right while collapsed. On a selected row (TreeViewSelectedToggleButtonStyle) it is
+            drawn in the tree's background colour instead.
+        -->
+        <Style Selector="ToggleButton.treeExpander">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Padding="{TemplateBinding Padding}" Background="Transparent">
+                        <Grid ColumnDefinitions="8,*" Background="Transparent">
+                            <!--
+                                WPF's Path was "M5,-0 L9,5 1,5 z" stretched to fill 8x4.5, and a WPF shape stretches its
+                                geometry to the box less the stroke, half a pixel in on every side. Avalonia's stretches
+                                it to the whole box, so the geometry is given already fitted and not stretched.
+                            -->
+                            <Path Name="arrow" Grid.ColumnSpan="2" Width="8" Height="4.5" Margin="2.068,6.27,0,0"
+                                  HorizontalAlignment="Left" VerticalAlignment="Top"
+                                  Data="M4,0.5 L7.5,4 0.5,4 z" StrokeThickness="1"
+                                  Fill="{StaticResource Expander.Static.Arrow.Stroke}"
+                                  Stroke="{StaticResource Expander.Static.Arrow.Stroke}"
+                                  RenderTransformOrigin="50%,50%">
+                                <Path.RenderTransform>
+                                    <TransformGroup>
+                                        <RotateTransform Angle="135" />
+                                        <TranslateTransform X="0.17819090885901012" Y="0.43019090885900946" />
+                                    </TransformGroup>
+                                </Path.RenderTransform>
+                            </Path>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ToggleButton.treeExpander:unchecked /template/ Path#arrow">
+            <Setter Property="Margin" Value="-0.526,4.842,0,0" />
+            <Setter Property="Fill" Value="Transparent" />
+            <Setter Property="RenderTransform">
+                <TransformGroup>
+                    <RotateTransform Angle="90" />
+                    <TranslateTransform X="0.17819090885901012" Y="0.43019090885900946" />
+                </TransformGroup>
+            </Setter>
+        </Style>
+        <Style Selector="ToggleButton.treeExpander:checked:pointerover /template/ Path#arrow">
+            <Setter Property="Fill" Value="{StaticResource Expander.MouseOver.Arrow.Stroke}" />
+            <Setter Property="Stroke" Value="{StaticResource Expander.MouseOver.Arrow.Stroke}" />
+        </Style>
+        <Style Selector="ToggleButton.treeExpander:unchecked:pointerover /template/ Path#arrow">
+            <Setter Property="Fill" Value="Transparent" />
+            <Setter Property="Stroke" Value="{StaticResource Expander.MouseOver.Arrow.Stroke}" />
+        </Style>
+        <Style Selector="ToggleButton.treeExpander:disabled /template/ Path#arrow">
+            <Setter Property="Stroke" Value="{StaticResource Expander.Disabled.Arrow.Stroke}" />
+        </Style>
+        <Style Selector="TreeViewItem:selected ToggleButton.treeExpander /template/ Path#arrow">
+            <Setter Property="Fill" Value="{StaticResource TreeViewBackground}" />
+            <Setter Property="Stroke" Value="{StaticResource TreeViewBackground}" />
+        </Style>
+        <Style Selector="TreeViewItem:selected ToggleButton.treeExpander:unchecked /template/ Path#arrow">
+            <Setter Property="Fill" Value="Transparent" />
+        </Style>
+        <Style Selector="TreeViewItem:selected ToggleButton.treeExpander:checked:pointerover /template/ Path#arrow">
+            <Setter Property="Fill" Value="Transparent" />
+        </Style>
+        <Style Selector="TreeViewItem:selected ToggleButton.treeExpander:unchecked:pointerover /template/ Path#arrow">
+            <Setter Property="Fill" Value="{StaticResource TreeViewBackground}" />
+        </Style>
+    </UserControl.Styles>
+
+    <!--
+        WPF rounded the tree's corners with an opacity mask against an 8px-radius border (the white one behind
+        it), inside a -1 margin. A clipping border does the same; the mask also rendered the tree offscreen,
+        which turned its text greyscale, and RenderOptions keeps that.
+    -->
+    <Border CornerRadius="8" BorderThickness="0" Background="White" ClipToBounds="True"
+            RenderOptions.TextRenderingMode="Antialias">
+        <Grid Margin="-1">
+            <TreeView x:Name="FileTreeView" ItemsSource="{Binding Files}">
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate DataType="vm:FileTreeItemVM" ItemsSource="{Binding Children}">
+                        <Grid ColumnDefinitions="Auto,*,400">
+                            <ic:SymbolIcon IconVariant="Filled" Symbol="{Binding Symbol}" Margin="0,0,4,0"
+                                           Foreground="{StaticResource PrimaryBrush}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" Margin="4,0,4,0"
+                                       VerticalAlignment="Center" />
+                            <!--
+                                WPF put ComplementaryPrimary16 under this box's MultiSelectComboBox.DropDown.Button.Background
+                                key, but the theme reads that key as a StaticResource, so the override never reached it.
+                                The row is the template's Border#Bd, the nearest Border above this box; a style cannot
+                                reach from a template part into the header, so the box watches it instead.
+                            -->
+                            <c:MultiSelectComboBox Classes="fileStates" Classes.hasStates="{Binding HasStates}"
+                                                   Classes.rowHover="{Binding $parent[Border].IsPointerOver}"
+                                                   Grid.Column="2" Margin="0,-8,-4,-8" Height="32" IsEditable="True"
+                                                   Background="Transparent"
+                                                   ItemsSource="{x:Static vm:FileTreeItemVM.AllStates}"
+                                                   SelectedItems="{Binding CompilerFileStates, Mode=OneWay}" />
+                        </Grid>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </Grid>
+    </Border>
+</rxui:ReactiveUserControl>

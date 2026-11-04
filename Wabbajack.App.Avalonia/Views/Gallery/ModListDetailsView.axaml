@@ -1,0 +1,228 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Gallery"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:conv="using:Wabbajack.App.Avalonia.Converters"
+                          xmlns:dtos="using:Wabbajack.DTOs"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          x:Class="Wabbajack.App.Avalonia.Views.Gallery.ModListDetailsView"
+                          x:TypeArguments="vm:ModListDetailsVM"
+                          x:DataType="vm:ModListDetailsVM">
+    <!--
+        The modlist details pane, over the gallery. Left: image, title, tags, description, links and the
+        install button. Right: the list's archives with a search box. The pane's own 16px margin is undone
+        by the outer grid so the unavailable shading reaches the rounded card's edge.
+    -->
+    <UserControl.Styles>
+        <!-- Tag chips: the 08 tone, or a colour and an icon for the three tags that mean something. -->
+        <Style Selector="Border.tag">
+            <Setter Property="Background" Value="{StaticResource ComplementaryPrimary08Brush}" />
+        </Style>
+        <Style Selector="Border.tag.nsfw">
+            <Setter Property="Background" Value="{StaticResource NSFWBrush}" />
+            <Setter Property="ToolTip.Tip" Value="This modlist contains Not Safe For Work content such as nudity and sex frameworks." />
+        </Style>
+        <Style Selector="Border.tag.featured">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="ToolTip.Tip" Value="This modlist has been tested and provides a stable experience with official support channels. More info about featured modlists is available on the Wabbajack wiki." />
+        </Style>
+        <Style Selector="Border.tag.unavailable">
+            <Setter Property="Background" Value="{StaticResource UnavailableBrush}" />
+            <Setter Property="ToolTip.Tip" Value="This modlist is not currently installable." />
+        </Style>
+        <Style Selector="Border.tag ic|SymbolIcon">
+            <Setter Property="Foreground" Value="{StaticResource ComplementaryBrush}" />
+            <Setter Property="IsVisible" Value="False" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Margin" Value="0,0,4,0" />
+            <Setter Property="IconVariant" Value="Filled" />
+        </Style>
+        <Style Selector="Border.tag.featured ic|SymbolIcon">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Symbol" Value="Checkmark" />
+        </Style>
+        <Style Selector="Border.tag.nsfw ic|SymbolIcon">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Symbol" Value="Warning" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        </Style>
+        <Style Selector="Border.tag.unavailable ic|SymbolIcon">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Symbol" Value="Wrench" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        </Style>
+        <Style Selector="Border.tag TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        </Style>
+        <Style Selector="Border.tag.featured TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource ComplementaryBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="-16" x:Name="MainGrid">
+        <Border CornerRadius="8" IsHitTestVisible="False" IsVisible="{Binding MetadataVM.IsBroken}">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%" Opacity="0.5">
+                    <GradientStop Color="{StaticResource UnavailableDark}" Offset="0.0" />
+                    <GradientStop Color="Transparent" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+        <Grid Margin="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="280" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+            <Grid RowDefinitions="Auto,*,Auto">
+                <!-- 16:9, sized from its own width in code-behind as WPF's MathConverter did. -->
+                <Border x:Name="ImageBorder" VerticalAlignment="Top" Margin="0,0,0,8" CornerRadius="8" ClipToBounds="True">
+                    <Image Source="{Binding MetadataVM.Image}" Stretch="UniformToFill" />
+                </Border>
+                <Grid Grid.Row="1" RowDefinitions="Auto,4,*">
+                    <StackPanel Grid.Row="0">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{Binding MetadataVM.Metadata.Title}" FontSize="32" FontWeight="Bold"
+                                       TextWrapping="Wrap" Margin="0,0,8,0" />
+                            <!-- In the title's own column, as in WPF: it sits over the right end of a long title. -->
+                            <ic:SymbolIcon Symbol="CheckmarkStarburst" FontSize="28" HorizontalAlignment="Right"
+                                           IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}"
+                                           IsVisible="{Binding MetadataVM.Metadata.Official}"
+                                           ToolTip.Tip="This modlist has been tested and provides a stable experience with official support channels. More info about featured modlists is available on the Wabbajack wiki." />
+                        </Grid>
+                        <Grid Margin="0,0,0,4" ColumnDefinitions="Auto,*,Auto">
+                            <!--
+                                WPF says #80FFFFFF, but blends text in gamma space, so half-white over this card
+                                comes out at 186 rather than 149. #AC is the plain blend that lands on 186.
+                            -->
+                            <TextBlock FontSize="17.5" TextWrapping="Wrap">
+                                <Run Text="version" Foreground="#ACFFFFFF" /><Run Text=" " /><Run Text="{Binding MetadataVM.Metadata.Version}" /><Run Text=" " /><Run Text="by" Foreground="#ACFFFFFF" /><Run Text=" " /><Run Text="{Binding MetadataVM.Metadata.Author}" />
+                            </TextBlock>
+                        </Grid>
+                        <DockPanel Margin="-4,8,0,8">
+                            <ItemsControl x:Name="TagsControl" ItemsSource="{Binding MetadataVM.ModListTagList}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ModListTag">
+                                        <Border Classes="tag" CornerRadius="4" Padding="8" Margin="4,0,0,0"
+                                                Classes.featured="{Binding Name, Converter={x:Static conv:TextIsConverter.Instance}, ConverterParameter=Featured}"
+                                                Classes.nsfw="{Binding Name, Converter={x:Static conv:TextIsConverter.Instance}, ConverterParameter=NSFW}"
+                                                Classes.unavailable="{Binding Name, Converter={x:Static conv:TextIsConverter.Instance}, ConverterParameter=Unavailable}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <ic:SymbolIcon />
+                                                <!-- 12px: WPF gave this TextBlock its own style, which drops the app-wide 13px one. -->
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="12" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </DockPanel>
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Background="Transparent"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <!-- WPF's LineHeight 18: 16px lines plus 2 below. -->
+                        <TextBlock Text="{Binding MetadataVM.Metadata.Description}" TextWrapping="Wrap"
+                                   LineSpacing="2" Margin="0,0,4,0" />
+                    </ScrollViewer>
+                </Grid>
+                <Grid Grid.Row="2" VerticalAlignment="Bottom" Margin="0,16,0,0"
+                      ColumnDefinitions="*,16,*,16,*" RowDefinitions="Auto,16,Auto">
+                    <c:WJButton x:Name="WebsiteButton" Grid.Column="0" Text="Website" Icon="Globe" Width="NaN"
+                                Command="{Binding OpenWebsiteCommand}" />
+                    <c:WJButton x:Name="DiscordButton" Grid.Column="2" Text="Discord" Icon="PeopleChat" Width="NaN"
+                                Command="{Binding OpenDiscordCommand}" />
+                    <c:WJButton x:Name="ReadmeButton" Grid.Column="4" Text="Readme" Icon="Document" Width="NaN"
+                                Command="{Binding OpenReadmeCommand}" />
+
+                    <!-- One or the other, by whether the list can be installed. -->
+                    <c:WJButton x:Name="InstallButton" ButtonStyle="Progress" Grid.Row="2" Grid.ColumnSpan="5"
+                                Icon="ArrowDownload" Width="NaN"
+                                Command="{Binding MetadataVM.InstallCommand}"
+                                ProgressPercentage="{Binding MetadataVM.ProgressPercent}"
+                                IsVisible="{Binding !MetadataVM.IsBroken}" />
+                    <Border x:Name="UnavailableDescription" Grid.Row="2" Grid.ColumnSpan="5"
+                            Background="{StaticResource UnavailableDarkBrush}" BorderBrush="{StaticResource UnavailableBrush}"
+                            BorderThickness="2" Padding="8" CornerRadius="4"
+                            IsVisible="{Binding MetadataVM.IsBroken}">
+                        <TextBlock Text="A game or mod update has made the list unavailable for installation. The modlist requires an update from its author before it becomes available again. Contact the author(s) for more information."
+                                   TextWrapping="Wrap" />
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <Grid x:Name="ArchivesGrid" Grid.Column="2" RowDefinitions="Auto,*">
+                <Grid>
+                    <TextBlock Text="Archives" FontSize="20" FontWeight="SemiBold"
+                               HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,0,16" />
+
+                    <!-- A third of the column wide, set in code-behind. -->
+                    <TextBox x:Name="SearchBox" Watermark="Search for a mod..." Text="{Binding Search}"
+                             HorizontalAlignment="Right" Margin="0,0,48,16"
+                             AutomationProperties.AutomationId="ArchiveSearchBox" />
+
+                    <Border Width="{Binding #SearchBox.Bounds.Width}" Height="{Binding #SearchBox.Bounds.Height}"
+                            CornerRadius="8" HorizontalAlignment="Right" Margin="0,0,48,16">
+                        <Border HorizontalAlignment="Right" CornerRadius="8"
+                                Background="{StaticResource ComplementaryPrimary08Brush}" Padding="8,0,8,0">
+                            <ic:SymbolIcon Symbol="Search" IconVariant="Filled" Foreground="{StaticResource PrimaryBrush}"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="18" />
+                        </Border>
+                    </Border>
+                </Grid>
+
+                <Button x:Name="CloseButton" Classes="main" Background="Transparent" BorderThickness="0"
+                        HorizontalAlignment="Right" Padding="16" Margin="-16,-16,-16,0" VerticalAlignment="Center"
+                        Command="{Binding CloseCommand}" AutomationProperties.AutomationId="CloseDetailsButton">
+                    <ic:SymbolIcon Symbol="Dismiss" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                </Button>
+
+                <!--
+                    WPF rounded the grid's corners with an opacity mask over a white rounded border, the grid
+                    reaching a pixel past it on every side. Clipping does the same job. The mask also made WPF draw
+                    everything under it offscreen, which turns ClearType off, so the grid's text is greyscale.
+                -->
+                <Border Grid.Row="1" CornerRadius="8" Background="White">
+                    <Border Margin="-1" CornerRadius="8" ClipToBounds="True">
+                        <DataGrid x:Name="ArchivesDataGrid" Classes="archives" RenderOptions.TextRenderingMode="Antialias"
+                                  ItemsSource="{Binding Archives}"
+                                  AutoGenerateColumns="False" FontSize="13" CanUserSortColumns="True"
+                                  IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <!-- The two star columns are sized in code-behind; see SizeColumns. -->
+                                <DataGridTemplateColumn Header="Name" Width="3*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate x:DataType="dtos:Archive">
+                                            <TextBlock Text="{Binding State, Converter={x:Static conv:NexusModNameConverter.Instance}}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Archive" Width="4*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate x:DataType="dtos:Archive">
+                                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Size" Width="60">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate x:DataType="dtos:Archive">
+                                            <TextBlock Text="{Binding Size, Converter={x:Static conv:FileSizeConverter.Instance}}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</rxui:ReactiveUserControl>

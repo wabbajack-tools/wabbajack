@@ -12,6 +12,7 @@ using Wabbajack.Downloaders.GameFile;
 using Wabbajack.DTOs;
 using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http.Interfaces;
+using Wabbajack.Networking.NexusApi;
 
 namespace Wabbajack.Services.OSIntegrated
 {
@@ -20,32 +21,9 @@ namespace Wabbajack.Services.OSIntegrated
         private readonly ILogger<NexusCollectionDownloader> _logger;
         private readonly ITokenProvider<NexusOAuthState> _tokenProvider;
         private readonly HttpClient _httpClient;
-        private readonly GameLocator _gameLocator;
+        private readonly IGameLocator _gameLocator;
 
-        private static readonly string GraphQLUrl =
-            Environment.GetEnvironmentVariable("NEXUS_GRAPHQL_URL")
-            ?? "https://api.nexusmods.com/v2/graphql";
-
-        // GraphQL query to get collection revision info with download link and game info
-        private const string CollectionRevisionQuery = @"
-            query collectionRevision($slug: String!, $revision: Int) {
-                collectionRevision(slug: $slug, revision: $revision) {
-                    id
-                    revisionNumber
-                    collectionId
-                    downloadLink
-                    collection {
-                        id
-                        slug
-                        name
-                        game {
-                            id
-                            name
-                            domainName
-                        }
-                    }
-                }
-            }";
+        private static readonly Uri GraphQLUrl = NexusGraphQL.Endpoint;
 
         public string? LastError { get; private set; }
 
@@ -53,7 +31,7 @@ namespace Wabbajack.Services.OSIntegrated
             ILogger<NexusCollectionDownloader> logger,
             ITokenProvider<NexusOAuthState> tokenProvider,
             HttpClient httpClient,
-            GameLocator gameLocator)
+            IGameLocator gameLocator)
         {
             _logger = logger;
             _tokenProvider = tokenProvider;
@@ -98,7 +76,7 @@ namespace Wabbajack.Services.OSIntegrated
 
                 var graphqlRequest = new
                 {
-                    query = CollectionRevisionQuery,
+                    query = NexusGraphQL.CollectionRevisionDownload,
                     variables
                 };
 

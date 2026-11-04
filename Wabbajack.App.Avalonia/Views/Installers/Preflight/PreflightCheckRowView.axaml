@@ -1,0 +1,40 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:c="using:Wabbajack.App.Avalonia.Controls"
+                          xmlns:ic="using:FluentIcons.Avalonia"
+                          xmlns:pvm="using:Wabbajack.App.Avalonia.ViewModels.Installers.Preflight"
+                          x:Class="Wabbajack.App.Avalonia.Views.Installers.Preflight.PreflightCheckRowView"
+                          x:TypeArguments="pvm:PreflightCheckVM"
+                          x:DataType="pvm:PreflightCheckVM">
+    <!--
+        One checklist row: a 40px rounded bar with the check's progress behind it, a rule on the left while it
+        is the active check, the state icon (or a ring while it runs), the title, the status and the one action
+        it offers. WPF masked a 40px grid inside a -1 margin, so the row lays out 38px tall and draws a pixel
+        past its box on every side; the -1 margin does the same here. The mask also turned ClearType off for
+        the text under it, hence the greyscale text rendering.
+    -->
+    <Grid Margin="-1" RenderOptions.TextRenderingMode="Antialias">
+        <Border x:Name="RowGrid" Height="40" CornerRadius="8" ClipToBounds="True"
+                Background="{StaticResource ComplementaryPrimary08Brush}">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+                <c:MetroProgressBar x:Name="BackgroundProgressBar" Grid.ColumnSpan="5" Background="Transparent"
+                             Foreground="{StaticResource ComplementaryPrimary16Brush}" Maximum="1" />
+                <!-- Hidden rather than collapsed in WPF, so it keeps its 2px when the row is not active. -->
+                <Rectangle x:Name="ActiveRule" Grid.Column="0" Width="2" Fill="{StaticResource PrimaryBrush}" Opacity="0" />
+                <Grid Grid.Column="1" Width="18" Height="18" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <ic:SymbolIcon x:Name="StateIcon" FontSize="18" IconVariant="Filled" Symbol="Circle"
+                                   Foreground="{StaticResource ComplementaryWhite25Brush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <c:ProgressRing x:Name="RunningRing" Width="18" Height="18" Foreground="{StaticResource PrimaryBrush}"
+                                    IsActive="False" IsVisible="False" />
+                </Grid>
+                <TextBlock x:Name="TitleText" Grid.Column="2" FontSize="13" Margin="12,0,0,0" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                <TextBlock x:Name="StatusText" Grid.Column="3" FontSize="13" Margin="16,0,12,0" HorizontalAlignment="Right"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                <c:WJButton x:Name="ActionButton" Grid.Column="4" ButtonStyle="Mono" Width="150" Height="28" IconSize="14"
+                            Icon="ArrowCounterclockwise" Margin="0,0,6,0" VerticalAlignment="Center" IsVisible="False" />
+            </Grid>
+        </Border>
+    </Grid>
+</rxui:ReactiveUserControl>

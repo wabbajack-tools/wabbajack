@@ -935,9 +935,12 @@ public class Wabbajack_DTOs_DownloadStates_BethesdaConverter : JsonConverter<Wab
                               public override Wabbajack.DTOs.BSA.ArchiveStates.BA2State Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
                                 if (reader.TokenType != JsonTokenType.StartObject)
                                   throw new JsonException();
+                                System.UInt32 compressionProp = default;
                                 System.Boolean hasnametableProp = default;
                                 System.String headermagicProp = default;
                                 Wabbajack.DTOs.BSA.ArchiveStates.BA2EntryType typeProp = default;
+                                System.UInt32 unknown1Prop = default;
+                                System.UInt32 unknown2Prop = default;
                                 System.UInt32 versionProp = default;
                                 while (true) {
                                   reader.Read();
@@ -948,6 +951,9 @@ public class Wabbajack_DTOs_DownloadStates_BethesdaConverter : JsonConverter<Wab
                                   var prop = reader.GetString();
                                   reader.Read();
                                   switch (prop) {
+                                    case "Compression":
+                                      compressionProp = JsonSerializer.Deserialize<System.UInt32>(ref reader, options);
+                                      break;
                                     case "HasNameTable":
                                       hasnametableProp = JsonSerializer.Deserialize<System.Boolean>(ref reader, options);
                                       break;
@@ -956,6 +962,12 @@ public class Wabbajack_DTOs_DownloadStates_BethesdaConverter : JsonConverter<Wab
                                       break;
                                     case "Type":
                                       typeProp = JsonSerializer.Deserialize<Wabbajack.DTOs.BSA.ArchiveStates.BA2EntryType>(ref reader, options);
+                                      break;
+                                    case "Unknown1":
+                                      unknown1Prop = JsonSerializer.Deserialize<System.UInt32>(ref reader, options);
+                                      break;
+                                    case "Unknown2":
+                                      unknown2Prop = JsonSerializer.Deserialize<System.UInt32>(ref reader, options);
                                       break;
                                     case "Version":
                                       versionProp = JsonSerializer.Deserialize<System.UInt32>(ref reader, options);
@@ -966,21 +978,30 @@ public class Wabbajack_DTOs_DownloadStates_BethesdaConverter : JsonConverter<Wab
                                   }
                                 }
                                 return new Wabbajack.DTOs.BSA.ArchiveStates.BA2State {
+                                  Compression = compressionProp,
                                   HasNameTable = hasnametableProp,
                                   HeaderMagic = headermagicProp,
                                   Type = typeProp,
+                                  Unknown1 = unknown1Prop,
+                                  Unknown2 = unknown2Prop,
                                   Version = versionProp,
                                   };
                                 }
                                 public override void Write(Utf8JsonWriter writer, Wabbajack.DTOs.BSA.ArchiveStates.BA2State value, JsonSerializerOptions options) {
                                   writer.WriteStartObject();
                                   writer.WriteString("$type", "BA2State, Compression.BSA");
+                                  writer.WritePropertyName("Compression");
+                                  JsonSerializer.Serialize<System.UInt32>(writer, value.Compression, options);
                                   writer.WritePropertyName("HasNameTable");
                                   JsonSerializer.Serialize<System.Boolean>(writer, value.HasNameTable, options);
                                   writer.WritePropertyName("HeaderMagic");
                                   JsonSerializer.Serialize<System.String>(writer, value.HeaderMagic, options);
                                   writer.WritePropertyName("Type");
                                   JsonSerializer.Serialize<Wabbajack.DTOs.BSA.ArchiveStates.BA2EntryType>(writer, value.Type, options);
+                                  writer.WritePropertyName("Unknown1");
+                                  JsonSerializer.Serialize<System.UInt32>(writer, value.Unknown1, options);
+                                  writer.WritePropertyName("Unknown2");
+                                  JsonSerializer.Serialize<System.UInt32>(writer, value.Unknown2, options);
                                   writer.WritePropertyName("Version");
                                   JsonSerializer.Serialize<System.UInt32>(writer, value.Version, options);
                                   writer.WriteEndObject();

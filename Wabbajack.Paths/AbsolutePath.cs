@@ -168,6 +168,8 @@ public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<Absolu
 
     public bool InFolder(AbsolutePath parent)
     {
+        // An empty parent is a folder that does not exist here, such as the Windows folder on Linux.
+        if (parent.Parts == null) return false;
         return ArrayExtensions.AreEqualIgnoreCase(parent.Parts, 0, Parts, 0, parent.Parts.Length);
     }
 

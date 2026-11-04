@@ -47,10 +47,31 @@ public static class ProtectedData
         return new CryptoStream(inStream, encryptor, CryptoStreamMode.Read);
     }
 
-    public static async Task AsEncryptedJsonFile<T>(this T obj, AbsolutePath destination)
+    /// <summary>
+    ///     Opens a file of stored logins for writing. The encryption is keyed by the AppData path, so it keeps the
+    ///     contents from being read in passing and nothing more; off Windows the file is also made readable only
+    ///     by its owner, which the user's own AppData folder already sees to on Windows.
+    /// </summary>
+    private static FileStream CreatePrivateFile(AbsolutePath destination)
     {
         destination.Parent.CreateDirectory();
-        await using var fs = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        var path = destination.ToString();
+        if (OperatingSystem.IsWindows())
+            return new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+
+        const UnixFileMode ownerOnly = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+        var stream = new FileStream(path, new FileStreamOptions
+        {
+            Mode = FileMode.Create, Access = FileAccess.Write, Share = FileShare.None, UnixCreateMode = ownerOnly
+        });
+        // UnixCreateMode only applies to a new file; one written by an earlier version keeps its mode otherwise.
+        File.SetUnixFileMode(path, ownerOnly);
+        return stream;
+    }
+
+    public static async Task AsEncryptedJsonFile<T>(this T obj, AbsolutePath destination)
+    {
+        await using var fs = CreatePrivateFile(destination);
         await using var enc = await fs.Protect(destination.FileName.ToString());
         await JsonSerializer.SerializeAsync(enc, obj);
         await enc.FlushAsync();
@@ -58,8 +79,7 @@ public static class ProtectedData
 
     public static async Task AsEncryptedDataFile(this byte[] obj, AbsolutePath destination)
     {
-        destination.Parent.CreateDirectory();
-        await using var fs = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
+        await using var fs = CreatePrivateFile(destination);
         await using var enc = await fs.Protect(destination.FileName.ToString());
         await enc.WriteAsync(obj);
     }

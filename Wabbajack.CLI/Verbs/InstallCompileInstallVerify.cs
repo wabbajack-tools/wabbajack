@@ -48,83 +48,88 @@ public class InstallCompileInstallVerify
     public static VerbDefinition Definition = new("install-compile-install-verify",
         "Installs a modlist, compiles it, installs it again, verifies it", new[]
         {
-            new OptionDefinition(typeof(AbsolutePath), "m", "machineUrl", "Machine url(s) to download"),
+            new OptionDefinition(typeof(string), "m", "machineUrl", "Machine url of the list to download"),
             new OptionDefinition(typeof(AbsolutePath), "d", "downloads", "Downloads path"),
-            new OptionDefinition(typeof(AbsolutePath), "o", "outputs", "Output paths")
+            new OptionDefinition(typeof(AbsolutePath), "o", "outputs", "Output path")
         });
-    
-    public async Task<int> Run(AbsolutePath outputs, AbsolutePath downloads, IEnumerable<string> machineUrls, CancellationToken token)
+
+    public async Task<int> Run(AbsolutePath outputs, AbsolutePath downloads, string machineUrl, CancellationToken token)
     {
-        foreach (var machineUrl in machineUrls)
+        if (string.IsNullOrWhiteSpace(machineUrl))
         {
-            _logger.LogInformation("Installing {MachineUrl}", machineUrl);
-            var wabbajackPath = downloads.Combine(machineUrl.Replace("/", "_@@_")).WithExtension(Ext.Wabbajack);
-            if (!await DownloadMachineUrl(machineUrl, wabbajackPath, token))
-                throw new Exception("Can't download modlist");
-
-            var installPath = outputs.Combine(machineUrl);
-            
-            var modlist = await StandardInstaller.LoadFromFile(_dtos, wabbajackPath);
-
-            // GameFolder is left unset: the game-installed preflight check locates it.
-            var installExit = await PreflightInstall.Run(_serviceProvider, new InstallerConfiguration
-            {
-                Downloads = downloads,
-                Install = installPath,
-                ModList = modlist,
-                Game = modlist.GameType,
-                ModlistArchive = wabbajackPath,
-                GameFolder = default
-            }, _logger, token);
-
-            if (installExit != PreflightInstall.Succeeded)
-            {
-                _logger.LogInformation("Error installing {MachineUrl}", machineUrl);
-                return 1;
-            }
-
-
-            _logger.LogInformation("Inferring settings");
-            var inferredSettings = await _inferencer.InferFromRootPath(installPath);
-            if (inferredSettings == null)
-            {
-                _logger.LogInformation("Error inferencing settings for {MachineUrl}", machineUrl);
-                return 2;
-            }
-
-            inferredSettings.UseGamePaths = true;
-            
-
-            var compiler = MO2Compiler.Create(_serviceProvider, inferredSettings);
-            if (!await compiler.Begin(token))
-                return 3;
-            
-            
-            var installPath2 = outputs.Combine("verify_list");
-
-            var comparison = await StandardInstaller.LoadFromFile(_dtos, wabbajackPath);
-            
-            var modlist2 = await StandardInstaller.LoadFromFile(_dtos, inferredSettings.OutputFile);
-            if (CompareModlists(comparison, modlist2))
-                return 3;
-
-            installExit = await PreflightInstall.Run(_serviceProvider, new InstallerConfiguration
-            {
-                Downloads = downloads,
-                Install = installPath2,
-                ModList = modlist2,
-                Game = modlist2.GameType,
-                ModlistArchive = inferredSettings.OutputFile,
-                GameFolder = default
-            }, _logger, token);
-
-            if (installExit != PreflightInstall.Succeeded)
-            {
-                _logger.LogInformation("Error installing recompiled {MachineUrl}", machineUrl);
-                return 1;
-            }
-
+            _logger.LogError("No list given, pass one with --machineUrl <repository>/<machineUrl>");
+            return 1;
         }
+
+        _logger.LogInformation("Installing {MachineUrl}", machineUrl);
+        var wabbajackPath = downloads.Combine(machineUrl.Replace("/", "_@@_")).WithExtension(Ext.Wabbajack);
+        if (!await DownloadMachineUrl(machineUrl, wabbajackPath, token))
+            throw new Exception("Can't download modlist");
+
+        var installPath = outputs.Combine(machineUrl);
+
+        var modlist = await StandardInstaller.LoadFromFile(_dtos, wabbajackPath);
+
+        // GameFolder is left unset: the game-installed preflight check locates it.
+        var installExit = await PreflightInstall.Run(_serviceProvider, new InstallerConfiguration
+        {
+            Downloads = downloads,
+            Install = installPath,
+            ModList = modlist,
+            Game = modlist.GameType,
+            OtherGames = modlist.OtherGames,
+            ModlistArchive = wabbajackPath,
+            GameFolder = default
+        }, _logger, token);
+
+        if (installExit != PreflightInstall.Succeeded)
+        {
+            _logger.LogInformation("Error installing {MachineUrl}", machineUrl);
+            return 1;
+        }
+
+
+        _logger.LogInformation("Inferring settings");
+        var inferredSettings = await _inferencer.InferFromRootPath(installPath);
+        if (inferredSettings == null)
+        {
+            _logger.LogInformation("Error inferencing settings for {MachineUrl}", machineUrl);
+            return 2;
+        }
+
+        inferredSettings.UseGamePaths = true;
+
+
+        var compiler = MO2Compiler.Create(_serviceProvider, inferredSettings);
+        if (!await compiler.Begin(token))
+            return 3;
+
+
+        var installPath2 = outputs.Combine("verify_list");
+
+        var comparison = await StandardInstaller.LoadFromFile(_dtos, wabbajackPath);
+
+        var modlist2 = await StandardInstaller.LoadFromFile(_dtos, inferredSettings.OutputFile);
+        if (CompareModlists(comparison, modlist2))
+            return 4;
+
+        installExit = await PreflightInstall.Run(_serviceProvider, new InstallerConfiguration
+        {
+            Downloads = downloads,
+            Install = installPath2,
+            ModList = modlist2,
+            Game = modlist2.GameType,
+            OtherGames = modlist2.OtherGames,
+            ModlistArchive = inferredSettings.OutputFile,
+            GameFolder = default
+        }, _logger, token);
+
+        if (installExit != PreflightInstall.Succeeded)
+        {
+            _logger.LogInformation("Error installing recompiled {MachineUrl}", machineUrl);
+            return 1;
+        }
+
 
         return 0;
     }
@@ -142,7 +147,7 @@ public class InstallCompileInstallVerify
             _logger.LogWarning("File {To} is missing in recompiled list", missing.Key);
             found = true;
         }
-        
+
         foreach (var missing in bDirectives.Where(bd => !aDirectives.ContainsKey(bd.Key)))
         {
             _logger.LogWarning("File {To} is missing in original list", missing.Key);
@@ -163,7 +168,7 @@ public class InstallCompileInstallVerify
             _logger.LogInformation("Couldn't find list {MachineUrl}", machineUrl);
             return false;
         }
-        
+
         if (wabbajack.FileExists() && await _cache.FileHashCachedAsync(wabbajack, token) == list.DownloadMetadata!.Hash)
         {
             _logger.LogInformation("File already exists, using cached file");

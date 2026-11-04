@@ -1,0 +1,12 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:rxui="http://reactiveui.net"
+                          xmlns:vm="using:Wabbajack.App.Avalonia.ViewModels.Settings"
+                          x:Class="Wabbajack.App.Avalonia.Views.Settings.PerformanceSettingView"
+                          x:TypeArguments="vm:PerformanceSettingVM"
+                          x:DataType="vm:PerformanceSettingVM">
+    <Grid Margin="0,0,0,8" ColumnDefinitions="Auto,*,Auto">
+        <TextBlock FontWeight="Normal" VerticalAlignment="Center" Text="{Binding HumanName}" />
+        <TextBox x:Name="MaxTasksTextBox" Grid.Column="2" TextAlignment="Center" Width="32" Height="32" />
+    </Grid>
+</rxui:ReactiveUserControl>

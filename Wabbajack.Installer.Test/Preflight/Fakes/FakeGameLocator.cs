@@ -10,6 +10,7 @@ public sealed class FakeGameLocator : IGameLocator
 {
     public Dictionary<Game, AbsolutePath> Games { get; } = new();
     public Dictionary<Game, string> SteamBuildIds { get; } = new();
+    public Dictionary<Game, SteamManifest[]> SteamManifests { get; } = new();
 
     public AbsolutePath GameLocation(Game game)
     {
@@ -30,5 +31,10 @@ public sealed class FakeGameLocator : IGameLocator
     public bool TryGetSteamBuildId(Game game, out string buildId)
     {
         return SteamBuildIds.TryGetValue(game, out buildId!);
+    }
+
+    public bool TryGetSteamManifests(Game game, out SteamManifest[] manifests)
+    {
+        return SteamManifests.TryGetValue(game, out manifests!);
     }
 }

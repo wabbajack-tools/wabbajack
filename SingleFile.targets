@@ -1,0 +1,31 @@
+<Project>
+    <!--
+        Publish as one executable instead of a folder of several hundred files: the runtime, every assembly and
+        the native libraries (Skia, SQLite, HarfBuzz) are bundled and compressed, and the natives are unpacked to
+        a temp folder on first start. Only English satellite resources ship, as everything is in English.
+        Only under dotnet publish (_IsPublishing), so builds and tests are unchanged. Imported by the app and the CLI.
+
+        Not trimmed: System.Text.Json reflection, WMI and the DI and ReactiveUI plumbing all break under the
+        trimmer (a trimmed app crashed opening Settings), so the size saving is not worth it yet.
+    -->
+    <PropertyGroup Condition=" '$(_IsPublishing)' == 'true' ">
+        <PublishSingleFile>true</PublishSingleFile>
+        <SelfContained>true</SelfContained>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    </PropertyGroup>
+
+    <!--
+        What the programs start as separate processes (7-Zip and innoextract under Extractors, texconv and texdiag
+        under Tools) are looked for on disk beside the executable. The bundler packs some of them in otherwise,
+        which silently broke extraction, so both folders are kept out of the bundle.
+    -->
+    <Target Name="KeepExternalToolsBesideExe" AfterTargets="ComputeResolvedFilesToPublishList">
+        <ItemGroup>
+            <ResolvedFileToPublish Update="@(ResolvedFileToPublish)"
+                                   Condition="$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').StartsWith('Extractors')) Or $([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').StartsWith('Tools'))"
+                                   ExcludeFromSingleFile="true" />
+        </ItemGroup>
+    </Target>
+</Project>

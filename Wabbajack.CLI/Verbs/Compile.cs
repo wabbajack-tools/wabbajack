@@ -70,6 +70,12 @@ public class Compile
             settings = inferredSettings;
         }
 
+        if (!settings.Source.DirectoryExists())
+        {
+            _logger.LogError("Source folder {Source} does not exist", settings.Source);
+            return 2;
+        }
+
         if(outputPath.DirectoryExists())
         {
             settings.OutputFile = outputPath.Combine(settings.OutputFile.FileName);

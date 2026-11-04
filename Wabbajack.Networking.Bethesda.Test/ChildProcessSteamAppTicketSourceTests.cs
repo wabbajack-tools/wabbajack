@@ -95,11 +95,17 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
         Assert.Equal(error.DefaultMessage(TheGameName), thrown.Message);
     }
 
+    /// <summary>What steam_api64.dll writes to standard error before the helper says anything, as captured live.</summary>
+    private const string SteamApiChatter =
+        "Setting breakpad minidump AppID = 489830\n" +
+        "SteamInternal_SetMinidumpSteamID:  Caching Steam ID:  76561198000000000 [API loaded no]\n";
+
     [Fact]
     public async Task WhatTheHelperSaidBeatsTheGenericSentence()
     {
         var helper = new FakeHelper(new SteamAppTicketHelperResult(
             SteamAppTicketError.TicketRefused.ToExitCode(), string.Empty,
+            SteamApiChatter + ChildProcessSteamAppTicketSource.MessagePrefix +
             "Steam refused to issue an app ticket for Skyrim Special Edition: " +
             "Steam has no connection to its servers (offline mode, or the network is down).\n"));
 
@@ -107,7 +113,26 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
             await Source(helper).GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None));
 
         Assert.Equal(SteamAppTicketError.TicketRefused, thrown.Error);
+        Assert.StartsWith("Steam refused to issue an app ticket", thrown.Message);
         Assert.Contains("no connection to its servers", thrown.Message);
+    }
+
+    /// <summary>
+    ///     steam_api64.dll prints the account's SteamID64 on the helper's standard error. The error message ends
+    ///     up in logs users post, so only the helper's own marked lines make it into one.
+    /// </summary>
+    [Fact]
+    public async Task TheSteamIdSteamPrintsNeverReachesTheMessage()
+    {
+        var helper = new FakeHelper(new SteamAppTicketHelperResult(
+            SteamAppTicketError.TicketRefused.ToExitCode(), string.Empty, SteamApiChatter));
+
+        var thrown = await Assert.ThrowsAsync<SteamAppTicketException>(async () =>
+            await Source(helper).GetEncryptedAppTicket(SkyrimSpecialEdition, CancellationToken.None));
+
+        Assert.DoesNotContain("76561198000000000", thrown.Message);
+        Assert.DoesNotContain("breakpad", thrown.Message);
+        Assert.Equal(SteamAppTicketError.TicketRefused.DefaultMessage(TheGameName), thrown.Message);
     }
 
     [Fact]
@@ -259,6 +284,12 @@ public class ChildProcessSteamAppTicketSourceTests : IDisposable
         public bool TryGetSteamBuildId(Game game, out string buildId)
         {
             buildId = string.Empty;
+            return false;
+        }
+
+        public bool TryGetSteamManifests(Game game, out SteamManifest[] manifests)
+        {
+            manifests = Array.Empty<SteamManifest>();
             return false;
         }
     }

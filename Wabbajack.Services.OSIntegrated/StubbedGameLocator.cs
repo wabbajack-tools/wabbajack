@@ -1,4 +1,5 @@
 using Wabbajack.Downloaders.GameFile;
+using System;
 using Wabbajack.DTOs;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
@@ -34,6 +35,12 @@ public class StubbedGameLocator : IGameLocator
     public bool TryGetSteamBuildId(Game game, out string buildId)
     {
         buildId = string.Empty;
+        return false;
+    }
+
+    public bool TryGetSteamManifests(Game game, out SteamManifest[] manifests)
+    {
+        manifests = Array.Empty<SteamManifest>();
         return false;
     }
 }

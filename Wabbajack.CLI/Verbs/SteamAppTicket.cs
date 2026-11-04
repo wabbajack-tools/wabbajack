@@ -70,8 +70,9 @@ public class SteamAppTicket
         catch (SteamAppTicketException ex)
         {
             // Standard error, so the parent gets the specific sentence rather than having to fall back on
-            // the generic one the exit code maps to.
-            Console.Error.WriteLine(ex.Message);
+            // the generic one the exit code maps to. Marked, because steam_api64.dll writes to the same stream
+            // and the parent reads only marked lines.
+            Console.Error.WriteLine(ChildProcessSteamAppTicketSource.MessagePrefix + ex.Message);
             _logger.LogError("{Message}", ex.Message);
             return Task.FromResult(ex.Error.ToExitCode());
         }

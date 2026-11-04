@@ -1,4 +1,5 @@
 using System;
+using Wabbajack.Common;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
@@ -38,9 +39,14 @@ public class ListGames
                 var mainFile = game.Value.MainExecutable!.Value.RelativeTo(location);
 
                 if (!mainFile.FileExists())
+                {
+                    // A partly downloaded or broken install has its folder but not its executable.
                     _logger.LogWarning("Main file {file} for {game} does not exist", mainFile, game.Key);
+                    _logger.LogInformation("[X] {Game} (unknown version) -> Path: {Path}", game.Value.HumanFriendlyGameName, location);
+                    continue;
+                }
 
-                var versionInfo = FileVersionInfo.GetVersionInfo(mainFile.ToString());
+                var versionInfo = ExecutableVersion.Read(mainFile.ToString());
                 
                 _logger.LogInformation("[X] {Game} {Version} -> Path: {Path}", game.Value.HumanFriendlyGameName, versionInfo.ProductVersion ?? versionInfo.FileVersion, location);
             }

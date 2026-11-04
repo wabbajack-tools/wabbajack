@@ -13,6 +13,13 @@ public record PreflightAction(string Id, string Title)
     public static readonly PreflightAction Rescan = new("rescan", "Rescan");
 
     /// <summary>
+    ///     Offered by game-installed when the game is not on this machine and the one thing standing between
+    ///     the user and fetching its files is a store login Wabbajack has not been given. The host logs in and
+    ///     re-runs the checklist, which then asks the store whether the account owns the game.
+    /// </summary>
+    public static readonly PreflightAction StoreLogin = new("store-login", "Log in to Steam");
+
+    /// <summary>
     ///     Offered by automated-downloads when its pass pushed archives back into the manual queue: the host
     ///     re-runs manual-downloads, which is a different check from the one offering the action.
     /// </summary>

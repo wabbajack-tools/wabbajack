@@ -13,6 +13,7 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="GraphQL-Parser" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
@@ -23,6 +24,7 @@
         <PackageReference Include="SixLabors.ImageSharp" />
         <PackageReference Include="System.Drawing.Common" />
         <PackageReference Include="xunit" />
+        <PackageReference Include="YamlDotNet" />
         <PackageReference Include="xunit.runner.visualstudio">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
@@ -41,6 +43,12 @@
         <ProjectReference Include="..\Wabbajack.Compiler\Wabbajack.Compiler.csproj" />
         <ProjectReference Include="..\Wabbajack.Networking.NexusApi.Test\Wabbajack.Networking.NexusApi.Test.csproj" />
         <ProjectReference Include="..\Wabbajack.Paths.IO\Wabbajack.Paths.IO.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="NexusCollections\Contract\*.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
 </Project>

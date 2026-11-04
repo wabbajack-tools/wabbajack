@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Paths;
+using Wabbajack.Paths.IO;
 
 namespace Wabbajack.Installer.Preflight.Checks;
 
@@ -48,9 +49,7 @@ public sealed class DiskSpaceCheck : IPreflightCheck
     {
         try
         {
-            var root = Path.GetPathRoot(folder.ToString());
-            if (string.IsNullOrEmpty(root)) return null;
-            return (root, new DriveInfo(root).AvailableFreeSpace);
+            return Volumes.FreeSpace(folder);
         }
         catch (Exception ex)
         {

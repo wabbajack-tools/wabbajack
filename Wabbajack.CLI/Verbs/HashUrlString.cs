@@ -21,12 +21,12 @@ public class HashUrlString
     public static VerbDefinition Definition = new VerbDefinition("hash-url-string",
         "Hashes a URL string and returns the hashcode as hex", new[]
         {
-            new OptionDefinition(typeof(AbsolutePath), "u", "url", "Url string to hash")
+            new OptionDefinition(typeof(string), "u", "url", "Url string to hash")
         });
 
-    public async Task<int> Run(string u)
+    public async Task<int> Run(string url)
     {
-        _logger.LogInformation("Hash: {Hash}", (await u.Hash()).ToHex());
+        _logger.LogInformation("Hash: {Hash}", (await url.Hash()).ToHex());
         return 0;
     }
 }
