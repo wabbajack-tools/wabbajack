@@ -843,7 +843,7 @@ public static class GameRegistry
                     @"Binaries\Win32\AliceMadnessReturns.exe".ToRelativePath(),
                 },
                 MainExecutable = @"Binaries\Win32\AliceMadnessReturns.exe".ToRelativePath(),
-                IconSource = "https://cdn2.steamgriddb.com/icon/1c7094292f5f2792ea460f1b8e6dc637.png",
+                IconSource = "https://cdn2.steamgriddb.com/grid/39e42960b233b6999d195eae85d7290b.png",
             }
         },
         {
@@ -858,6 +858,7 @@ public static class GameRegistry
                     @"bin\alice.exe".ToRelativePath(),
                 },
                 MainExecutable = @"bin\alice.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/grid/f698f854fc0ebeffcae2a4db83e1d7b0.png",
             }
         },
         {
