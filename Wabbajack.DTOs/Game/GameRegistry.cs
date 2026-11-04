@@ -852,6 +852,8 @@ public static class GameRegistry
                 Game = Game.AmericanMcGeesAlice,
                 MO2Name = "American McGee's Alice",
                 SteamIDs = [19680],
+                NexusName = "americanmcgeesalice",
+                NexusGameId = 3368,
                 RequiredFiles = new []
                 {
                     @"bin\alice.exe".ToRelativePath(),
