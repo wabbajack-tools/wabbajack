@@ -52,5 +52,7 @@ public enum Game
     [Description("Kingdom Come: Deliverance II")] KingdomComeDeliverance2,
     [Description("Dragon's Dogma 2")] DragonsDogma2,
     [Description("NieR:Automata")] NieRAutomata,
+    [Description("American McGee's Alice")] AmericanMcGeesAlice,
+    [Description("Alice: Madness Returns")] AliceMadnessReturns,
     [Description("Dune: Awakening")] DuneAwakening,
 }
