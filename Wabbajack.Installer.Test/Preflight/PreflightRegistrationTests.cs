@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Wabbajack.Installer.Preflight;
+using Wabbajack.Services.OSIntegrated.Preflight;
 using Xunit;
 
 namespace Wabbajack.Installer.Test.Preflight;
@@ -42,6 +43,12 @@ public class PreflightRegistrationTests : IDisposable
             PreflightCheckIds.GameFiles, PreflightCheckIds.UnsupportedArchives, PreflightCheckIds.NexusLogin,
             PreflightCheckIds.ManualDownloads, PreflightCheckIds.AutomatedDownloads, PreflightCheckIds.DiskSpace
         }.Where(id => id != PreflightCheckIds.SteamSandbox || OperatingSystem.IsLinux()), ids);
+    }
+
+    [Fact]
+    public void EveryLoginProbeFeedsTheTierTracker()
+    {
+        Assert.IsType<NexusTierTracker>(_provider.GetRequiredService<INexusLoginProbe>());
     }
 
     [Fact]

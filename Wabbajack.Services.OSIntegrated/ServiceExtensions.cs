@@ -194,7 +194,8 @@ public static class ServiceExtensions
 
         // Preflight
         service.AddPreflight();
-        service.AddSingleton<INexusLoginProbe, NexusApiLoginProbe>();
+        service.AddSingleton<NexusApiLoginProbe>();
+        service.AddSingleton<INexusLoginProbe, NexusTierTracker>();
         service.AddSingleton<IDownloadPolicySource, ClientDownloadPolicySource>();
 
         // Application Info

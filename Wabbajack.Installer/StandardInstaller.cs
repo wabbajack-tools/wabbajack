@@ -27,6 +27,8 @@ using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Installer.Preflight;
+using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Installer.Utilities;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -38,15 +40,18 @@ namespace Wabbajack.Installer;
 
 public class StandardInstaller : AInstaller<StandardInstaller>
 {
+    private readonly INexusLoginProbe _nexusLogin;
 
     public StandardInstaller(ILogger<StandardInstaller> logger,
         InstallerConfiguration config,
         IGameLocator gameLocator, FileExtractor.FileExtractor extractor,
         DTOSerializer jsonSerializer, Context vfs, FileHashCache fileHashCache,
-        DownloadDispatcher downloadDispatcher, ParallelOptions parallelOptions, IResource<IInstaller> limiter, Client wjClient, IImageLoader imageLoader) :
+        DownloadDispatcher downloadDispatcher, ParallelOptions parallelOptions, IResource<IInstaller> limiter, Client wjClient, IImageLoader imageLoader,
+        INexusLoginProbe nexusLogin) :
         base(logger, config, gameLocator, extractor, jsonSerializer, vfs, fileHashCache, downloadDispatcher,
             parallelOptions, limiter, wjClient, imageLoader)
     {
+        _nexusLogin = nexusLogin;
         // One per NextStep call a full Begin makes: Configuring Installer, then OptimizeModlist's
         // Looking for files to delete / Deleting outdated files (only when there are any) / Cleaning
         // empty folders / Looking for unmodified files / Updating ModList, then Hashing Archives,
@@ -68,7 +73,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             provider.GetRequiredService<ParallelOptions>(),
             provider.GetRequiredService<IResource<IInstaller>>(),
             provider.GetRequiredService<Client>(),
-            provider.GetRequiredService<IImageLoader>());
+            provider.GetRequiredService<IImageLoader>(),
+            provider.GetRequiredService<INexusLoginProbe>());
     }
 
     public override async Task<InstallResult> Begin(CancellationToken token)
@@ -179,7 +185,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         SetScreenSizeInPrefs();
 
         await ExtractedModlistFolder!.DisposeAsync();
-        await _wjClient.SendMetric(MetricNames.FinishInstall, ModList.Name);
+        await new FinishInstallMetrics(_wjClient, _nexusLogin, _logger).Send(ModList.Name);
 
         NextStep(Consts.StepFinished, "Finished", 1);
         _logger.LogInformation("Finished Installation");
