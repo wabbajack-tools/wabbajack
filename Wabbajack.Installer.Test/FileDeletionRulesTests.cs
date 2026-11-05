@@ -42,6 +42,22 @@ public class FileDeletionRulesTests
         Assert.True(ShouldDelete(@"mods\Leftover\stray.esp"));
     }
 
+    [Theory]
+    [InlineData("portable.txt")]
+    [InlineData(".wabbajack-install.json")]
+    public void KeepsTheFilesTheInstallerWritesItself(string file)
+    {
+        Assert.False(ShouldDelete(file));
+    }
+
+    [Theory]
+    [InlineData(@"mods\Leftover\portable.txt")]
+    [InlineData(@"mods\Leftover\.wabbajack-install.json")]
+    public void OnlyKeepsThoseFilesInTheRootOfTheInstall(string file)
+    {
+        Assert.True(ShouldDelete(file));
+    }
+
     [Fact]
     public void KeepsFilesTheModListInstalls()
     {

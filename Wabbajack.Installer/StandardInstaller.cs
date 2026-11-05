@@ -131,8 +131,18 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         UnifyPathCasing();
 
         var optimizeResult = await OptimizeModlist(token);
-        if (!optimizeResult) return InstallResult.Cancelled;
+        if (optimizeResult != null) return optimizeResult.Value;
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
+
+        try
+        {
+            await InstallFolderMarker.Write(_configuration.Install, ModList.Name,
+                _configuration.Metadata?.NamespacedName, ModList.Version?.ToString(), token);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not write the install folder marker");
+        }
 
         await HashArchives(token);
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
@@ -185,6 +195,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         SetScreenSizeInPrefs();
 
         await ExtractedModlistFolder!.DisposeAsync();
+
         await new FinishInstallMetrics(_wjClient, _nexusLogin, _logger).Send(ModList.Name);
 
         NextStep(Consts.StepFinished, "Finished", 1);

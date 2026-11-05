@@ -80,12 +80,14 @@
                 <common:DetailImageView x:Name="DetailImage" TitleFontSize="48" AuthorFontSize="24" Margin="0,0,0,16" />
                 <!-- MahApps' ProgressRing at its default size and accent colour. -->
                 <c:ProgressRing x:Name="ModlistLoadingRing" Width="60" Height="60" Foreground="#CCD8BAF8" IsVisible="False" />
-                <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto">
+                <Grid Grid.Row="1" ColumnDefinitions="*,16,Auto">
                     <Border x:Name="ErrorStateBorder" Grid.Column="0" Background="{StaticResource ErrorBrush}"
-                            Margin="0,0,16,0" CornerRadius="8">
-                        <Grid ColumnDefinitions="Auto,8,Auto">
-                            <ic:SymbolIcon Grid.Column="0" Symbol="Warning" FontSize="18" Width="18" Height="18" Margin="16,0,0,0" />
-                            <TextBlock x:Name="ErrorStateText" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,16,0" />
+                            CornerRadius="8" VerticalAlignment="Center">
+                        <Grid ColumnDefinitions="Auto,8,*">
+                            <ic:SymbolIcon Grid.Column="0" Symbol="Warning" FontSize="18" Width="18" Height="18" Margin="16,0,0,0"
+                                           VerticalAlignment="Center" />
+                            <TextBlock x:Name="ErrorStateText" Grid.Column="2" VerticalAlignment="Center" Margin="0,8,16,8"
+                                       TextWrapping="Wrap" />
                         </Grid>
                     </Border>
                     <c:WJButton x:Name="InstallButton" Grid.Column="2" ButtonStyle="Color" Text="Install" Icon="DesktopArrowDown"

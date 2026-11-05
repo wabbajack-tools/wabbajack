@@ -79,12 +79,16 @@ public class IndexSteamDepots
                 "Index the build installed on this machine, from its Steam appmanifest"),
             new OptionDefinition(typeof(string), "v", "version",
                 "Game version to index: uses the depot ids the index records for it. Also the label written down"),
+            new OptionDefinition(typeof(string), "b", "branch",
+                "Steam branch to read manifests from, such as a version branch. Defaults to the public branch"),
             new OptionDefinition(typeof(bool), "f", "force", "Re-read manifests that are already indexed")
         });
 
     public async Task<int> Run(string game, AbsolutePath output, uint app, uint depot, ulong manifest,
-        bool installed, string version, bool force, CancellationToken token)
+        bool installed, string version, bool force, string branch, CancellationToken token)
     {
+        branch = string.IsNullOrWhiteSpace(branch) ? SteamContentClient.PublicBranch : branch.Trim();
+
         if (output == default)
         {
             _logger.LogError("--output is required: point it at a clone of the indexed-game-files repo");
@@ -117,7 +121,7 @@ public class IndexSteamDepots
             _logger.LogInformation("The index holds {Files} files of {Game} over {Manifests} manifests",
                 index.FileCount, meta.Game, index.Manifests.Count);
 
-            var targets = await Targets(index, meta.Game, appId, depot, manifest, installed, version, token);
+            var targets = await Targets(index, meta.Game, appId, depot, manifest, installed, version, branch, token);
             if (targets.Count == 0)
             {
                 _logger.LogError("Nothing to index: no depot and manifest could be worked out for app {App}",
@@ -144,7 +148,7 @@ public class IndexSteamDepots
             foreach (var target in targets)
             {
                 token.ThrowIfCancellationRequested();
-                indexed += await Index(index, meta.Game, appId, target, version, force, token);
+                indexed += await Index(index, meta.Game, appId, target, version, force, branch, token);
             }
 
             _logger.LogInformation("Indexed {Files} new files of {Game} into {Output}", indexed, meta.Game,
@@ -169,7 +173,7 @@ public class IndexSteamDepots
     ///     </para>
     /// </summary>
     private async Task<IReadOnlyList<DepotManifestId>> Targets(GameFileIndexFolder index, Game game, uint app,
-        uint depot, ulong manifest, bool installed, string version, CancellationToken token)
+        uint depot, ulong manifest, bool installed, string version, string branch, CancellationToken token)
     {
         if (depot != 0 && manifest != 0)
             return new[] {new DepotManifestId(depot, manifest)};
@@ -217,8 +221,9 @@ public class IndexSteamDepots
             return Restrict(fromInstall, depot);
         }
 
-        var current = await _content.GetCurrentDepotsAsync(app);
-        _logger.LogInformation("App {App} publishes {Count} depots on the public branch now", app, current.Count);
+        var current = await _content.GetCurrentDepotsAsync(app, branch);
+        _logger.LogInformation("App {App} publishes {Count} depots on the {Branch} branch now", app, current.Count,
+            branch);
         return Restrict(current, depot);
     }
 
@@ -232,7 +237,7 @@ public class IndexSteamDepots
     ///     down. Returns how many files it added.
     /// </summary>
     private async Task<int> Index(GameFileIndexFolder index, Game game, uint app, DepotManifestId target,
-        string version, bool force, CancellationToken token)
+        string version, bool force, string branch, CancellationToken token)
     {
         if (!force && index.HasManifest(app, target.DepotId, target.ManifestId))
         {
@@ -243,7 +248,7 @@ public class IndexSteamDepots
 
         await _content.EnsureAccessAsync(app, target.DepotId, token);
 
-        var files = await _content.ListFilesAsync(app, target.DepotId, target.ManifestId, token);
+        var files = await _content.ListFilesAsync(app, target.DepotId, target.ManifestId, token, branch);
         var total = files.Sum(f => (long) f.Size);
         _logger.LogInformation("Depot {Depot} manifest {Manifest} lists {Count} files ({Size})", target.DepotId,
             target.ManifestId, files.Count, total.ToFileSizeString());
@@ -279,7 +284,7 @@ public class IndexSteamDepots
             try
             {
                 await _content.DownloadFileAsync(app, target.DepotId, target.ManifestId, file.Path, scratchFile,
-                    token);
+                    token, branch: branch);
 
                 await using var stream = scratchFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
                 var hash = await stream.HashingCopy(Stream.Null, token);

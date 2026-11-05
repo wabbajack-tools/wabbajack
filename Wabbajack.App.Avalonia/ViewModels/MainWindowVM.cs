@@ -23,6 +23,7 @@ using Wabbajack.App.Avalonia.ViewModels.Gallery;
 using Wabbajack.App.Avalonia.ViewModels.Installers;
 using Wabbajack.App.Avalonia.ViewModels.Settings;
 using Wabbajack.Common;
+using Wabbajack.Installer;
 using Wabbajack.Installer.Preflight;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
@@ -276,6 +277,11 @@ public partial class MainWindowVM : ViewModel
     public Task<bool> ShowConfirmationDialog(string title, string message)
     {
         return ShowDialog(new ConfirmationDialogVM(title, message));
+    }
+
+    public Task<bool> ShowConfirmationDialog(ConfirmRequest request)
+    {
+        return ShowDialog(new ConfirmationDialogVM(request));
     }
 
     /// <summary>An error in the same floating pane, with only OK; done once the user has dismissed it.</summary>

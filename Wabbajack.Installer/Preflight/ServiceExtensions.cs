@@ -19,6 +19,7 @@ public static class ServiceExtensions
     public static IServiceCollection AddPreflight(this IServiceCollection services)
     {
         services.AddSingleton<IPreflightCheck, GameInstalledCheck>();
+        services.AddSingleton<IPreflightCheck, InstallFolderCheck>();
         // Linux only: where MO2 runs under Proton, possibly inside a sandboxed Steam.
         if (OperatingSystem.IsLinux()) services.AddSingleton<IPreflightCheck, SteamSandboxCheck>();
         services.AddSingleton<IPreflightCheck, GameFilesCheck>();

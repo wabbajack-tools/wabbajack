@@ -1,5 +1,6 @@
 using System;
 using Wabbajack.DTOs;
+using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Paths;
 
 namespace Wabbajack.Installer;
@@ -16,4 +17,8 @@ public class InstallerConfiguration
     public AbsolutePath GameFolder { get; set; }
 
     public ModlistMetadata? Metadata { get; set; }
+
+    public AbsolutePath PreviousInstallLocation { get; set; }
+
+    public InstallFolderVerdict? PreflightInstallFolder { get; set; }
 }
