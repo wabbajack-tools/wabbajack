@@ -1,7 +1,9 @@
 ### Changelog
 
-#### Version - TBD - TBD
+#### Version - 4.3.2.2 - 11/05/2026
 * Metrics improvements
+* Added Vampire: The Masquerade - Bloodlines 2 support ([@daulvec](https://github.com/daulvec)) PR #3032
+* Added American McGee's Alice and Alice: Madness Returns support ([@daulvec](https://github.com/daulvec)) PR #3100
 
 #### Version - 4.3.2.1 - 10/18/2026
 * HOTFIX: Fixed 7z archives packed on Linux, such as Requiem 5.0.3's bugfix pack, extracting nothing with the newer 7-Zip (PR #3095)
