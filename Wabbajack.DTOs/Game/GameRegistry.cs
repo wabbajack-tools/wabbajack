@@ -830,6 +830,39 @@ public static class GameRegistry
             }
         },
         {
+            Game.AliceMadnessReturns, new GameMetaData
+            {
+                Game = Game.AliceMadnessReturns,
+                MO2Name = "Alice: Madness Returns",
+                NexusName = "alicemadnessreturns",
+                NexusGameId = 3533,
+                MO2ArchiveName = "alicemadnessreturns",
+                SteamIDs = [19680],
+                RequiredFiles = new []
+                {
+                    @"Binaries\Win32\AliceMadnessReturns.exe".ToRelativePath(),
+                },
+                MainExecutable = @"Binaries\Win32\AliceMadnessReturns.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/grid/39e42960b233b6999d195eae85d7290b.png",
+            }
+        },
+        {
+            Game.AmericanMcGeesAlice, new GameMetaData
+            {
+                Game = Game.AmericanMcGeesAlice,
+                MO2Name = "American McGee's Alice",
+                SteamIDs = [19680],
+                NexusName = "americanmcgeesalice",
+                NexusGameId = 3368,
+                RequiredFiles = new []
+                {
+                    @"bin\alice.exe".ToRelativePath(),
+                },
+                MainExecutable = @"bin\alice.exe".ToRelativePath(),
+                IconSource = "https://cdn2.steamgriddb.com/grid/f698f854fc0ebeffcae2a4db83e1d7b0.png",
+            }
+        },
+        {
             Game.KingdomComeDeliverance2, new GameMetaData
             {
                 Game = Game.KingdomComeDeliverance2,
