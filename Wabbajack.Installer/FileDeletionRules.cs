@@ -15,7 +15,7 @@ namespace Wabbajack.Installer;
 /// </summary>
 public static class FileDeletionRules
 {
-    private static readonly Regex NoDeleteRegex = new(@"(?i)[\\\/]\[NoDelete\]", RegexOptions.Compiled);
+    private static readonly Regex NoDeleteRegex = new(@"(?i)[\\\/]#{0,5}\[NoDelete\]", RegexOptions.Compiled);
 
     private static readonly RelativePath SavePath = (RelativePath) "saves";
 
