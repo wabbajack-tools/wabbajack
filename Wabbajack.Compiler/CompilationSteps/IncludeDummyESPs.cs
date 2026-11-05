@@ -17,8 +17,11 @@ public class IncludeDummyESPs : ACompilationStep
         if (source.AbsolutePath.Extension != Ext.Esp &&
             source.AbsolutePath.Extension != Ext.Esm) return null;
 
-        var bsa = source.AbsolutePath.ReplaceExtension(Ext.Bsa);
-        var bsaTextures = source.AbsolutePath.AppendToName(" - Textures").ReplaceExtension(Ext.Bsa);
+        // Foo.esp beside Foo.BSA is the same pair to Windows, so it is the same pair here.
+        var folder = source.AbsolutePath.Parent;
+        var bsa = folder.FindIgnoringCase(source.AbsolutePath.ReplaceExtension(Ext.Bsa).FileName);
+        var bsaTextures =
+            folder.FindIgnoringCase(source.AbsolutePath.AppendToName(" - Textures").ReplaceExtension(Ext.Bsa).FileName);
 
         if (source.AbsolutePath.Size() > 250 || !bsa.FileExists() && !bsaTextures.FileExists()) return null;
 

@@ -89,14 +89,24 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
             this.BindCommand(ViewModel, x => x.StartCommand, x => x.StartButton)
                 .DisposeWith(disposables);
 
-            var startCommand = ViewModel!.StartCommand;
-            Observable.FromEventPattern<EventHandler, EventArgs>(
-                    h => startCommand.CanExecuteChanged += h, h => startCommand.CanExecuteChanged -= h)
-                .Select(_ => startCommand.CanExecute(null))
-                .StartWith(startCommand.CanExecute(null))
+            // The same fields StartCommand watches, so the list shrinks as each one is filled in rather than only
+            // changing when the button flips between enabled and disabled.
+            if (ViewModel is not { } viewModel) return;
+            viewModel.WhenAnyValue(vm => vm.Settings.ModListName,
+                    vm => vm.Settings.ModListAuthor,
+                    vm => vm.Settings.ModListDescription,
+                    vm => vm.Settings.ModListImage,
+                    vm => vm.Settings.Downloads,
+                    vm => vm.Settings.OutputFile,
+                    vm => vm.Settings.Version,
+                    (_, _, _, _, _, _, _) => viewModel.MissingRequiredFields())
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(canStart => ToolTip.SetTip(StartButton,
-                    canStart ? null : "Still needed: " + string.Join(", ", ViewModel.MissingRequiredFields())))
+                .Subscribe(missing =>
+                {
+                    var stillNeeded = missing.Count == 0 ? null : "Still needed: " + string.Join(", ", missing);
+                    ToolTip.SetTip(StartButton, stillNeeded);
+                    StillNeededText.Text = stillNeeded;
+                })
                 .DisposeWith(disposables);
 
             this.BindCommand(ViewModel, x => x.CancelCommand, x => x.CancelButton)
@@ -235,12 +245,12 @@ public partial class CompilerMainView : ReactiveUserControl<CompilerMainVM>
         control.IsEnabled = !hidden;
     }
 
-    private void OnPublishCollectionClick(object? sender, RoutedEventArgs e)
+    private async void OnPublishCollectionClick(object? sender, RoutedEventArgs e)
     {
         if (ViewModel is not { } vm || !((System.Windows.Input.ICommand)vm.PublishCollectionCommand).CanExecute(null))
             return;
 
-        var yes = NativeMessageBox.AskYesNo(
+        var yes = await NativeMessageBox.AskYesNoAsync(
             "Publishing to Nexus Mods will create a collection page that allows users browsing Nexus Mods to discover your Wabbajack list.\n\n" +
             "Important Notes:\n" +
             "• This will NOT create a Vortex collection\n" +

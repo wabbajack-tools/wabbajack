@@ -1,4 +1,6 @@
 using System;
+using Microsoft.Extensions.DependencyInjection;
+using Wabbajack.Services.OSIntegrated;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -76,7 +78,7 @@ public partial class PreflightVM : ViewModel
 
         BulkDownloads = new BulkDownloadsVM(runner, events.OfType<ArchiveChanged>().Select(e => e.Status), downloadSpeed);
         ManualDownloads = new ManualDownloadsVM(runner.Context.Acquirer, events.OfType<ManualQueueChanged>(),
-            _cts.Token, logger);
+            _cts.Token, logger, serviceProvider.GetService<SettingsManager>());
 
         events.OfType<CheckChanged>()
             .ObserveOnGuiThread()

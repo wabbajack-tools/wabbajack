@@ -21,8 +21,8 @@ namespace Wabbajack.App.Avalonia.Util
     /// <summary>
     ///     The WPF app's SystemParametersConstructor, unchanged: the primary screen's size in physical pixels,
     ///     the largest adapter's video memory through DXGI, RAM and pagefile through GlobalMemoryStatusEx, and
-    ///     the GPU's name from WMI. The installer writes these into MO2 and ENB settings. Windows only, so
-    ///     callers go through OperatingSystem.IsWindows().
+    ///     the GPU's name from WMI. The installer writes these into MO2 and ENB settings. Windows only; the
+    ///     installer reaches it through WindowsDesktop.
     /// </summary>
     public class SystemParametersConstructor
     {

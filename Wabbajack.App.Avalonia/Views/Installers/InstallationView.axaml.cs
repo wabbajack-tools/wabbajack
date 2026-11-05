@@ -13,6 +13,7 @@ using Wabbajack.App.Avalonia.Messages;
 using Wabbajack.App.Avalonia.Util;
 using Wabbajack.App.Avalonia.ViewModels.Installers;
 using Wabbajack.Paths;
+using Wabbajack.App.Avalonia.Services;
 
 namespace Wabbajack.App.Avalonia.Views.Installers;
 
@@ -26,6 +27,8 @@ public partial class InstallationView : ReactiveUserControl<InstallationVM>
     public InstallationView()
     {
         InitializeComponent();
+
+        CreateShortcutButton.IsVisible = Desktop.Current.CanCreateDesktopShortcut;
 
         // Sizes WPF bound through MathConverter, rounded to the pixel as WPF's layout rounding did: the image
         // is 16:9 at its own width, and the header's toggles and buttons are fractions of the column.

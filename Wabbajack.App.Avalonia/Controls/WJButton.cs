@@ -51,7 +51,11 @@ public class WJButton : Button
     public static readonly StyledProperty<Percent> ProgressPercentageProperty =
         AvaloniaProperty.Register<WJButton, Percent>(nameof(ProgressPercentage), Percent.One);
 
-    private readonly TextBlock _text = new() { VerticalAlignment = VerticalAlignment.Center };
+    private readonly TextBlock _text = new()
+    {
+        VerticalAlignment = VerticalAlignment.Center,
+        TextTrimming = TextTrimming.CharacterEllipsis
+    };
     private readonly SymbolIcon _icon = new() { VerticalAlignment = VerticalAlignment.Center };
     private readonly Grid _grid;
 
@@ -144,7 +148,10 @@ public class WJButton : Button
             else _icon.ClearValue(SymbolIcon.IconVariantProperty);
         }
         else if (change.Property == IconSizeProperty)
+        {
             _icon.FontSize = IconSize;
+            ApplyDirection();
+        }
         else if (change.Property == DirectionProperty)
             ApplyDirection();
         else if (change.Property == ButtonStyleProperty)
@@ -157,7 +164,10 @@ public class WJButton : Button
     private void ApplyDirection()
     {
         var ltr = Direction == FlowDirection.LeftToRight;
-        _text.Margin = ltr ? new Thickness(16, 0, 0, 0) : new Thickness(0, 0, 16, 0);
+        // The text stops short of the icon, so a label too long for the button is trimmed rather than
+        // drawn underneath it.
+        var besideIcon = 16 + IconSize + 8;
+        _text.Margin = ltr ? new Thickness(16, 0, besideIcon, 0) : new Thickness(besideIcon, 0, 16, 0);
         _text.HorizontalAlignment = ltr ? HorizontalAlignment.Left : HorizontalAlignment.Right;
         _icon.Margin = ltr ? new Thickness(0, 0, 16, 0) : new Thickness(16, 0, 0, 0);
         _icon.HorizontalAlignment = ltr ? HorizontalAlignment.Right : HorizontalAlignment.Left;
@@ -187,7 +197,7 @@ public class WJButton : Button
 
         Background = Split(Colour("Primary"), Colour("ComplementaryPrimary08"), p, width);
 
-        var textSpan = width - _text.Margin.Left;
+        var textSpan = width - (Direction == FlowDirection.LeftToRight ? _text.Margin.Left : 0);
         var textStart = 1 - textSpan / width;
         _text.Foreground = Split(done, todo, p < textStart ? 0 : (p - textStart) * (width / textSpan), width);
 

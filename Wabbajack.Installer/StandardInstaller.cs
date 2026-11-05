@@ -27,6 +27,8 @@ using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.PHash;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Installer.Preflight;
+using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Installer.Utilities;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
@@ -38,15 +40,18 @@ namespace Wabbajack.Installer;
 
 public class StandardInstaller : AInstaller<StandardInstaller>
 {
+    private readonly INexusLoginProbe _nexusLogin;
 
     public StandardInstaller(ILogger<StandardInstaller> logger,
         InstallerConfiguration config,
         IGameLocator gameLocator, FileExtractor.FileExtractor extractor,
         DTOSerializer jsonSerializer, Context vfs, FileHashCache fileHashCache,
-        DownloadDispatcher downloadDispatcher, ParallelOptions parallelOptions, IResource<IInstaller> limiter, Client wjClient, IImageLoader imageLoader) :
+        DownloadDispatcher downloadDispatcher, ParallelOptions parallelOptions, IResource<IInstaller> limiter, Client wjClient, IImageLoader imageLoader,
+        INexusLoginProbe nexusLogin) :
         base(logger, config, gameLocator, extractor, jsonSerializer, vfs, fileHashCache, downloadDispatcher,
             parallelOptions, limiter, wjClient, imageLoader)
     {
+        _nexusLogin = nexusLogin;
         // One per NextStep call a full Begin makes: Configuring Installer, then OptimizeModlist's
         // Looking for files to delete / Deleting outdated files (only when there are any) / Cleaning
         // empty folders / Looking for unmodified files / Updating ModList, then Hashing Archives,
@@ -68,14 +73,14 @@ public class StandardInstaller : AInstaller<StandardInstaller>
             provider.GetRequiredService<ParallelOptions>(),
             provider.GetRequiredService<IResource<IInstaller>>(),
             provider.GetRequiredService<Client>(),
-            provider.GetRequiredService<IImageLoader>());
+            provider.GetRequiredService<IImageLoader>(),
+            provider.GetRequiredService<INexusLoginProbe>());
     }
 
     public override async Task<InstallResult> Begin(CancellationToken token)
     {
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
         _logger.LogInformation("Installing: {Name} - {Version}", _configuration.ModList.Name, _configuration.ModList.Version);
-        await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
         NextStep(Consts.StepPreparing, "Configuring Installer", 0);
         _logger.LogInformation("Configuring Processor");
 
@@ -123,6 +128,8 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         _configuration.Install.CreateDirectory();
         _configuration.Downloads.CreateDirectory();
 
+        UnifyPathCasing();
+
         var optimizeResult = await OptimizeModlist(token);
         if (!optimizeResult) return InstallResult.Cancelled;
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
@@ -141,6 +148,11 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
             return InstallResult.DownloadFailed;
         }
+
+        // Counted here rather than on entry: downloading is preflight's now and happens before Begin, and an
+        // install the checks above turn away (no game folder where one was named, an archive missing) never
+        // got as far as installing anything.
+        await _wjClient.SendMetric(MetricNames.BeginInstall, ModList.Name);
 
         await ExtractModlist(token);
         if (token.IsCancellationRequested) return InstallResult.Cancelled;
@@ -173,7 +185,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
         SetScreenSizeInPrefs();
 
         await ExtractedModlistFolder!.DisposeAsync();
-        await _wjClient.SendMetric(MetricNames.FinishInstall, ModList.Name);
+        await new FinishInstallMetrics(_wjClient, _nexusLogin, _logger).Send(ModList.Name);
 
         NextStep(Consts.StepFinished, "Finished", 1);
         _logger.LogInformation("Finished Installation");
@@ -190,7 +202,7 @@ public class StandardInstaller : AInstaller<StandardInstaller>
 
         var iniData = iniFile.LoadIniFile();
         var settings = iniData["Settings"];
-        settings["download_directory"] = _configuration.Downloads.ToString().Replace("\\", "/");
+        settings["download_directory"] = _configuration.Downloads.ToWindowsProgramPath().Replace("\\", "/");
         iniData.SaveIniFile(iniFile);
         return Task.CompletedTask;
     }
@@ -527,24 +539,34 @@ public class StandardInstaller : AInstaller<StandardInstaller>
     {
         var data = Encoding.UTF8.GetString(await LoadBytesFromPath(directive.SourceDataID));
 
-        var gameFolder = _configuration.GameFolder.ToString();
+        // These files are read by MO2 and the game's tools, which on Linux run under Wine and want Z:\ paths.
+        // Wabbajack's own compiler settings are the exception: the app reads those, natively.
+        Func<AbsolutePath, string> spell = IsReadByWabbajack(directive.To)
+            ? path => path.ToString()
+            : path => path.ToWindowsProgramPath();
+        var gameFolder = spell(_configuration.GameFolder);
+        var installFolder = spell(_configuration.Install);
+        var downloadsFolder = spell(_configuration.Downloads);
 
         data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, gameFolder);
         data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, gameFolder.Replace("\\", "\\\\"));
         data = data.Replace(Consts.GAME_PATH_MAGIC_FORWARD, gameFolder.Replace("\\", "/"));
 
-        data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, _configuration.Install.ToString());
-        data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK,
-            _configuration.Install.ToString().Replace("\\", "\\\\"));
-        data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, _configuration.Install.ToString().Replace("\\", "/"));
+        data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, installFolder);
+        data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, installFolder.Replace("\\", "\\\\"));
+        data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, installFolder.Replace("\\", "/"));
 
-        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_BACK, _configuration.Downloads.ToString());
-        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK,
-            _configuration.Downloads.ToString().Replace("\\", "\\\\"));
-        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD,
-            _configuration.Downloads.ToString().Replace("\\", "/"));
+        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_BACK, downloadsFolder);
+        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK, downloadsFolder.Replace("\\", "\\\\"));
+        data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD, downloadsFolder.Replace("\\", "/"));
 
         await _configuration.Install.Combine(directive.To).WriteAllTextAsync(data);
+    }
+
+    /// <summary>A .compiler_settings file, which the app loads to compile the list again, rather than MO2.</summary>
+    public static bool IsReadByWabbajack(RelativePath file)
+    {
+        return file.Extension == Ext.CompilerSettings || file.Extension == new Extension(".mo2_compiler_settings");
     }
 
     public async Task GenerateZEditMerges(CancellationToken token)

@@ -151,6 +151,22 @@ public class CompileInstallVerifyTests : IClassFixture<OfflineCliHost>, IDisposa
         Assert.Equal("read me", await install.Combine("mods", "Test Mod", "readme.txt").ReadAllTextAsync());
     }
 
+    /// <summary>The one line in <c>Begin</c> that <c>FinishInstallMetricsTests</c> cannot reach.</summary>
+    [Fact]
+    public async Task Install_ReportsTheNexusTierItFinishedUnder()
+    {
+        var list = await Compiled();
+        var install = _root.Combine("User", "Install");
+        var downloads = _root.Combine("User", "Downloads");
+        downloads.CreateDirectory();
+        _host.Servers.Requested.Clear();
+
+        Assert.Equal(PreflightInstall.Succeeded,
+            await Verb<Install>().Run(list, install, downloads, "", CancellationToken.None));
+
+        Assert.Contains(_host.Servers.Requested, url => url.AbsolutePath.Contains("/metrics/finish_install_"));
+    }
+
     [Fact]
     public async Task Verify_AnInstallWithAChangedFile_Fails()
     {

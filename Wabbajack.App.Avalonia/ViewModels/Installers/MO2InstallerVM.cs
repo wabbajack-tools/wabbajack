@@ -1,10 +1,10 @@
 using System;
-using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
+using Wabbajack.App.Avalonia.Util;
 using Wabbajack.App.Avalonia.ViewModels.Common;
 using Wabbajack.DTOs.Interventions;
 using Wabbajack.DTOs.JsonConverters;
@@ -76,7 +76,7 @@ public partial class MO2InstallerVM : ViewModel, ISubInstallerVM
 
     public void AfterInstallNavigation()
     {
-        Process.Start("explorer.exe", Location.TargetPath.ToString());
+        UIUtils.OpenFolder(Location.TargetPath);
     }
 
     /// <summary>The install runs through <see cref="InstallationVM" />; this was already a stub in WPF.</summary>

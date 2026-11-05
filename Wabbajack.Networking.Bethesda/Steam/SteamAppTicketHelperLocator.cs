@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Wabbajack.Paths;
 
 namespace Wabbajack.Networking.Bethesda.Steam;
 
@@ -32,8 +33,7 @@ public static class SteamAppTicketHelperLocator
     /// <summary>Set this to point at a CLI somewhere else entirely; mostly a way in for tests and odd layouts.</summary>
     public const string OverrideVariable = "WABBAJACK_CLI";
 
-    public static string ExecutableName =>
-        OperatingSystem.IsWindows() ? HelperName + ".exe" : HelperName;
+    public static string ExecutableName => PlatformExecutable.Name(HelperName);
 
     /// <summary>
     ///     Works out what to run, or null when no CLI can be found.

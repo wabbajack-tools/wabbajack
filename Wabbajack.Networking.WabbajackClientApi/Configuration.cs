@@ -28,4 +28,7 @@ public class Configuration
     public Uri BuildServerUrl { get; set; } = new("https://build.wabbajack.org/");
     //public Uri BuildServerUrl { get; set; } = new("http://localhost:5000/");
     public string PatchBaseAddress { get; set; } = new("https://patches.wabbajack.org/");
+
+    /// <summary>Where the proxy's copies of Mega, Google Drive and MediaFire files are served from.</summary>
+    public Uri ProxyUrl { get; set; } = new("https://proxy-v2.wabbajack.org/");
 }

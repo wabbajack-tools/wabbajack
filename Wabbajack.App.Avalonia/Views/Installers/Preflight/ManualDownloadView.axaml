@@ -41,20 +41,49 @@
                     </Grid>
 
                     <Grid x:Name="CardBody" Grid.Row="1" Margin="0,8,0,0" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
-                        <TextBlock x:Name="FileNameText" Grid.Row="0" FontSize="14" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                        <!--
+                            Left-aligned with a star column, so the copy button sits right after the name and the
+                            name still trims when it is wider than the card.
+                        -->
+                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" HorizontalAlignment="Left">
+                            <TextBlock x:Name="FileNameText" FontSize="14" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                                       VerticalAlignment="Center" />
+                            <Button x:Name="CopyNameButton" Grid.Column="1" Classes="main" Background="Transparent"
+                                    BorderThickness="0" Padding="4" Margin="6,0,0,0" VerticalAlignment="Center"
+                                    ToolTip.Tip="Copy the file name, to search for it on the download page">
+                                <ic:SymbolIcon x:Name="CopyNameIcon" Symbol="Copy" FontSize="16" />
+                            </Button>
+                        </Grid>
 
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,8">
-                            <TextBlock Classes="dim" Text="from" FontSize="12" VerticalAlignment="Center" />
-                            <Border CornerRadius="4" Background="{StaticResource ComplementaryPrimary16Brush}" Padding="6,2"
-                                    Margin="8,0,0,0" VerticalAlignment="Center">
-                                <TextBlock x:Name="SiteNameText" FontSize="11" Foreground="{StaticResource ForegroundBrush}" />
-                            </Border>
-                            <TextBlock x:Name="InstructionsText" Classes="dim" FontSize="12" VerticalAlignment="Center"
-                                       Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
+                        <!--
+                            A grid rather than a horizontal StackPanel: a StackPanel hands its children all the width
+                            they ask for, so a long instruction ran past the card instead of trimming. The reason under
+                            it wraps, at most three lines, and the whole of it is in the tooltip.
+                        -->
+                        <StackPanel Grid.Row="1" Margin="0,4,0,8">
+                            <Grid ColumnDefinitions="Auto,Auto,*">
+                                <TextBlock Classes="dim" Text="from" FontSize="12" VerticalAlignment="Center" />
+                                <Border Grid.Column="1" CornerRadius="4" Background="{StaticResource ComplementaryPrimary16Brush}"
+                                        Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="SiteNameText" FontSize="11" Foreground="{StaticResource ForegroundBrush}" />
+                                </Border>
+                                <TextBlock x:Name="InstructionsText" Grid.Column="2" Classes="dim" FontSize="12"
+                                           VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                            <TextBlock x:Name="ReasonText" Classes="dim" FontSize="12" Margin="0,6,0,0"
+                                       TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis" IsVisible="False" />
                         </StackPanel>
 
                         <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
-                            <TextBlock Classes="step" Text="Start the download in your browser; the file is picked up here automatically." />
+                            <StackPanel VerticalAlignment="Top">
+                                <TextBlock Classes="step" Text="Start the download in your browser; the file is picked up here automatically." />
+                                <!-- The theme scales a CheckBox 1.4x, so 9px text reads as the card's 12-13px. -->
+                                <CheckBox x:Name="AutoOpenCheck" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                          Background="{StaticResource BackgroundBrush}"
+                                          ToolTip.Tip="Once a file starts arriving in your Downloads folder, the next file's page opens on its own. It waits for each download, so it never opens more than one page ahead.">
+                                    <TextBlock FontSize="9" Text="Open the next one automatically" TextTrimming="CharacterEllipsis" />
+                                </CheckBox>
+                            </StackPanel>
                             <c:WJButton x:Name="OpenPageButton" Grid.Column="1" ButtonStyle="Color" Text="Open page" Icon="Open"
                                         IconSize="16" Width="150" Height="32" VerticalAlignment="Top" Margin="16,0,0,0" />
                         </Grid>
@@ -65,8 +94,11 @@
                                 <ic:SymbolIcon x:Name="WatchIcon" FontSize="18" IconVariant="Filled" Symbol="CheckmarkCircle"
                                                Foreground="{StaticResource SuccessBrush}" IsVisible="False" />
                             </Grid>
-                            <TextBlock x:Name="WatchStatusText" Grid.Column="1" FontSize="13" Margin="10,0,0,0"
-                                       VerticalAlignment="Center" TextWrapping="Wrap" />
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock x:Name="WatchStatusText" FontSize="13" TextWrapping="Wrap" />
+                                <TextBlock x:Name="AutoOpenStatusText" Classes="dim" FontSize="12" Margin="0,2,0,0"
+                                           TextTrimming="CharacterEllipsis" IsVisible="False" />
+                            </StackPanel>
                         </Grid>
 
                         <TextBlock x:Name="NoticeText" Grid.Row="4" Classes="dim" FontSize="12" Margin="28,4,0,0"

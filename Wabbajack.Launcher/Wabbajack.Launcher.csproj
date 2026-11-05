@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net10.0-windows</TargetFramework>
+        <!-- As the CLI does: the Windows release keeps net10.0-windows, and a build off Windows is plain net10.0. -->
+        <TargetFramework Condition=" '$(OS)' == 'Windows_NT'">net10.0-windows</TargetFramework>
+        <TargetFramework Condition=" '$(OS)' != 'Windows_NT'">net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <AssemblyName>Wabbajack</AssemblyName>
         <!-- Required for source-generated [Reactive] partial properties that carry an initializer

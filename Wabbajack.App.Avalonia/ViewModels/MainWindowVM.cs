@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -22,6 +23,7 @@ using Wabbajack.App.Avalonia.ViewModels.Gallery;
 using Wabbajack.App.Avalonia.ViewModels.Installers;
 using Wabbajack.App.Avalonia.ViewModels.Settings;
 using Wabbajack.Common;
+using Wabbajack.Installer.Preflight;
 using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths.IO;
 
@@ -44,7 +46,8 @@ public partial class MainWindowVM : ViewModel
     private readonly ILogger<MainWindowVM> _logger;
 
     public MainWindowVM(IServiceProvider services, Navigator navigator, ModListDetailsVM modListDetails,
-        ILogger<MainWindowVM> logger, SystemParametersConstructor systemParams, HttpClient httpClient, Client wjClient)
+        ILogger<MainWindowVM> logger, SystemParametersConstructor systemParams, HttpClient httpClient, Client wjClient,
+        INexusLoginProbe nexusLogin)
     {
         _services = services;
         _logger = logger;
@@ -117,19 +120,27 @@ public partial class MainWindowVM : ViewModel
             .DisposeWith(CompositeDisposable);
 
         var location = Environment.ProcessPath ?? typeof(MainWindowVM).Assembly.Location;
-        var fileVersion = FileVersionInfo.GetVersionInfo(location).FileVersion;
-        Version = "v" + fileVersion;
+        // Off Windows the executable is a native host with no version resource; the assembly carries the same number.
+        var fileVersion = FileVersionInfo.GetVersionInfo(location).FileVersion
+                          ?? typeof(MainWindowVM).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
+        // The informational version, which names a beta (4.4.0.0-beta.1), without the commit after its '+'.
+        var shown = typeof(MainWindowVM).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion.Split('+')[0];
+        Version = "v" + (string.IsNullOrEmpty(shown) ? fileVersion : shown);
 
         NavigateTo(ScreenType.Home);
 
-        LogStartup(fileVersion, systemParams, httpClient, wjClient);
+        LogStartup(fileVersion, systemParams, httpClient, wjClient, nexusLogin);
     }
 
     /// <summary>
     ///     The block every WPF log opens with, which support reads first: versions, paths, the machine, its drives
-    ///     and its TLS setup. It also lands in the installer's log pane. The two start metrics go with it.
+    ///     and its TLS setup. It also lands in the installer's log pane. The two start metrics go with it, as does
+    ///     the one look at the Nexus account a launch gets: preflight only asks when Nexus files are missing, so a
+    ///     conversion would otherwise wait for the user's next install that needs some.
     /// </summary>
-    private void LogStartup(string? fileVersion, SystemParametersConstructor systemParams, HttpClient httpClient, Client wjClient)
+    private void LogStartup(string? fileVersion, SystemParametersConstructor systemParams, HttpClient httpClient, Client wjClient,
+        INexusLoginProbe nexusLogin)
     {
         try
         {
@@ -138,13 +149,14 @@ public partial class MainWindowVM : ViewModel
 
             _logger.LogInformation("Wabbajack information:");
             _logger.LogInformation("    Version: {FileVersion}", fileVersion);
+            _logger.LogInformation("    Informational version: {Version}", Version.TrimStart('v'));
             _logger.LogInformation("    Build: {Sha}", ThisAssembly.Git.Sha);
             _logger.LogInformation("    Entry point: {EntryPoint}", KnownFolders.EntryPoint);
             _logger.LogInformation("    Assembly Location: {AssemblyLocation}", assemblyLocation);
             _logger.LogInformation("    Process Location: {ProcessLocation}", processLocation);
 
             _logger.LogInformation("General information:");
-            _logger.LogInformation("    Windows version: {Version}", Environment.OSVersion.VersionString);
+            _logger.LogInformation("    OS version: {Version}", Environment.OSVersion.VersionString);
 
             // The machine and drive queries are Windows APIs, as they were in the WPF app.
             if (OperatingSystem.IsWindows())
@@ -165,6 +177,7 @@ public partial class MainWindowVM : ViewModel
 
             Task.Run(() => wjClient.SendMetric("started_wabbajack", fileVersion)).FireAndForget();
             Task.Run(() => wjClient.SendMetric("started_sha", ThisAssembly.Git.Sha)).FireAndForget();
+            Task.Run(() => nexusLogin.Probe(CancellationToken.None)).FireAndForget();
         }
         catch (Exception ex)
         {
@@ -260,12 +273,22 @@ public partial class MainWindowVM : ViewModel
     ///     Asks a yes-or-no question in a floating pane and takes the pane down once it is answered. The
     ///     installer asks this through StandardInstaller's OnConfirmAction.
     /// </summary>
-    public async Task<bool> ShowConfirmationDialog(string title, string message)
+    public Task<bool> ShowConfirmationDialog(string title, string message)
     {
-        var dialog = new ConfirmationDialogVM(title, message);
+        return ShowDialog(new ConfirmationDialogVM(title, message));
+    }
+
+    /// <summary>An error in the same floating pane, with only OK; done once the user has dismissed it.</summary>
+    public Task ShowErrorDialog(string title, string message)
+    {
+        return ShowDialog(ConfirmationDialogVM.Error(title, message));
+    }
+
+    private async Task<bool> ShowDialog(ConfirmationDialogVM dialog)
+    {
         ActiveFloatingPane = dialog;
         var result = await dialog.Result;
-        ActiveFloatingPane = null;
+        if (ReferenceEquals(ActiveFloatingPane, dialog)) ActiveFloatingPane = null;
         return result;
     }
 

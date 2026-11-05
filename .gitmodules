@@ -1,0 +1,4 @@
+[submodule "external/texgen-sharp"]
+	path = external/texgen-sharp
+	url = https://github.com/halgari/texgen-sharp
+	branch = wabbajack-dds

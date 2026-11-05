@@ -42,6 +42,12 @@ public enum GameFileRestoreOutcome
 public record GameFileRestoreResult(GameFileRestoreOutcome Outcome, string? Version = null, string? Detail = null)
 {
     public bool Fetched => Outcome == GameFileRestoreOutcome.Fetched;
+
+    /// <summary>
+    ///     Which source supplied a fetched file, when more than one could have: the composite fills it in from
+    ///     the source that answered. Null from a single source, whose own name is the answer.
+    /// </summary>
+    public string? Source { get; init; }
 }
 
 /// <param name="Ready">Whether a restore would be attempted at all right now.</param>

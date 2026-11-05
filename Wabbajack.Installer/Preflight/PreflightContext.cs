@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Downloaders;
 using Wabbajack.Downloaders.GameFile;
@@ -70,4 +72,24 @@ public sealed class PreflightContext
     public IResource<IInstaller> Limiter { get; }
     public ILogger Logger { get; }
     public PreflightBlackboard State { get; } = new();
+
+    /// <summary>
+    ///     Fire-and-forget, as the installer's metrics always were; a failure to report is logged and otherwise
+    ///     ignored. Nothing is sent when <see cref="PreflightOptions.SendMetrics" /> is off.
+    /// </summary>
+    public void SendMetric(string action, string subject)
+    {
+        if (!Options.SendMetrics) return;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await WjClient.SendMetric(action, subject);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug(ex, "Metric {Action} was not sent", action);
+            }
+        });
+    }
 }

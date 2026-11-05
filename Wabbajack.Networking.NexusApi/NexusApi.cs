@@ -127,6 +127,13 @@ public class NexusApi
         return await Send<ModFile>(msg, token);
     }
 
+    /// <summary>Every game Nexus Mods hosts, with the numeric id its pages and uploads are addressed by.</summary>
+    public virtual async Task<(NexusGame[] info, ResponseMetadata header)> Games(CancellationToken token = default)
+    {
+        var msg = await GenerateMessage(HttpMethod.Get, Endpoints.Games);
+        return await Send<NexusGame[]>(msg, token);
+    }
+
     public virtual async Task<(DownloadLink[] info, ResponseMetadata header)> DownloadLink(string nexusGameName,
         long modId, long fileId, CancellationToken token = default)
     {

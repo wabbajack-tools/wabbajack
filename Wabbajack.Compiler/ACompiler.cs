@@ -266,7 +266,7 @@ public abstract class ACompiler
                     if (!mainFile.FileExists())
                         _logger.LogWarning("Main file {file} for {game} does not exist", mainFile, ag);
 
-                    var versionInfo = FileVersionInfo.GetVersionInfo(mainFile.ToString());
+                    var versionInfo = ExecutableVersion.Read(mainFile.ToString());
                     var gameVersion = versionInfo.FileVersion ?? "0.0.0.0";
 
                     // Some Unreal Engine games expose the engine changelist as their executable

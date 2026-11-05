@@ -21,6 +21,7 @@ using Wabbajack.DTOs.Logins;
 using Wabbajack.Networking.Http.Interfaces;
 using Wabbajack.Networking.NexusApi;
 using Wabbajack.Paths;
+using Wabbajack.Launcher.Platforms;
 using Wabbajack.Paths.IO;
 #pragma warning disable SYSLIB0014
 
@@ -32,7 +33,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly List<string> _errors = new();
 
     private (Version Version, long Size, Func<Task<Uri>> Uri) _version;
-    public Uri GITHUB_REPO = new("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
+    // WABBAJACK_LAUNCHER_RELEASES points the launcher at another release list, to test a launcher against
+    // releases that are not published; unset, it reads Wabbajack's own.
+    public Uri GITHUB_REPO = new(Environment.GetEnvironmentVariable("WABBAJACK_LAUNCHER_RELEASES") is {Length: > 0} url
+        ? url
+        : "https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
     private readonly NexusApi _nexusApi;
     private readonly HttpDownloader _downloader;
     private readonly ITokenProvider<NexusOAuthState> _tokenProvider;
@@ -118,36 +123,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
         Status = "Looking for Updates";
 
-        var baseFolder = KnownFolders.CurrentDirectory.Combine(_version.Version.ToString());
+        var baseFolder = Platform.InstallRoot.Combine(_version.Version.ToString());
 
-        if (baseFolder.Combine("Wabbajack.exe").FileExists()) await FinishAndExit();
+        if (baseFolder.Combine(Platform.AppExecutable).FileExists()) await FinishAndExit();
 
         Status = $"Getting download Uri for {_version.Version}";
         var uri = await _version.Uri();
 
-        /*
-        var archive = new Archive()
-        {
-            Name = $"{_version.Version}.zip",
-            Size = _version.Size,
-            State = new Http {Url = uri}
-        };
-
-        await using var stream = await _downloader.GetChunkedSeekableStream(archive, CancellationToken.None);
-        var rdr = new ZipReader(stream, true);
-        var entries = (await rdr.GetFiles()).OrderBy(d => d.FileOffset).ToArray();
-        foreach (var file in  entries)
-        {
-            if (file.FileName.EndsWith("/") || file.FileName.EndsWith("\\")) continue;
-            var relPath = file.FileName.ToRelativePath();
-            Status = $"Extracting: {relPath.FileName}";
-            var outPath = baseFolder.Combine(relPath);
-            if (!outPath.Parent.DirectoryExists())
-                outPath.Parent.CreateDirectory();
-
-            await using var of = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-            await rdr.Extract(file, of, CancellationToken.None);
-        }*/
 
 
         var wc = new WebClient();
@@ -176,20 +158,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
-            using var zip = new ZipArchive(new MemoryStream(data), ZipArchiveMode.Read);
-            foreach (var entry in zip.Entries)
-            {
-                Status = $"Extracting: {entry.Name}";
-                var outPath = baseFolder.Combine(entry.FullName.ToRelativePath());
-                if (!outPath.Parent.DirectoryExists())
-                    outPath.Parent.CreateDirectory();
-
-                if (entry.FullName.EndsWith("/") || entry.FullName.EndsWith("\\"))
-                    continue;
-                await using var o = entry.Open();
-                await using var of = outPath.Open(FileMode.Create, FileAccess.Write, FileShare.None);
-                await o.CopyToAsync(of);
-            }
+            Status = $"Extracting {_version.Version}";
+            Platform.Unpack(data, baseFolder);
         }
         catch (Exception ex)
         {
@@ -241,7 +211,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             Status = "Launching...";
-            var wjFolder = KnownFolders.CurrentDirectory.EnumerateDirectories(recursive:false)
+            var wjFolder = Platform.InstallRoot.EnumerateDirectories(recursive:false)
                 .OrderByDescending(v =>
                     Version.TryParse(v.FileName.ToString(), out var ver) ? ver : new Version(0, 0, 0, 0))
                 .FirstOrDefault();
@@ -252,16 +222,17 @@ public partial class MainWindowViewModel : ViewModelBase
                 throw new Exception("No WJ install found");
             }
 
-            var filename = wjFolder.Combine("Wabbajack.exe");
-            await CreateBatchFile(filename);
-            var info = new ProcessStartInfo
+            var app = wjFolder.Combine(Platform.AppExecutable);
+            try
             {
-                FileName = filename.ToString(),
-                Arguments = string.Join(" ",
-                    Environment.GetCommandLineArgs().Skip(1).Select(s => s.Contains(' ') ? '\"' + s + '\"' : s)),
-                WorkingDirectory = wjFolder.ToString()
-            };
-            Process.Start(info);
+                await Platform.WriteCliShortcut(app);
+            }
+            catch (Exception ex)
+            {
+                _errors.Add($"Creating the CLI shortcut : {ex}");
+            }
+
+            Process.Start(Platform.StartApp(app, Environment.GetCommandLineArgs().Skip(1).ToArray()));
         }
         catch (Exception ex)
         {
@@ -284,52 +255,26 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private async Task CreateBatchFile(AbsolutePath filename)
-    {
-        try
-        {
-            filename = filename.Parent.Combine("cli", "wabbajack-cli.exe");
-            var data = $"\"{filename}\" %*";
-            var file = Path.Combine(Directory.GetCurrentDirectory(), "wabbajack-cli.bat");
-            if (File.Exists(file) && await File.ReadAllTextAsync(file) == data) return;
-            var parent = Directory.GetParent(file)!.FullName;
-            if (!Directory.Exists(file))
-                Directory.CreateDirectory(parent);
-            await File.WriteAllTextAsync(file, data);
-        }
-        catch (Exception ex)
-        {
-            _errors.Add($"Creating Batch File : {ex}");
-        }
-    }
-
     private void UpdateProgress(string what, object sender, DownloadProgressChangedEventArgs e)
     {
         Status = $"Downloading {what} ({e.ProgressPercentage}%)...";
     }
 
+    private static ILauncherPlatform Platform => LauncherPlatform.Current;
+
     private async Task<(Version Version, long Size, Func<Task<Uri>> Uri)> GetGithubRelease(CancellationToken token)
     {
         var releases = await GetGithubReleases();
-
-
-        var version = releases.Select(r =>
+        var picked = Platform.PickGitHubRelease(releases.Select(r => new ReleaseInfo(r.Tag, r.Prerelease,
+            r.Assets.Select(a => new ReleaseFile(a.Name, a.BrowserDownloadUrl, a.Size)).ToList())).ToList(), out var whyNot);
+        if (picked == null)
         {
-            if (r.Tag.Split(".").Length == 4 && Version.TryParse(r.Tag, out var v))
-                return (v, r);
-            return (new Version(0, 0, 0, 0), r);
-        })
-            .OrderByDescending(r => r.Item1)
-            .FirstOrDefault();
-
-        var asset = version.r.Assets.FirstOrDefault(a => a.Name == version.Item1 + ".zip");
-        if (asset == null)
-        {
-            Status = $"Error, no asset found for Github Release {version.r}";
+            Status = whyNot;
             return default;
         }
 
-        return (version.Item1, asset.Size, async () => asset!.BrowserDownloadUrl);
+        var (version, file) = picked.Value;
+        return (version, file.Size, async () => file.Url);
     }
 
     private async Task<Release[]> GetGithubReleases()
@@ -348,17 +293,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var data = await _nexusApi.ModFiles("site", 403, token);
         Status = "Parsing Response";
-        //return JsonSerializer.Deserialize<Release[]>(data)!;
 
-        var found = data.info.Files.Where(f => f.CategoryId == 5 || f.CategoryId == 3)
-            .Where(f => f.Name.EndsWith(".zip"))
-            .Select(f => Version.TryParse(f.Name[..^4], out var version) ? (version, f.SizeInBytes ?? f.Size,  f.FileId) : default)
-            .FirstOrDefault(f => f != default);
-        if (found == default) return default;
+        var picked = Platform.PickNexusFile(data.info.Files
+            .Select(f => new NexusFile(f.Name, f.CategoryId, f.FileId, f.SizeInBytes ?? f.Size)).ToList());
+        if (picked == null) return default;
 
-        return (found.version, found.Item2, async () =>
+        var (version, file) = picked.Value;
+        return (version, file.Size, async () =>
         {
-            var link = await _nexusApi.DownloadLink("site", 403, found.FileId, token);
+            var link = await _nexusApi.DownloadLink("site", 403, file.FileId, token);
 
             return link.info.First().URI;
         });
@@ -368,6 +311,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private partial class Release
     {
         [JsonPropertyName("tag_name")] public string Tag { get; set; }
+
+        [JsonPropertyName("prerelease")] public bool Prerelease { get; set; }
 
         [JsonPropertyName("assets")] public Asset[] Assets { get; set; }
     }

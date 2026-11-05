@@ -78,13 +78,17 @@ public sealed class ManualDownloadsCheck : IPreflightCheck
         var queue = pending.Except(unverifiable).ToList();
 
         var byName = queue.ToDictionary(q => q.Archive.Name, q => q, StringComparer.OrdinalIgnoreCase);
-        progress.ManualQueue(queue.Select(q => (q.Archive, q.Target)).ToList());
-        foreach (var item in queue)
-            progress.Archive(item.Archive, ArchiveState.ManualRequired, item.Reason);
 
         var acquirer = ctx.Acquirer;
         var watchFolder = ctx.Options.WatchFolder ?? KnownFolders.Downloads;
         await acquirer.Start(queue.Select(q => q.Archive), watchFolder, ctx.Config.Downloads, token);
+
+        // Announced only once the acquirer holds the queue. The app draws its manual-downloads panel from the
+        // acquirer when it hears this, and Start inventories the downloads folder first, which on a large list
+        // takes a while: announced earlier, the panel came up empty and stayed that way.
+        progress.ManualQueue(queue);
+        foreach (var item in queue)
+            progress.Archive(item.Archive, ArchiveState.ManualRequired, item.Reason);
 
         IReadOnlyList<ManualDownloadItem> snapshot;
         if (!ctx.Options.WaitForManualDownloads)

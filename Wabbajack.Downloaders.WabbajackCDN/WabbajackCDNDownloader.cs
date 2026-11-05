@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Wabbajack.DTOs.DownloadStates;
 using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
+using Wabbajack.Networking.Http;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -77,13 +79,22 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
     public override async Task<Hash> Download(Archive archive, WabbajackCDN state, AbsolutePath destination, IJob job,
         CancellationToken token)
     {
-        var definition = (await GetDefinition(state, token))!;
-        if (definition == null) return default;
+        var definition = await WithRetries($"the definition of {state.Url}", async () =>
+        {
+            var msg = MakeMessage(new Uri(state.Url + "/definition.json.gz"));
+            using var response = await _client.SendAsync(msg, token);
+            // Gone is gone; anything else (a busy CDN, a 5xx, a dropped connection) is worth asking again.
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                throw new PermanentCdnException(new HttpException(response));
+            if (!response.IsSuccessStatusCode)
+                throw new HttpException(response);
+            return await ReadDefinition(response, token);
+        }, token);
         await using var fs = destination.Open(FileMode.Create, FileAccess.Write, FileShare.None);
 
         await definition.Parts.PMapAll<PartDefinition, (MemoryStream, PartDefinition)>(async part =>
         {
-            return await CircuitBreaker.WithAutoRetryAllAsync<(MemoryStream, PartDefinition)>(_logger, async () =>
+            return await WithRetries($"part {part.Index} of {definition.MungedName}", async () =>
             {
                 using var partJob = await _limiter.Begin(
                     $"Downloading {definition.MungedName} ({part.Index}/{definition.Size})",
@@ -105,7 +116,7 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
                 }
 
                 return (ms, part);
-            });
+            }, token);
 
 
         }).Do(async rec =>
@@ -127,10 +138,57 @@ public class WabbajackCDNDownloader : ADownloader<WabbajackCDN>, IUrlDownloader,
         using var data = await _client.SendAsync(msg, token);
         if (!data.IsSuccessStatusCode) return null;
 
-        await using var stream = await data.Content.ReadAsStreamAsync(token);
+        return await ReadDefinition(data, token);
+    }
+
+    private async Task<FileDefinition> ReadDefinition(HttpResponseMessage response, CancellationToken token)
+    {
+        await using var stream = await response.Content.ReadAsStreamAsync(token);
         await using var gz = new GZipStream(stream, CompressionMode.Decompress);
         return (await _dtos.DeserializeAsync<FileDefinition>(gz, token))!;
     }
+
+    /// <summary>The pause before the first retry; each one after waits twice as long as the last.</summary>
+    public TimeSpan RetryDelay { get; init; } = TimeSpan.FromSeconds(1);
+
+    /// <summary>How many times a part or the definition is asked for before the download is given up.</summary>
+    public int Attempts { get; init; } = 6;
+
+    /// <summary>
+    ///     A CDN file is a definition and hundreds of parts, so a large one makes hundreds of requests and a brief
+    ///     outage lands on some of them. Each request is retried with a growing pause (about half a minute in all by
+    ///     default) rather than the tenth of a second it once had, which failed whole downloads over a hiccup. A
+    ///     file the CDN does not have is not retried, and nor is the user cancelling.
+    /// </summary>
+    private async Task<T> WithRetries<T>(string what, Func<Task<T>> request, CancellationToken token)
+    {
+        var delay = RetryDelay;
+        for (var attempt = 1;; attempt++)
+        {
+            try
+            {
+                return await request();
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (PermanentCdnException ex)
+            {
+                throw ex.InnerException!;
+            }
+            catch (Exception ex) when (attempt < Attempts)
+            {
+                _logger.LogWarning("Fetching {What} failed ({Message}), attempt {Attempt} of {Attempts}, waiting {Delay}",
+                    what, ex.Message, attempt, Attempts, delay);
+                await Task.Delay(delay, token);
+                delay *= 2;
+            }
+        }
+    }
+
+    /// <summary>Carries an error retrying cannot fix out of <see cref="WithRetries{T}" />.</summary>
+    private sealed class PermanentCdnException(Exception inner) : Exception(inner.Message, inner);
 
     private HttpRequestMessage MakeMessage(Uri url)
     {

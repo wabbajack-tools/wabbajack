@@ -16,6 +16,9 @@ using Wabbajack.App.Avalonia.Services;
 using Wabbajack.App.Avalonia.ViewModels;
 using Wabbajack.App.Avalonia.Views;
 using Wabbajack.Common;
+using Wabbajack.DTOs;
+using Wabbajack.Networking.Bethesda;
+using Wabbajack.Networking.WabbajackClientApi;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
@@ -50,9 +53,10 @@ public partial class App : Application
             ProtocolPipe.Listen(args => Dispatcher.UIThread.Post(() =>
             {
                 BringToFront(window);
-                // As in WPF, a later launch is only acted on for a wabbajack:// link.
-                if (args.Length > 0 && StartupChecks.ProtocolPayload(args[0]) != null)
-                    HandleStartupArgs(args);
+                // A later launch is handled as a first one would be: a wabbajack:// link, or a .wabbajack file
+                // double-clicked while the app is open. WPF only acted on links here, so opening a file just
+                // brought the window forward.
+                HandleStartupArgs(args);
             }), Program.Services.GetRequiredService<ILogger<App>>(), pipe.Token);
             desktop.Exit += (_, _) => pipe.Cancel();
 
@@ -63,6 +67,8 @@ public partial class App : Application
 
             // As the WPF window did on opening; it does nothing outside a launcher-laid-out install.
             RunLauncherUpdater();
+
+            CountBethesdaSignIns();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -91,6 +97,20 @@ public partial class App : Application
             LoadModlistForInstalling.Send(file, null);
             navigator.NavigateTo(ScreenType.Installer);
         }
+    }
+
+    /// <summary>
+    ///     A ping each time the Bethesda.net path signs in, so how often Creations are fetched that way can be
+    ///     counted. The sign-in happens deep inside a game-file repair, which knows nothing of metrics, so the
+    ///     app listens for it here. Only the game is sent.
+    /// </summary>
+    private static void CountBethesdaSignIns()
+    {
+        if (Program.Services.GetService<BethesdaApiClient>() is not { } bethesda) return;
+        var client = Program.Services.GetRequiredService<Client>();
+        bethesda.SignedIn += () =>
+            Task.Run(() => client.SendMetric(MetricNames.BethesdaLogin, Game.SkyrimSpecialEdition.ToString()))
+                .FireAndForget();
     }
 
     private static void BringToFront(Window window)

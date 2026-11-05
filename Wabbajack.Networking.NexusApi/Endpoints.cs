@@ -8,6 +8,7 @@ public static class Endpoints
     public const string ModFile = "v1/games/{0}/mods/{1}/files/{2}.json";
     public const string DownloadLink = "v1/games/{0}/mods/{1}/files/{2}/download_link.json";
     public const string Updates = "v1/games/{0}/mods/updated.json?period={1}";
+    public const string Games = "v1/games.json";
     
     public const string OAuthValidate = "https://users.nexusmods.com/oauth/userinfo";
 }

@@ -29,6 +29,31 @@ offline lane stays trustworthy.
 
 Building from Linux or macOS needs `/p:EnableWindowsTargeting=true`, which is what the CI workflow passes.
 
+Releases come from the Create Release workflow. `release.ps1` builds, signs and zips the Windows app, CLI and
+launcher and creates the GitHub draft; `release-linux.sh` publishes the app and CLI for linux-x64 into
+`{version}-linux-x64.tar.gz`, and the launcher into `Wabbajack-linux-x64.tar.gz` (unsigned, other platforms'
+tools left out). The Windows job is untouched by Linux: the Linux tarballs are built in a job of their own and
+attached, and uploaded to Nexus once the repository variables `NEXUS_LINUX_FILE_ID` and
+`NEXUS_LINUX_LAUNCHER_FILE_ID` hold their file ids, by a job that runs only after the Windows release is
+published. Both scripts read the version from the top of `CHANGELOG.md`.
+
+**The launcher updates the app, and the app updates the launcher.** `LauncherUpdater` replaces the launcher
+beside a launcher-laid-out install with the newest stable release's (`Wabbajack.exe`, or the launcher in
+`Wabbajack-linux-x64.tar.gz`), compared by the SHA-256 digest GitHub publishes for each asset, since launchers
+carry no Wabbajack version. From 3.0 until this was rewritten the WPF updater never replaced one (it read the
+release list with Newtonsoft attributes through System.Text.Json), so launchers going back to 2021 are still in
+use, and every launcher runs before the app that would replace it.
+
+**So every release has to suit the old launchers.** On GitHub they take the highest tag
+that is exactly four numbers, prereleases included, and its `{tag}.zip`; on Nexus, the first file whose name
+ends in `.zip` and parses as a version. The Linux launcher asks Nexus first too, with a premium login, and
+takes only `{version}-linux-x64.tar.gz`, from Nexus or from stable GitHub releases, so Linux downloads count on
+the mod page as Windows ones do. Betas (the Create Beta Build workflow, `BETA=beta.N`) are handed out by hand: an unsigned
+prerelease tagged `{version}-beta.N`, which no launcher picks up, and never on Nexus.
+`Wabbajack.Launcher.Test` holds those rules, the old launchers' selection code included, against a release
+shaped as the workflows publish it; `WABBAJACK_LAUNCHER_RELEASES` points a launcher at another release list to
+try one against releases that are not published.
+
 ### Credentials
 
 `NEXUS_API_KEY` is read straight from the environment by `NexusApi.cs`. With it set, the `RequiresOAuth`
@@ -76,6 +101,24 @@ Logs are written to a `logs` folder next to the executable, configured in the Av
 - Most projects set `<Nullable>enable</Nullable>` while suppressing several nullable warnings via `NoWarn`.
 - Files are CRLF. Some shell tools rewrite a whole file to LF, which buries a small change in a whole-file
   diff, so check `git diff --stat` after editing outside an editor.
+
+## Windows and Linux
+
+The app and the CLI run on both. A platform difference belongs in the one place that owns it, not in an
+`OperatingSystem.IsWindows()` check where it is used:
+
+- **The user's desktop** (message boxes, the file manager, a terminal, shortcuts, file associations, the window
+  frame, screen and VRAM, where Modlists goes): `IDesktop` in `Wabbajack.App.Avalonia/Services/Desktop`, with
+  `WindowsDesktop` and `LinuxDesktop`; `Desktop.Current` is chosen once.
+- **The launcher**: `ILauncherPlatform` in `Wabbajack.Launcher/Platforms`. The Windows one must keep behaving as
+  launchers already installed do, since each runs before the app that would replace it.
+- **Paths and files**: `WindowsProgramPaths` and `WinePrefixes` (paths as MO2 and the game see them under Wine),
+  `CaseInsensitiveLookup` and `PathCasing` (Windows casing on a case-sensitive file system), `Volumes` (which
+  volume, free space, moving within one), `PlatformExecutable` (a program's file name), `KnownFolders`.
+- **Smaller primitives** keep their own check inside them: `ProcessHelper`, `TimerResolution`,
+  `ChildProcessTracker`, `ExecutableVersion`, `ProtectedData`, the extractor's 7-Zip arguments.
+
+Anything that is not Windows is treated as Linux; macOS has no desktop or launcher platform of its own yet.
 
 ## Things worth knowing before changing them
 
@@ -413,6 +456,21 @@ Mods files" on the first pass and halts for a login on the second, contradicting
 is built on — a rerouted Nexus download without a login goes to the manual queue rather than stopping the
 run.
 
+**The proxy is a second reroute, and it has to happen at plan time.** The proxy (wabbajack-tools/proxy-server)
+keeps copies of Mega, Google Drive and MediaFire files, stored the way the CDN stores an authored file:
+`{ProxyUrl}{hash}/definition.json.gz` and `/parts/{n}`. Its `index.json` lists every file it holds with its
+size, and the plan loads it once beside the mirror list (`IDownloadPolicySource.ProxyIndex`) and calls
+`ArchiveDownloadPipeline.Proxy` right after the mirror reroute: an archive whose state nothing automated can
+fetch, and whose hash *and size* are in the index, becomes a `WabbajackCDN` download from the proxy. It has
+to be there and not in `DownloadOne`, because manual-downloads runs first and opens a browser page for
+everything the split sends to the queue. The index is one cached file for the whole run, so being proxied
+costs no request per archive, and an index that will not load leaves those archives manual, exactly as
+before. `PreflightBlackboard.Proxied` keeps the state the list gave each one: `Placed` writes the `.meta`
+from it, so a list compiled from this install points at Mega rather than the proxy, and `ToManual` restores
+it, so a proxied download that fails goes to the queue with the original page (a proxy address has none).
+Each proxied download sends `proxy_download` with the hash, and each fallback `proxy_failed`; the proxy's
+usage report is built from those.
+
 Splitting by state type is only half of it. An archive whose state is automated still needs a downloader the
 dispatcher has, one that will `Prepare()`, and a URL the allow-list permits, and none of those takes a
 download to establish, so `ArchiveDownloadPipeline.Screen` settles them while the plan is being computed.
@@ -467,6 +525,14 @@ A refused refresh also stands for `RefreshRetryDelay` (a minute) before another 
 refreshes an expired token on the way to every authenticated call, so an offline machine would otherwise
 post a doomed refresh once per request; the old behaviour hid that by writing the failure and never trying
 again at all.
+
+**Nexus tier metrics carry the tier and nothing else.** `finish_install_{premium|free|logged_out|unknown}` goes
+out beside `finish_install` from `Rules/FinishInstallMetrics`, and `nexus_tier_change` from `NexusTierTracker`,
+which wraps the login probe so every check of the account feeds it, the launch-time one in `MainWindowVM`
+included. The tracker's memory is one boolean in `encrypted/nexus-state` beside the metrics key: no account id
+is stored or sent, so swapping accounts reads as a conversion, and these are broad numbers that can bear that.
+Both pass `rebound: false`, because `Client.SendMetric` otherwise exits the process on a 403 or a 500. Neither
+can fail an install or hold a preflight row for more than a few seconds.
 
 `CanDownload` answers "can this machine download from Nexus Mods" and nothing else; the collection upload
 and download paths build their own GraphQL requests with `Authorization: Bearer`, so they need an unexpired

@@ -88,6 +88,26 @@ public class BethesdaApiClientHttpTests
         Assert.Equal("dovahkiin", client.Username);
     }
 
+    /// <summary>
+    ///     The app counts Bethesda.net sign-ins from this event, so it is raised once a sign-in has gone all
+    ///     the way through, and not for one whose entitlement update failed.
+    /// </summary>
+    [Fact]
+    public async Task SignedInIsRaisedOnlyWhenTheEntitlementsAreUpdated()
+    {
+        _http.ThenOk(LoginOk).ThenOk(FulfilledOk)
+            .ThenOk(LoginOk).ThenOk("""{"platform":{"code":4000,"message":"entitlements unavailable"}}""");
+        var client = Client();
+        var raised = 0;
+        client.SignedIn += () => raised++;
+
+        await client.SignIn();
+        Assert.Equal(1, raised);
+
+        await Assert.ThrowsAsync<BethesdaApiException>(() => client.SignIn());
+        Assert.Equal(1, raised);
+    }
+
     /// <summary>A login Bethesda accepts without handing back a session is a failure, said as such.</summary>
     [Fact]
     public async Task ALoginWithNoSessionTokenFails()

@@ -22,6 +22,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Get App Version from CHANGELOG.md
         shell: bash
@@ -39,12 +41,9 @@ jobs:
         with:
           global-json-file: global.json
 
+      # The offline lane, as the Tests workflow runs it. The full suite needs logins and a game a runner never
+      # has, and running it here kept the packages from publishing at all.
       - name: Test
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: dotnet test /p:EnableWindowsTargeting=true
-
-      - name: Test
-        if: ${{ github.ref != 'refs/heads/main' }}
         run: dotnet test /p:EnableWindowsTargeting=true --filter "Category!=RequiresOAuth&Category!=RequiresNetwork"
         
       #- name: Upload Test Folder on Failure
@@ -105,6 +104,8 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4

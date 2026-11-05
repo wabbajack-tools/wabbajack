@@ -44,6 +44,55 @@ public static class TestArchives
         return path;
     }
 
+    /// <summary>
+    ///     A 7z whose entry names hold a literal backslash rather than a folder separator, the way an archive packed
+    ///     on Linux from Windows paths stores them (Requiem 5.0.3's bugfix pack is one: <c>core\Requiem.bsa</c> is a
+    ///     single name). SharpCompress writes separators as <c>/</c>, so the archive is written with a plain header
+    ///     and the names are patched in place, with the header's two CRCs worked out again.
+    /// </summary>
+    public static async Task<AbsolutePath> SevenZipWithBackslashNames(AbsolutePath path,
+        params (string Name, string Content)[] entries)
+    {
+        var buffer = new MemoryStream();
+        using (var writer = new SharpCompress.Writers.SevenZip.SevenZipWriter(buffer,
+                   new SharpCompress.Writers.SevenZip.SevenZipWriterOptions {CompressHeader = false, LeaveStreamOpen = true}))
+        {
+            foreach (var (name, content) in entries)
+                writer.Write(name.Replace('\\', '/'), new MemoryStream(Encoding.UTF8.GetBytes(content)), DateTime.UnixEpoch);
+        }
+
+        var bytes = buffer.ToArray();
+        var headerStart = 32 + (int) BinaryPrimitives.ReadUInt64LittleEndian(bytes.AsSpan(12));
+        var headerLength = (int) BinaryPrimitives.ReadUInt64LittleEndian(bytes.AsSpan(20));
+        var header = bytes.AsSpan(headerStart, headerLength);
+        if (header[0] != 0x01) throw new InvalidDataException("Expected a plain 7z header to patch");
+
+        foreach (var (name, _) in entries.Where(e => e.Name.Contains('\\')))
+        {
+            var stored = Encoding.Unicode.GetBytes(name.Replace('\\', '/'));
+            var at = header.IndexOf(stored);
+            if (at < 0) throw new InvalidDataException($"{name} is not in the header");
+            Encoding.Unicode.GetBytes(name).CopyTo(header[at..]);
+        }
+
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes.AsSpan(28), Crc32(header));
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes.AsSpan(8), Crc32(bytes.AsSpan(12, 20)));
+        await path.WriteAllBytesAsync(bytes);
+        return path;
+    }
+
+    private static uint Crc32(ReadOnlySpan<byte> data)
+    {
+        var crc = 0xFFFFFFFFu;
+        foreach (var b in data)
+        {
+            crc ^= b;
+            for (var i = 0; i < 8; i++) crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xEDB88320u : crc >> 1;
+        }
+
+        return ~crc;
+    }
+
     /// <summary>A Skyrim SE BSA; <paramref name="compressed" /> sets the archive's compression flag.</summary>
     public static async Task<AbsolutePath> Bsa(AbsolutePath path, TemporaryFileManager manager, bool compressed,
         params (string Name, string Content)[] entries)

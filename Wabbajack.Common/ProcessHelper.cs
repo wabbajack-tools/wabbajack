@@ -28,6 +28,8 @@ public class ProcessHelper
 
     public async Task<int> Start()
     {
+        EnsureExecutable(Path);
+
         var args = Arguments.Select(arg =>
         {
             return arg switch
@@ -103,5 +105,31 @@ public class ProcessHelper
             throw new Exception(
                 $"Error executing {Path} - Exit Code {result} - Check the log for more information - {string.Join(" ", args.Select(a => a!.ToString()))}");
         return result;
+    }
+
+    /// <summary>
+    ///     The tools shipped beside the app lose their executable bit on the way to a Linux machine: git holds them
+    ///     without it and a zip made on Windows has none to keep. Setting it here is cheaper than every packaging
+    ///     path remembering to.
+    /// </summary>
+    private static void EnsureExecutable(AbsolutePath path)
+    {
+        if (OperatingSystem.IsWindows()) return;
+
+        try
+        {
+            var file = path.ToString();
+            if (!System.IO.File.Exists(file)) return;
+            var mode = System.IO.File.GetUnixFileMode(file);
+            const System.IO.UnixFileMode execute = System.IO.UnixFileMode.UserExecute |
+                                                   System.IO.UnixFileMode.GroupExecute |
+                                                   System.IO.UnixFileMode.OtherExecute;
+            if ((mode & System.IO.UnixFileMode.UserExecute) == 0)
+                System.IO.File.SetUnixFileMode(file, mode | execute);
+        }
+        catch (Exception)
+        {
+            // Read-only installs and other owners: starting the process will say what is wrong.
+        }
     }
 }

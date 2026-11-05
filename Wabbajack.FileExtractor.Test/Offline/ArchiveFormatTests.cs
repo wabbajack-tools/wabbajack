@@ -118,6 +118,39 @@ public class ArchiveFormatTests : IAsyncLifetime
         Assert.Contains($"({archive.Size()} bytes)", error.Message);
     }
 
+    /// <summary>
+    ///     7-Zip 26 turns a backslash inside a stored name into an underscore, so an install asking for
+    ///     <c>core\Requiem.esp</c> got "No files to process" and 0 of 832 files out of Requiem 5.0.3's bugfix pack.
+    ///     Such an archive is read in process, with the backslashes as folders, as 7-Zip 20 read it.
+    /// </summary>
+    [Fact]
+    public async Task SevenZip_WithBackslashNames_GivesTheFilesAnInstallAsksFor()
+    {
+        var archive = await TestArchives.SevenZipWithBackslashNames(File("requiem.7z"), TestArchives.Entries);
+        var wanted = TestArchives.Entries.Select(e => e.Name.ToRelativePath()).ToHashSet();
+
+        AssertHolds(await Read(archive, onlyFiles: wanted), TestArchives.Entries);
+    }
+
+    /// <summary>A compile extracts everything, and would otherwise index the files as core_Requiem.esp.</summary>
+    [Fact]
+    public async Task SevenZip_WithBackslashNames_ExtractsEverythingUnderItsFolders()
+    {
+        var archive = await TestArchives.SevenZipWithBackslashNames(File("requiem.7z"), TestArchives.Entries);
+
+        AssertHolds(await Read(archive), TestArchives.Entries);
+    }
+
+    [Fact]
+    public async Task SevenZip_WithBackslashNames_ShouldExtractLeavesTheRestOut()
+    {
+        var archive = await TestArchives.SevenZipWithBackslashNames(File("requiem.7z"), TestArchives.Entries);
+
+        var results = await Read(archive, path => path.Extension == new Extension(".nif"));
+
+        AssertHolds(results, TestArchives.Entries[0]);
+    }
+
     [Fact]
     public async Task SevenZip_Extracts()
     {

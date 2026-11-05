@@ -67,7 +67,10 @@ public class InferencerTagTests : IDisposable
 
         Assert.Equal(Game.SkyrimSpecialEdition, settings.Game);
         Assert.Equal(_mo2, settings.Source);
-        Assert.Equal(@"C:\Modlists\The List\downloads".ToAbsolutePath(), settings.Downloads);
+        // Off Windows a C: path belongs to a Wine prefix, and no prefix has this one, so the MO2 folder's own
+        // downloads folder is taken instead of a path that names nothing here.
+        Assert.Equal(OperatingSystem.IsWindows() ? @"C:\Modlists\The List\downloads".ToAbsolutePath() : _mo2.Combine("downloads"),
+            settings.Downloads);
         Assert.Equal(_mo2.Parent.Combine("The List.wabbajack"), settings.OutputFile);
     }
 

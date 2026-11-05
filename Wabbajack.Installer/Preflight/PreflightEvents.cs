@@ -27,9 +27,9 @@ public sealed record ArchiveChanged(ArchiveStatus Status) : PreflightEvent;
 
 /// <summary>
 ///     The archives the user has to fetch by hand, in the order they will be asked for, each with the page
-///     to open. Raised when manual-downloads starts and whenever the queue is republished.
+///     to open and why it is not downloaded automatically. Raised when manual-downloads starts and whenever the queue is republished.
 /// </summary>
-public sealed record ManualQueueChanged(IReadOnlyList<(Archive Archive, ManualDownloadTarget Target)> Queue)
+public sealed record ManualQueueChanged(IReadOnlyList<ManualQueueItem> Queue)
     : PreflightEvent;
 
 public sealed record RunFinished(PreflightOutcome Outcome) : PreflightEvent;

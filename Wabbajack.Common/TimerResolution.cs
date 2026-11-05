@@ -24,7 +24,7 @@ namespace Wabbajack.Common
             _ms = milliseconds == 0 ? 1u : milliseconds;
             lock (Gate)
             {
-                if (_refCount++ == 0) TimeBeginPeriod(_ms);
+                if (_refCount++ == 0 && OperatingSystem.IsWindows()) TimeBeginPeriod(_ms);
                 _active = true;
             }
         }
@@ -33,7 +33,7 @@ namespace Wabbajack.Common
         {
             lock (Gate)
             {
-                if (_active && --_refCount == 0) TimeEndPeriod(_ms);
+                if (_active && --_refCount == 0 && OperatingSystem.IsWindows()) TimeEndPeriod(_ms);
                 _active = false;
             }
         }

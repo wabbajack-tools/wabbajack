@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Humanizer;
+using Wabbajack.Paths;
 
 namespace Wabbajack.App.Avalonia.ViewModels.Installers;
 
@@ -14,6 +15,12 @@ public static class InstallFolderSuggestion
     ///     "Foo Bar - Baz", whose part before the dash ends in a space, no longer yields an empty word to take an
     ///     initial of (which threw, and left every such list with no suggestion).
     /// </summary>
+    /// <summary>Where a list is offered to go: a Modlists folder in <paramref name="root" />, named for it.</summary>
+    public static AbsolutePath Folder(AbsolutePath root, string title)
+    {
+        return root.Combine("Modlists", FolderName(title));
+    }
+
     public static string FolderName(string title)
     {
         var name = title.Split('-')[0];

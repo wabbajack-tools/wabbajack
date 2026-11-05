@@ -61,7 +61,12 @@ public class WabbajackClientTests : IAsyncLifetime
 
     private Client Client(FakeHttp http, string? authorKey = null)
     {
-        return new Client(NullLogger<Client>.Instance, http.Client(), new Keys(authorKey), _dtos,
+        return Client(http.Client(), authorKey);
+    }
+
+    private Client Client(HttpClient http, string? authorKey = null)
+    {
+        return new Client(NullLogger<Client>.Instance, http, new Keys(authorKey), _dtos,
             new Resource<HttpClient>("http", 4), new Resource<Client>("hash", 4), new ClientConfiguration());
     }
 
@@ -404,6 +409,68 @@ public class WabbajackClientTests : IAsyncLifetime
         Assert.Contains("oldSha=sha-1234", post.RequestUri!.Query);
         Assert.Equal(new[] {"first.7z", "second.7z"},
             _dtos.Deserialize<ValidatedArchive[]>(written!)!.Select(a => a.Original.Name));
+    }
+
+    /// <summary>
+    ///     Preflight reads the proxy's index once per run to decide which Mega, Google Drive and MediaFire files
+    ///     download on their own; the files are then fetched from where the index was found.
+    /// </summary>
+    [Fact]
+    public async Task LoadProxyIndex_ReadsTheIndexAndWhereItsFilesLive()
+    {
+        var proxy = new ClientConfiguration().ProxyUrl;
+        var http = new FakeHttp(_ => Text("""{"Version":1,"Generated":"2026-10-17T23:46:13Z","Files":{"ce40df44e3c6f511":998789120}}"""));
+
+        var index = await Client(http).LoadProxyIndex(CancellationToken.None);
+
+        Assert.Equal(new Uri(proxy, "index.json"), Assert.Single(http.Requests).RequestUri);
+        Assert.Equal(proxy, index.BaseUrl);
+        Assert.True(index.Holds(Hash.FromHex("ce40df44e3c6f511"), 998789120));
+        Assert.Equal(new Uri(proxy, "ce40df44e3c6f511"), index.UrlFor(Hash.FromHex("ce40df44e3c6f511")));
+    }
+
+    /// <summary>Preflight treats any failure here as "no proxy", so the failure has to reach it as an exception.</summary>
+    [Fact]
+    public async Task LoadProxyIndex_ServerErrorThrows()
+    {
+        var http = new FakeHttp(_ => FakeHttp.Status(HttpStatusCode.ServiceUnavailable));
+
+        await Assert.ThrowsAnyAsync<HttpRequestException>(() => Client(http).LoadProxyIndex(CancellationToken.None));
+    }
+
+    /// <summary>
+    ///     A missing index costs the user nothing they had before, so a proxy that never answers must not hold up the
+    ///     download plan for the HTTP client's own, much longer, timeout.
+    /// </summary>
+    [Fact]
+    public async Task LoadProxyIndex_GivesUpOnAProxyThatNeverAnswers()
+    {
+        var client = Client(new HttpClient(new NeverAnswers()));
+        client.ProxyIndexTimeout = TimeSpan.FromMilliseconds(100);
+        var started = DateTime.UtcNow;
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => client.LoadProxyIndex(CancellationToken.None));
+
+        Assert.True(DateTime.UtcNow - started < TimeSpan.FromSeconds(10));
+    }
+
+    [Fact]
+    public async Task LoadProxyIndex_StopsWhenTheCallerCancels()
+    {
+        using var cancel = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            Client(new HttpClient(new NeverAnswers())).LoadProxyIndex(cancel.Token));
+        Assert.True(cancel.IsCancellationRequested);
+    }
+
+    private sealed class NeverAnswers : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            await Task.Delay(Timeout.Infinite, token);
+            throw new InvalidOperationException("unreachable");
+        }
     }
 
     private sealed class Keys(string? authorKey) : ITokenProvider<WabbajackApiState>

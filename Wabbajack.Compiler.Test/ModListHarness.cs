@@ -118,7 +118,8 @@ public class ModListHarness
     ///     the install's downloads folder right now, which is how an update over an existing install with
     ///     archives it no longer needs is exercised.
     /// </summary>
-    public async Task<InstallResult> InstallWithResult(bool prePlaceDownloads = true)
+    public async Task<InstallResult> InstallWithResult(bool prePlaceDownloads = true,
+        Action<StandardInstaller>? configureInstaller = null)
     {
         // The installer no longer downloads: what compiling used has to be in place before Begin.
         if (prePlaceDownloads)
@@ -126,6 +127,7 @@ public class ModListHarness
         using var scope = _serviceProvider.CreateScope();
         await ConfigureInstall(scope.ServiceProvider);
         var installer = scope.ServiceProvider.GetService<StandardInstaller>()!;
+        configureInstaller?.Invoke(installer);
 
         return await installer.Begin(CancellationToken.None);
     }

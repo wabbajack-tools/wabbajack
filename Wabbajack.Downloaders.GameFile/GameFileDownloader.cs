@@ -54,7 +54,7 @@ public class GameFileDownloader : ADownloader<GameFileSource>
     public override async Task<bool> Verify(Archive archive, GameFileSource archiveState, IJob job,
         CancellationToken token)
     {
-        var fp = archiveState.GameFile.RelativeTo(_locator.GameLocation(archiveState.Game));
+        var fp = _locator.GameLocation(archiveState.Game).FindIgnoringCase(archiveState.GameFile);
         if (!fp.FileExists()) return false;
         return await _hashCache.FileHashCachedAsync(fp, token) == archive.Hash;
     }

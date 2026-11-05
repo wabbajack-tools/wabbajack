@@ -115,6 +115,16 @@ public sealed class PreflightBlackboard
     public HashSet<string> Rerouted { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
+    ///     Archives the proxy stood in for, by <c>Archive.Name</c>, with the state the list gave them. Like the
+    ///     mirror reroute, the proxy rewrites the modlist's own state to a CDN one; unlike it, the original is
+    ///     still wanted afterwards. The <c>.meta</c> file records where the file really comes from, so a list
+    ///     compiled from this install points at Mega or Google Drive and not at the proxy; and a proxied
+    ///     download that fails goes to the manual queue with that original page, which a CDN address has none of.
+    ///     The automated pass runs wide, so the fallback removes entries from several threads at once.
+    /// </summary>
+    public ConcurrentDictionary<string, IDownloadState> Proxied { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     ///     Set by archive-inventory: where each required archive was found on disk, keyed by
     ///     <c>Archive.Name</c> (OrdinalIgnoreCase). Keyed by name rather than hash for the same reason the
     ///     runner's archive snapshot is: two archives can share bytes under different names.

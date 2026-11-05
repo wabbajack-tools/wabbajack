@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.DTOs;
+using Wabbajack.DTOs.CDN;
 using Wabbajack.DTOs.Validation;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer.Preflight;
@@ -20,6 +21,12 @@ public sealed class FakeDownloadPolicySource : IDownloadPolicySource
     };
 
     public List<Archive> MirrorArchives { get; } = new();
+
+    /// <summary>What the proxy holds. Empty by default, so a test sees no proxy unless it adds files here.</summary>
+    public ProxyIndex ProxyIndexValue { get; set; } = new() {BaseUrl = new Uri("https://proxy.invalid/")};
+
+    /// <summary>When set, only the proxy index load throws it: the proxy being down must not stop a run.</summary>
+    public Exception? ThrowFromProxyIndex { get; set; }
 
     /// <summary>When set, both loads throw it, as they would with no network.</summary>
     public Exception? Throw { get; set; }
@@ -41,5 +48,14 @@ public sealed class FakeDownloadPolicySource : IDownloadPolicySource
         MirrorCalls++;
         if (Throw != null) throw Throw;
         return Task.FromResult(MirrorArchives.ToLookup(m => m.Hash));
+    }
+
+    public int ProxyIndexCalls { get; private set; }
+
+    public Task<ProxyIndex> ProxyIndex(CancellationToken token)
+    {
+        ProxyIndexCalls++;
+        if (ThrowFromProxyIndex != null) throw ThrowFromProxyIndex;
+        return Task.FromResult(ProxyIndexValue);
     }
 }

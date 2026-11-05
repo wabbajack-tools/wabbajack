@@ -209,6 +209,19 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
                 HandleProtocolLoad(pending).FireAndForget();
             }
 
+            // A link that arrives while the gallery is already showing: navigating to it activates nothing, so
+            // without this the link waited for the next time the gallery was opened. Taken through the same
+            // pending slot, so a link that also activated the gallery is handled once.
+            MessageBus.Current.Listen<LoadModlistFromProtocol>()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ =>
+                {
+                    if (!LoadModlistFromProtocol.TryConsumePending(out var link)) return;
+                    _logger.LogInformation("[Protocol] Received machine URL while the gallery was open: {machineUrl}", link);
+                    HandleProtocolLoad(link).FireAndForget();
+                })
+                .DisposeWith(disposables);
+
             MessageBus.Current.Listen<LoadModlistForInstalling>()
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(msg =>
@@ -466,25 +479,8 @@ public partial class ModListGalleryVM : ViewModel, ICanLoadLocalFileVM
             _logger.LogInformation("[Protocol] Found modlist '{title}' ({namespaced}), executing InstallCommand",
                 modlist.Metadata.Title, modlist.Metadata.NamespacedName);
 
-            // Check if the required game is installed
-            if (!_locator.IsInstalled(modlist.Metadata.Game))
-            {
-                var gameName = modlist.Metadata.Game.MetaData().HumanFriendlyGameName;
-                _logger.LogWarning("[Protocol] Cannot install modlist '{title}': Required game '{game}' is not installed",
-                    modlist.Metadata.Title, gameName);
-
-                var errorMessage = $"Cannot install '{modlist.Metadata.Title}': {gameName} is not installed on this PC. Please install {gameName} first.";
-                Error = ValidationResult.Fail(errorMessage);
-
-                // Show popup error
-                NativeMessageBox.ShowError(errorMessage, "Game Not Installed");
-
-                IsResolvingProtocol = false;
-                ProtocolStatusText = string.Empty;
-                ll.Fail();
-                return;
-            }
-
+            // Whether the game is installed is preflight's question, not this one's: a game that is not here can
+            // still be installed for, with its files fetched from Steam, and preflight is what offers that.
             if (!modlist.InstallCommand.CanExecute(null))
             {
                 _logger.LogWarning("[Protocol] Cannot install modlist: {name}", modlist.Metadata.Title);

@@ -13,6 +13,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Wabbajack.App.Avalonia.ViewModels;
+using Wabbajack.Paths.IO;
+using Wabbajack.App.Avalonia.Services;
 
 namespace Wabbajack.App.Avalonia.Views;
 
@@ -21,6 +23,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        SystemDecorations = Desktop.Current.WindowDecorations;
+
         TitleBar.PointerPressed += TitleBar_PointerPressed;
         FloatingWindowBackground.PointerPressed += FloatingWindowBackground_PointerPressed;
         KeyDown += OnKeyDown;
@@ -67,7 +72,7 @@ public partial class MainWindow : Window
     private static ILogger<MainWindow> Logger => Program.Services.GetRequiredService<ILogger<MainWindow>>();
 
     /// <summary>
-    ///     WPF's shutdown: stop what is running, then empty the temp folder beside the working directory, which
+    ///     WPF's shutdown: stop what is running, then empty the temp folder beside the executable, which
     ///     extraction can leave gigabytes in.
     /// </summary>
     private void OnClosed()
@@ -75,7 +80,9 @@ public partial class MainWindow : Window
         Logger.LogInformation("Beginning shutdown...");
         VM?.CancelRunningTasks(TimeSpan.FromSeconds(10));
 
-        var tempDirectory = Path.Combine(Environment.CurrentDirectory, "temp");
+        // The temp folder ServiceExtensions hands out, beside the executable. Off Windows nothing moves the working
+        // directory there, and emptying "temp" under whatever folder the app was started from is not ours to do.
+        var tempDirectory = KnownFolders.EntryPoint.Combine("temp").ToString();
         Logger.LogInformation("Clearing {TempDir}", tempDirectory);
         try
         {

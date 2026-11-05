@@ -235,7 +235,8 @@ public class StandardInstallerTest
             _provider.GetRequiredService<ParallelOptions>(),
             _provider.GetRequiredService<IResource<IInstaller>>(),
             _provider.GetRequiredService<Client>(),
-            _provider.GetRequiredService<IImageLoader>());
+            _provider.GetRequiredService<IImageLoader>(),
+            new FakeNexusLoginProbe());
     }
 
     private static SystemParameters SystemParameters()
