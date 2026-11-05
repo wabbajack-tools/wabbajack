@@ -35,6 +35,7 @@ using Wabbajack.DTOs.JsonConverters;
 using Wabbajack.Hashing.xxHash64;
 using Wabbajack.Installer;
 using Wabbajack.Installer.Preflight;
+using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 using Wabbajack.RateLimiter;
@@ -72,6 +73,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     private readonly Random _random = new();
 
     [Reactive] public partial ModList ModList { get; set; }
+
+    [Reactive] public partial InstallFolderKind? TargetFolderKind { get; set; }
     [Reactive] public partial ModlistMetadata ModlistMetadata { get; set; }
     [Reactive] public partial FilePickerVM WabbajackFileLocation { get; set; }
     [Reactive] public partial MO2InstallerVM Installer { get; set; }
@@ -125,6 +128,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
     private readonly DTOSerializer _dtos;
     private readonly ILogger<InstallationVM> _logger;
     private readonly SettingsManager _settingsManager;
+    private AbsolutePath _previousInstallLocation;
+    private HashSet<RelativePath>? _modListDestinations;
     private readonly IServiceProvider _serviceProvider;
     private readonly IGameLocator _gameLocator;
     private readonly ResourceMonitor _resourceMonitor;
@@ -297,15 +302,25 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 })
                 .DisposeWith(disposables);
 
+            this.WhenAnyValue(vm => vm.Installer.Location.TargetPath,
+                    vm => vm.Installer.DownloadLocation.TargetPath)
+                .Throttle(TimeSpan.FromMilliseconds(400), RxApp.TaskpoolScheduler)
+                .Select(paths => Observable.FromAsync(() => Task.Run(() => ProbeTargetFolder(paths.Item1, paths.Item2))))
+                .Switch()
+                .ObserveOnGuiThread()
+                .Subscribe(kind => TargetFolderKind = kind)
+                .DisposeWith(disposables);
+
             this.WhenAnyValue(vm => vm.WabbajackFileLocation.ValidationResult,
                     vm => vm.Installer.DownloadLocation.ValidationResult,
                     vm => vm.Installer.Location.ValidationResult,
                     vm => vm.WabbajackFileLocation.TargetPath,
                     vm => vm.Installer.Location.TargetPath,
-                    vm => vm.Installer.DownloadLocation.TargetPath)
+                    vm => vm.Installer.DownloadLocation.TargetPath,
+                    vm => vm.TargetFolderKind)
                 .Select(t =>
                 {
-                    var (wjVr, dlVr, instVr, _, _, _) = t;
+                    var (wjVr, dlVr, instVr, _, _, _, _) = t;
                     var pickers = new[] { wjVr, dlVr, instVr };
                     var rules = Validate().ToArray();
 
@@ -526,7 +541,31 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
             gameFolders,
             KnownFolders.EntryPoint,
             KnownFolders.Windows,
-            path => KnownFolders.IsInSpecialFolder(path, out var special) ? special : null));
+            path => KnownFolders.IsInSpecialFolder(path, out var special) ? special : null,
+            TargetFolderKind));
+    }
+
+    private InstallFolderKind? ProbeTargetFolder(AbsolutePath install, AbsolutePath downloads)
+    {
+        if (ModList == null || install == default || install.Depth <= 1 || !install.DirectoryExists())
+            return null;
+
+        try
+        {
+            var destinations = _modListDestinations ??= ModList.Directives.Select(d => d.To).ToHashSet();
+
+            var evidence = InstallFolderProbe.Scan(new InstallFolderProbeInput(
+                ModList.Name, install, downloads, WabbajackFileLocation.TargetPath,
+                destinations.Contains, destinations.Count, new HashSet<AbsolutePath>(),
+                _previousInstallLocation));
+
+            return InstallFolderRules.Classify(evidence).Kind;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Could not inspect the installation folder {Install}", install);
+            return null;
+        }
     }
 
     private async Task LoadLastModlist()
@@ -554,6 +593,7 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
         try
         {
             ModList = await StandardInstaller.LoadFromFile(_dtos, path);
+            _modListDestinations = null;
             var stream = await StandardInstaller.ModListImageStream(path);
             if (stream != null) ModListImage = UIUtils.BitmapFromStream(stream);
 
@@ -602,8 +642,13 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
 
             if (hasPrevModListInstallation)
             {
-                Installer.Location.TargetPath = prevSettings!.InstallLocation;
+                _previousInstallLocation = prevSettings!.InstallLocation;
+                Installer.Location.TargetPath = prevSettings.InstallLocation;
                 Installer.DownloadLocation.TargetPath = prevSettings.DownloadLocation;
+            }
+            else
+            {
+                _previousInstallLocation = default;
             }
 
             ll.Succeed();
@@ -668,7 +713,8 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                 SystemParameters = Desktop.Current.SystemParameters(_serviceProvider),
                 // A game that cannot be found is the game-installed check's finding, not an exception here.
                 GameFolder = _gameLocator.TryFindLocation(freshModList.GameType, out var gameFolder) ? gameFolder : default,
-                Metadata = ModlistMetadata
+                Metadata = ModlistMetadata,
+                PreviousInstallLocation = _previousInstallLocation
             };
 
             var runner = PreflightRunner.Create(_serviceProvider, cfg);
@@ -780,13 +826,13 @@ public partial class InstallationVM : ProgressViewModel, ICpuStatusVM
                     });
                 };
 
-                StandardInstaller.OnConfirmAction = async (title, message) =>
+                StandardInstaller.OnConfirmAction = async request =>
                 {
                     var tcs = new TaskCompletionSource<bool>();
                     RxApp.MainThreadScheduler.Schedule(async () =>
                     {
                         var mainWindowVM = _serviceProvider.GetRequiredService<MainWindowVM>();
-                        var result = await mainWindowVM.ShowConfirmationDialog(title, message);
+                        var result = await mainWindowVM.ShowConfirmationDialog(request);
                         tcs.TrySetResult(result);
                     });
                     return await tcs.Task;

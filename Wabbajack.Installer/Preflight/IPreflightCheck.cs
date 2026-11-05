@@ -39,6 +39,8 @@ public interface IPreflightCheck
     /// </summary>
     bool NeedsUserStopsRun => true;
 
+    bool NeedsUserCanBeAcknowledged => false;
+
     Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token);
 }
 
@@ -53,4 +55,5 @@ public static class PreflightCheckIds
     public const string AutomatedDownloads = "automated-downloads";
     public const string ManualDownloads = "manual-downloads";
     public const string DiskSpace = "disk-space";
+    public const string InstallFolder = "install-folder";
 }

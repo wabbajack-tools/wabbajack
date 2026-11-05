@@ -262,16 +262,23 @@ public sealed class PreflightRunner
         }
     }
 
-    /// <summary>Accepts a Warning so it no longer blocks <see cref="PreflightOutcome.Ready" />.</summary>
+    /// <summary>
+    ///     Accepts a Warning, or a NeedsUser from a check that allows it, so it no longer blocks
+    ///     <see cref="PreflightOutcome.Ready" />.
+    /// </summary>
     public void Acknowledge(string id)
     {
         var entry = Find(id);
         CheckStatus? changed = null;
         lock (_sync)
         {
-            if (entry.Status.State == PreflightState.Warning && !entry.Status.Acknowledged)
+            var state = entry.Status.State;
+            var acceptable = state == PreflightState.Warning ||
+                             (state == PreflightState.NeedsUser && entry.Check.NeedsUserCanBeAcknowledged);
+
+            if (acceptable && !entry.Status.Acknowledged)
             {
-                entry.Status = entry.Status with {Acknowledged = true};
+                entry.Status = entry.Status with {State = PreflightState.Warning, Acknowledged = true};
                 changed = entry.Status;
             }
         }

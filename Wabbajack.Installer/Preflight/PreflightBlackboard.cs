@@ -74,6 +74,8 @@ public sealed class PreflightBlackboard
     /// <summary>Set by game-installed: the folder the primary game lives in.</summary>
     public AbsolutePath GameFolder { get; set; }
 
+    public InstallFolderVerdict? InstallFolder { get; set; }
+
     /// <summary>Set by game-installed: every <c>OtherGames</c> entry that could be located.</summary>
     public Dictionary<Game, AbsolutePath> OtherGameFolders { get; } = new();
 

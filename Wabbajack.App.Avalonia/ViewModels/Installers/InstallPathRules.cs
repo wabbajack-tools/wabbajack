@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Paths;
 using Wabbajack.Paths.IO;
 
@@ -20,7 +21,8 @@ public sealed record InstallPathContext(
     IReadOnlyList<AbsolutePath> GameFolders,
     AbsolutePath WabbajackFolder,
     AbsolutePath WindowsFolder,
-    Func<AbsolutePath, Environment.SpecialFolder?> SpecialFolderOf);
+    Func<AbsolutePath, Environment.SpecialFolder?> SpecialFolderOf,
+    InstallFolderKind? InstallFolder = null);
 
 /// <summary>
 ///     Where an install may go. An install writes thousands of files and deletes ones the list does not expect,
@@ -42,6 +44,12 @@ public static class InstallPathRules
         var installPath = c.Install;
         if (installPath.Depth <= 1)
             yield return InstallPathValidationResult.Fail("Please specify an installation location");
+        if (HasRelativeParts(installPath))
+            yield return InstallPathValidationResult.Fail(
+                "Installation path can't contain '.' or '..' - write the folder out in full");
+        if (HasRelativeParts(downloadPath))
+            yield return DownloadsPathValidationResult.Fail(
+                "Download path can't contain '.' or '..' - write the folder out in full");
         if (installPath.InFolder(c.WindowsFolder))
             yield return InstallPathValidationResult.Fail("Can't install modlist to Windows folder");
 
@@ -74,6 +82,16 @@ public static class InstallPathRules
 
         if (c.SpecialFolderOf(downloadPath) is { } specialDownloadsFolder)
             yield return DownloadsPathValidationResult.Fail($"Can't download into special folder ({specialDownloadsFolder})");
+
+        if (c.InstallFolder == InstallFolderKind.Unrecognized)
+            yield return InstallPathValidationResult.Fail(
+                "This folder holds files that are not part of a modlist, and installing would delete them. " +
+                "Choose an empty folder, or a folder an existing modlist is installed in.");
+    }
+
+    private static bool HasRelativeParts(AbsolutePath path)
+    {
+        return path.PathParts.Any(part => part is "." or "..");
     }
 
     /// <summary>

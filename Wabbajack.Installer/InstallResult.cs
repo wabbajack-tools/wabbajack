@@ -9,5 +9,6 @@
         GameInvalid,
         DownloadFailed,
         NotEnoughSpace,
+        UnsafeInstallFolder,
     }
 }

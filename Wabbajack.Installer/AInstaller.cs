@@ -74,7 +74,7 @@ public abstract class AInstaller<T>
     private readonly Stopwatch _updateStopWatch = new();
 
     public Action<StatusUpdate>? OnStatusUpdate;
-    public Func<string, string, Task<bool>>? OnConfirmAction;
+    public Func<ConfirmRequest, Task<bool>>? OnConfirmAction;
     protected readonly IResource<IInstaller> _limiter;
     private Func<long, string> _statusFormatter = x => x.ToString();
 
@@ -89,7 +89,7 @@ public abstract class AInstaller<T>
         IImageLoader imageLoader)
     {
         _limiter = limiter;
-        _manager = new TemporaryFileManager(config.Install.Combine("__temp__"));
+        _manager = new TemporaryFileManager(config.Install.Combine(Consts.InstallTempFolderName));
         ExtractedModlistFolder = _manager.CreateFolder();
         _configuration = config;
         _logger = logger;
@@ -404,9 +404,17 @@ public abstract class AInstaller<T>
     /// <summary>
     ///     The user may already have some files in the _configuration.Install. If so we can go through these and
     ///     figure out which need to be updated, deleted, or left alone.
-    ///     Returns false if the user cancelled the operation (e.g. declined file deletion confirmation).
+    ///     Returns null to carry on, or the result the install should end with: Cancelled when the user
+    ///     declined the file deletion confirmation, UnsafeInstallFolder when the folder holds files that
+    ///     belong to no modlist and the deletion was refused outright.
     /// </summary>
-    protected async Task<bool> OptimizeModlist(CancellationToken token)
+    private bool AlreadyAskedInPreflight(InstallFolderVerdict verdict)
+    {
+        return _configuration.PreflightInstallFolder is {IsSameModList: false} asked &&
+               asked.Kind == verdict.Kind && !verdict.IsSameModList;
+    }
+
+    protected async Task<InstallResult?> OptimizeModlist(CancellationToken token)
     {
         _logger.LogInformation("Optimizing ModList directives");
         UnoptimizedArchives = ModList.Archives;
@@ -420,36 +428,72 @@ public abstract class AInstaller<T>
         // Phase 1: Enumerate files that would be deleted (non-destructive)
         NextStep(Consts.StepPreparing, "Looking for files to delete", 0);
         var filesToDelete = new List<AbsolutePath>();
+        var recognized = 0;
+        var scratch = 0;
         await _configuration.Install.EnumerateFiles()
             .PMapAllBatched(_limiter, f =>
-                FileDeletionRules.ShouldDeleteExistingFile(f, _configuration.Install, _configuration.Downloads,
-                    _configuration.ModlistArchive, indexed.ContainsKey, bsaPathsToNotBuild)
-                    ? (AbsolutePath?) f
-                    : null)
+            {
+                if (indexed.ContainsKey(f.RelativeTo(_configuration.Install)))
+                {
+                    Interlocked.Increment(ref recognized);
+                    return null;
+                }
+
+                if (!FileDeletionRules.ShouldDeleteExistingFile(f, _configuration.Install,
+                        _configuration.Downloads, _configuration.ModlistArchive, indexed.ContainsKey,
+                        bsaPathsToNotBuild))
+                    return null;
+
+                if (InstallFolderProbe.IsInstallerScratch(f, _configuration.Install))
+                    Interlocked.Increment(ref scratch);
+
+                return (AbsolutePath?) f;
+            })
             .Do(f =>
             {
                 if (f.HasValue)
                     filesToDelete.Add(f.Value);
             });
 
-        // Phase 2: Confirm with user before deleting (if files would be deleted)
-        if (filesToDelete.Count > 0)
+        // Phase 2: Classify the folder, then confirm with the user before deleting anything
+        var atRisk = filesToDelete.Count - scratch;
+        if (atRisk > 0)
         {
-            _logger.LogInformation("{Count} file(s) in the installation directory are not part of the modlist and will be deleted", filesToDelete.Count);
+            _logger.LogInformation(
+                "{Count} file(s) in the installation directory are not part of the modlist and will be deleted; " +
+                "{Recognized} of {Directives} modlist file(s) are already present",
+                atRisk, recognized, indexed.Count);
 
-            if (OnConfirmAction != null)
+            _logger.LogDebug("Files to be deleted include: {Files}",
+                string.Join(", ", filesToDelete.Take(20).Select(f => f.RelativeTo(_configuration.Install))));
+
+            var marker = InstallFolderMarker.Read(_configuration.Install);
+            var verdict = InstallFolderRules.Classify(new InstallFolderEvidence(
+                ModList.Name, atRisk, false, recognized, indexed.Count, marker?.ModListName,
+                InstallFolderProbe.HasMo2Fingerprint(_configuration.Install, _configuration.Downloads),
+                _configuration.PreviousInstallLocation != default &&
+                _configuration.PreviousInstallLocation == _configuration.Install,
+                marker?.Version, ModList.Version?.ToString()));
+
+            if (verdict.Kind == InstallFolderKind.Unrecognized)
             {
-                var title = "Confirm file deletion";
-                var message = $"{filesToDelete.Count} file(s) that are not part of the \"{_configuration.ModList.Name}\" modlist " +
-                    $"will be deleted from:\n\n{_configuration.Install}\n\n" +
-                    $"Save files, downloads and [NoDelete] folders will be preserved.\n\n" +
-                    $"Do you want to continue?";
+                _logger.LogError("Refusing to install to {Install}: {Message}", _configuration.Install,
+                    verdict.Message);
+                return InstallResult.UnsafeInstallFolder;
+            }
 
-                var confirmed = await OnConfirmAction(title, message);
+            if (OnConfirmAction != null && !AlreadyAskedInPreflight(verdict))
+            {
+                var severe = InstallFolderRules.IsSevere(verdict, atRisk);
+                var message = $"{verdict.Message}:\n\n{_configuration.Install}\n\n{verdict.Detail}\n\n" +
+                              "Do you want to continue?";
+
+                var confirmed = await OnConfirmAction(new ConfirmRequest("Confirm file deletion", message, severe,
+                    severe ? "DELETE" : null));
                 if (!confirmed)
                 {
                     _logger.LogInformation("User cancelled installation during file cleanup confirmation");
-                    return false;
+                    return InstallResult.Cancelled;
                 }
             }
         }
@@ -508,7 +552,7 @@ public abstract class AInstaller<T>
 
         ModList.Archives = ModList.Archives.Where(a => requiredArchives.Contains(a.Hash)).ToArray();
         ModList.Directives = indexed.Values.ToArray();
-        return true;
+        return null;
     }
 
 

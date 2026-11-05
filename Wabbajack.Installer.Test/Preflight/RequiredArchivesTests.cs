@@ -185,7 +185,7 @@ public class RequiredArchivesTests : IDisposable
 
         using var scope = _provider.CreateScope();
         var installer = new OptimizeOnlyInstaller(scope.ServiceProvider, _host);
-        Assert.True(await installer.Optimize(CancellationToken.None));
+        Assert.Null(await installer.Optimize(CancellationToken.None));
         var real = _host.Config.ModList.Archives.Select(a => a.Name).OrderBy(n => n).ToArray();
 
         Assert.Equal(new[] {"a.7z"}, dryRun);
@@ -210,7 +210,7 @@ public class RequiredArchivesTests : IDisposable
             throw new NotSupportedException();
         }
 
-        public Task<bool> Optimize(CancellationToken token)
+        public Task<InstallResult?> Optimize(CancellationToken token)
         {
             return OptimizeModlist(token);
         }

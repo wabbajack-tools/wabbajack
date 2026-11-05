@@ -34,6 +34,7 @@ public sealed class FakeCheck : IPreflightCheck
 
     /// <summary>Defaults to the interface's answer; the download checks are the ones that say false.</summary>
     public bool NeedsUserStopsRun { get; set; } = true;
+    public bool NeedsUserCanBeAcknowledged { get; set; }
 
     public async Task<PreflightResult> Run(PreflightContext ctx, IPreflightProgress progress, CancellationToken token)
     {

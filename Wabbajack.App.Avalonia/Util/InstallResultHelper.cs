@@ -16,6 +16,7 @@ public static class InstallResultHelper
             InstallResult.GameInvalid => "Game installation invalid",
             InstallResult.DownloadFailed => "Download failed",
             InstallResult.NotEnoughSpace => "Not enough space",
+            InstallResult.UnsafeInstallFolder => "Installation folder not empty",
             _ => ""
         };
     }
@@ -31,6 +32,7 @@ public static class InstallResultHelper
             InstallResult.GameInvalid => "The modlist installation has failed because not all required game files could be found. Verify all game files are present and retry installation.",
             InstallResult.DownloadFailed => "The modlist installation has failed because one or more required files could not be sourced.",
             InstallResult.NotEnoughSpace => "The modlist installation has failed because not enough free space was available on the disk. Please free up enough space and retry the installation.",
+            InstallResult.UnsafeInstallFolder => "The modlist installation was stopped because the installation folder holds files that are not part of any modlist, and installing would have deleted them. Choose an empty folder, or a folder an existing modlist is installed in.",
             _ => ""
         };
     }

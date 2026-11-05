@@ -39,9 +39,10 @@ public class PreflightRegistrationTests : IDisposable
         // steam-sandbox is Linux's own: only there does MO2 run under Proton, perhaps inside a sandboxed Steam.
         Assert.Equal(new[]
         {
-            PreflightCheckIds.GameInstalled, PreflightCheckIds.SteamSandbox, PreflightCheckIds.ArchiveInventory,
-            PreflightCheckIds.GameFiles, PreflightCheckIds.UnsupportedArchives, PreflightCheckIds.NexusLogin,
-            PreflightCheckIds.ManualDownloads, PreflightCheckIds.AutomatedDownloads, PreflightCheckIds.DiskSpace
+            PreflightCheckIds.GameInstalled, PreflightCheckIds.InstallFolder, PreflightCheckIds.SteamSandbox,
+            PreflightCheckIds.ArchiveInventory, PreflightCheckIds.GameFiles, PreflightCheckIds.UnsupportedArchives,
+            PreflightCheckIds.NexusLogin, PreflightCheckIds.ManualDownloads, PreflightCheckIds.AutomatedDownloads,
+            PreflightCheckIds.DiskSpace
         }.Where(id => id != PreflightCheckIds.SteamSandbox || OperatingSystem.IsLinux()), ids);
     }
 
@@ -66,7 +67,7 @@ public class PreflightRegistrationTests : IDisposable
     {
         var runner = PreflightRunner.Create(_provider, _host.Config, new PreflightOptions {SendMetrics = false});
 
-        Assert.Equal(OperatingSystem.IsLinux() ? 9 : 8, runner.Checks.Count);
+        Assert.Equal(OperatingSystem.IsLinux() ? 10 : 9, runner.Checks.Count);
         Assert.NotNull(runner.Context.Acquirer);
         Assert.NotNull(runner.Context.DownloadLimiter);
     }

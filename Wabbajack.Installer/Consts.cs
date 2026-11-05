@@ -28,6 +28,7 @@ public static class Consts
     public const string StepHashing = "Hashing";
     public const string StepFinished = "Finished";
     public static RelativePath BSACreationDir = "TEMP_BSA_FILES".ToRelativePath();
+    public static RelativePath InstallTempFolderName = "__temp__".ToRelativePath();
 
     public static HashSet<RelativePath> KnownModifiedFiles = new[]
     {

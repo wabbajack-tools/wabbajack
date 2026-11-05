@@ -19,6 +19,12 @@ public static class FileDeletionRules
 
     private static readonly RelativePath SavePath = (RelativePath) "saves";
 
+    private static readonly RelativePath[] InstallerOwnedFiles =
+    {
+        InstallFolderMarker.FileName,
+        (RelativePath) "portable.txt"
+    };
+
     /// <summary>
     ///     True when <paramref name="file" /> should be deleted because the modlist does not account for it.
     /// </summary>
@@ -42,6 +48,9 @@ public static class FileDeletionRules
         if (file == modlistArchive)
             return false;
 
+        if (IsInstallerOwned(file, install))
+            return false;
+
         if (IsSaveFile(file, install))
             return false;
 
@@ -54,6 +63,12 @@ public static class FileDeletionRules
             return false;
 
         return true;
+    }
+
+    private static bool IsInstallerOwned(AbsolutePath file, AbsolutePath install)
+    {
+        return file.Depth == install.Depth + 1 &&
+               InstallerOwnedFiles.Any(owned => file.FileName == owned);
     }
 
     /// <summary>

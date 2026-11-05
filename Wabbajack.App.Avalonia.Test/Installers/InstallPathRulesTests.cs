@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Wabbajack.App.Avalonia.ViewModels.Installers;
+using Wabbajack.Installer.Preflight.Rules;
 using Wabbajack.Paths;
 using Xunit;
 
@@ -22,11 +23,13 @@ public class InstallPathRulesTests
     private static readonly AbsolutePath Skyrim = Root.Combine("Games", "Skyrim Special Edition");
     private static readonly AbsolutePath Documents = Root.Combine("Users", "me", "Documents");
 
-    private static InstallPathContext Context(string install, string downloads, bool modlistExists = true)
+    private static InstallPathContext Context(string install, string downloads, bool modlistExists = true,
+        InstallFolderKind? installFolder = null)
     {
         return new InstallPathContext(modlistExists, Root.Combine(install), Root.Combine(downloads),
             new[] {Skyrim}, Wabbajack, Windows,
-            path => path.InFolder(Documents) || path == Documents ? Environment.SpecialFolder.MyDocuments : null);
+            path => path.InFolder(Documents) || path == Documents ? Environment.SpecialFolder.MyDocuments : null,
+            installFolder);
     }
 
     private static string[] Reasons(InstallPathContext context) =>
@@ -76,6 +79,43 @@ public class InstallPathRulesTests
 
         Assert.Contains("Please specify an installation location", reasons);
         Assert.Contains("Please specify a download location", reasons);
+    }
+
+    [Theory]
+    [InlineData(@"Modlists\My List\..")]
+    [InlineData(@"Modlists\..\Modlists\My List")]
+    [InlineData(@"Modlists\.\My List")]
+    public void RelativeParts_AreRefusedBecauseTheRulesReadThemAsFolderNames(string install)
+    {
+        Assert.Contains("Installation path can't contain '.' or '..' - write the folder out in full",
+            Reasons(Context(install, "Downloads")));
+    }
+
+    [Fact]
+    public void RelativeParts_AreRefusedInTheDownloadsPathToo()
+    {
+        Assert.Contains("Download path can't contain '.' or '..' - write the folder out in full",
+            Reasons(Context(@"Modlists\My List", @"Downloads\..")));
+    }
+
+    [Fact]
+    public void FolderHoldingUnrelatedFiles_IsRefused()
+    {
+        var reasons = Reasons(Context(@"Modlists\My List", "Downloads",
+            installFolder: InstallFolderKind.Unrecognized));
+
+        Assert.Contains(
+            "This folder holds files that are not part of a modlist, and installing would delete them. " +
+            "Choose an empty folder, or a folder an existing modlist is installed in.", reasons);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(InstallFolderKind.Empty)]
+    [InlineData(InstallFolderKind.ModListInstall)]
+    public void FolderThatIsEmptyOrAModList_IsAccepted(InstallFolderKind? kind)
+    {
+        Assert.Empty(Reasons(Context(@"Modlists\My List", @"Modlists\My List Downloads", installFolder: kind)));
     }
 
     [Fact]

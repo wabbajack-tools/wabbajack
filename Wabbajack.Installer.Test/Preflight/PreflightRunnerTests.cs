@@ -473,6 +473,50 @@ public class PreflightRunnerTests : IDisposable
     }
 
     [Fact]
+    public async Task AcknowledgingANeedsUserThatAllowsIt_ClearsTheHaltAndRunsTheRest()
+    {
+        var a = new FakeCheck("a", 10)
+        {
+            NeedsUserCanBeAcknowledged = true,
+            Body = (_, _, _) => Task.FromResult(PreflightResult.NeedsUser("this folder holds another modlist",
+                actions: new[] {PreflightAction.ContinueAnyway}))
+        };
+        var b = new FakeCheck("b", 20);
+
+        var runner = Runner(a, b);
+        Assert.False((await runner.RunAll(CancellationToken.None)).Ready);
+        Assert.Equal(PreflightState.NeedsUser, StateOf(runner, "a"));
+        Assert.Equal(PreflightState.Pending, StateOf(runner, "b"));
+        Assert.Equal(0, b.Runs);
+
+        runner.Acknowledge("a");
+
+        Assert.Equal(PreflightState.Warning, StateOf(runner, "a"));
+        Assert.True(runner.Checks.Single(c => c.Id == "a").Acknowledged);
+
+        Assert.True((await runner.RunAll(CancellationToken.None)).Ready);
+        Assert.Equal(1, a.Runs);
+        Assert.Equal(1, b.Runs);
+    }
+
+    [Fact]
+    public async Task ANeedsUserThatDoesNotAllowIt_CannotBeAcknowledgedAway()
+    {
+        var a = new FakeCheck("a", 10)
+        {
+            Body = (_, _, _) => Task.FromResult(PreflightResult.NeedsUser("fetch these by hand"))
+        };
+
+        var runner = Runner(a);
+        await runner.RunAll(CancellationToken.None);
+        runner.Acknowledge("a");
+
+        Assert.Equal(PreflightState.NeedsUser, StateOf(runner, "a"));
+        Assert.False(runner.Checks.Single().Acknowledged);
+        Assert.False(runner.Outcome.Ready);
+    }
+
+    [Fact]
     public async Task AcknowledgedWarningIsReadyAndUnacknowledgedIsNot()
     {
         var a = new FakeCheck("a", 10)
