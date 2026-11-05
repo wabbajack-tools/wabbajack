@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -40,6 +41,7 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
     private readonly ResourceMonitor _resourceMonitor;
     private readonly CompilerSettingsInferencer _inferencer;
     private readonly Navigator _navigator;
+    private bool _syncingTags;
 
     public CompilerDetailsVM(ILogger<CompilerDetailsVM> logger, DTOSerializer dtos, SettingsManager settingsManager,
         LogStream loggerProvider, ResourceMonitor resourceMonitor, CompilerSettingsInferencer inferencer, Client wjClient,
@@ -131,12 +133,40 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
                         .Select(dir => dir.FileName.ToString()).ToList();
                 })
                 .DisposeWith(disposables);
+
+            Observable.FromAsync(LoadAllowedTags)
+                .CombineLatest(this.WhenAnyValue(x => x.Settings))
+                .ObserveOnGuiThread()
+                .Subscribe(x =>
+                {
+                    var saved = x.Second.ModListTags ?? Array.Empty<string>();
+                    _syncingTags = true;
+                    SelectedTags.Clear();
+                    foreach (var tag in saved)
+                        SelectedTags.Add(tag);
+                    AvailableTags = x.First.Union(saved)
+                        .OrderBy(t => t, StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                    _syncingTags = false;
+                })
+                .DisposeWith(disposables);
+
+            NotifyCollectionChangedEventHandler tagsChanged = (_, _) =>
+            {
+                if (_syncingTags) return;
+                Settings.ModListTags = SelectedTags.ToArray();
+            };
+            SelectedTags.CollectionChanged += tagsChanged;
+            Disposable.Create(() => SelectedTags.CollectionChanged -= tagsChanged)
+                .DisposeWith(disposables);
         });
     }
 
     public CompilerFileManagerVM CompilerFileManagerVM { get; }
 
     [Reactive] public partial List<string> AvailableProfiles { get; set; }
+    [Reactive] public partial List<string> AvailableTags { get; set; } = new();
+    public ObservableCollection<string> SelectedTags { get; } = new();
     [Reactive] public partial CompilerState State { get; set; }
 
     // Paths
@@ -151,6 +181,19 @@ public partial class CompilerDetailsVM : BaseCompilerVM, ICpuStatusVM
     public ReadOnlyObservableCollection<CPUDisplayVM> StatusList => _resourceMonitor.Tasks;
 
     [Reactive] public partial ValidationResult ErrorState { get; private set; }
+
+    private async Task<HashSet<string>> LoadAllowedTags()
+    {
+        try
+        {
+            return await _wjClient.LoadAllowedTags();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load the allowed gallery tags");
+            return new HashSet<string>();
+        }
+    }
 
     private async Task ReInferSettings(AbsolutePath filePath)
     {
