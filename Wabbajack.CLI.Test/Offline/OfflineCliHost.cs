@@ -153,6 +153,8 @@ public sealed class OfflineServers : HttpMessageHandler, IHttpClientFactory
         string? body = null;
         if (url == _configuration.ServerAllowList || url == _configuration.MirrorAllowList)
             body = "AllowedPrefixes:\n  - https://\nGoogleIDs: []\n";
+        else if (url == _configuration.ServerBanList)
+            body = "bans: []\n";
         else if (url == _configuration.MirrorList || url == _configuration.UpgradedArchives)
             body = "[]";
         else if (url.Host == "raw.githubusercontent.com" && url.AbsolutePath.StartsWith("/wabbajack-tools/indexed-game-files/"))

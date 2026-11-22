@@ -103,6 +103,20 @@ public class WabbajackClientTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task BanList_IsReadFromYaml()
+    {
+        // Bans.yml as opt-out-lists publishes it: lower-case key, a comment line above it.
+        var yaml = "# Servers that are banned per slop rehosting, copyright violation, etc\nbans:\n  - modholdmods.com\n";
+        var configuration = new ClientConfiguration();
+        var http = new FakeHttp(request =>
+            request.RequestUri == configuration.ServerBanList ? Text(yaml) : Text("", HttpStatusCode.NotFound));
+
+        var list = await Client(http).LoadBanList(CancellationToken.None);
+
+        Assert.Equal(new[] {"modholdmods.com"}, list.Bans);
+    }
+
+    [Fact]
     public async Task MirrorList_IsReadUnlessTheClientIsToldToIgnoreIt()
     {
         var mirrors = new[] {Archive("a.7z", 1), Archive("b.7z", 2)};

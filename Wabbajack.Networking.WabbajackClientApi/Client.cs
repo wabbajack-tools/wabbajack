@@ -111,6 +111,16 @@ public class Client
         return d.Deserialize<ServerAllowList>(str);
     }
 
+    public async Task<ServerBanList> LoadBanList(CancellationToken token)
+    {
+        var str = await _client.GetStringAsync(_configuration.ServerBanList, token);
+        var d = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .IgnoreUnmatchedProperties()
+            .Build();
+        return d.Deserialize<ServerBanList>(str) ?? new ServerBanList();
+    }
+
     public async Task<Archive[]> LoadMirrors()
     {
         if (IgnoreMirrorList)

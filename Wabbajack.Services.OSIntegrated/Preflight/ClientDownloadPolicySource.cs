@@ -28,6 +28,11 @@ public class ClientDownloadPolicySource : IDownloadPolicySource
         return _client.LoadDownloadAllowList();
     }
 
+    public Task<ServerBanList> Bans(CancellationToken token)
+    {
+        return _client.LoadBanList(token);
+    }
+
     public async Task<ILookup<Hash, Archive>> Mirrors(CancellationToken token)
     {
         return (await _client.LoadMirrors()).ToLookup(m => m.Hash);

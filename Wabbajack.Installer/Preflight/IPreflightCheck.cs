@@ -44,6 +44,7 @@ public interface IPreflightCheck
 
 public static class PreflightCheckIds
 {
+    public const string BannedSources = "banned-sources";
     public const string NexusLogin = "nexus-login";
     public const string GameInstalled = "game-installed";
     public const string SteamSandbox = "steam-sandbox";

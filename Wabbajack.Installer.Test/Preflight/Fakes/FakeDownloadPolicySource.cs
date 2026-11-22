@@ -43,6 +43,17 @@ public sealed class FakeDownloadPolicySource : IDownloadPolicySource
         return Task.FromResult(AllowListValue);
     }
 
+    public ServerBanList BanListValue { get; set; } = new();
+
+    /// <summary>When set, only the ban list load throws it: GitHub being down must not stop a run.</summary>
+    public Exception? ThrowFromBans { get; set; }
+
+    public Task<ServerBanList> Bans(CancellationToken token)
+    {
+        if (ThrowFromBans != null) throw ThrowFromBans;
+        return Task.FromResult(BanListValue);
+    }
+
     public Task<ILookup<Hash, Archive>> Mirrors(CancellationToken token)
     {
         MirrorCalls++;
