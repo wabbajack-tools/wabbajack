@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - TBD - TBD
+* Lists that take files from a site banned for rehosting other people's mods or for copyright violations are refused before the install starts, with the files named (PR #3105)
+
 #### Version - 4.3.2.2 - 11/05/2026
 * Metrics improvements
 * Added Vampire: The Masquerade - Bloodlines 2 support ([@daulvec](https://github.com/daulvec)) PR #3032
