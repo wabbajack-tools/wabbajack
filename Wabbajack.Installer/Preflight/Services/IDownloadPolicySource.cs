@@ -16,6 +16,9 @@ public interface IDownloadPolicySource
 {
     Task<ServerAllowList> AllowList(CancellationToken token);
 
+    /// <summary>Hosts a modlist may not take files from at all (Bans.yml).</summary>
+    Task<ServerBanList> Bans(CancellationToken token);
+
     Task<ILookup<Hash, Archive>> Mirrors(CancellationToken token);
 
     /// <summary>The files the proxy holds, with <see cref="ProxyIndex.BaseUrl" /> set to where they are served.</summary>

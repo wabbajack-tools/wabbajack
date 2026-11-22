@@ -77,6 +77,20 @@ public class ModListTests
 
     [Fact]
     [Trait("Category", "RequiresNetwork")]
+    public async Task CanLoadBanList()
+    {
+        var str = await _client.GetStringAsync("https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/Bans.yml");
+        var d = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .IgnoreUnmatchedProperties()
+            .Build();
+        var list = d.Deserialize<ServerBanList>(str);
+
+        Assert.NotEmpty(list.Bans);
+    }
+
+    [Fact]
+    [Trait("Category", "RequiresNetwork")]
     public async Task CanGetListStatus()
     {
         var statuses = await _wjClient.GetListStatuses();

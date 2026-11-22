@@ -147,17 +147,25 @@ made to rehash a downloads folder.
 
 ## Preflight
 
-`Wabbajack.Installer/Preflight` runs a checklist before an install starts: game installed (100), archive
+`Wabbajack.Installer/Preflight` runs a checklist before an install starts: banned sources (50), game installed (100), archive
 inventory (300), game files (350), unsupported archives (400), Nexus login and premium status (500), manual
 downloads (600), automated downloads (700), disk space (900).
 `PreflightRunner.Create(services, config)` mirrors `StandardInstaller.Create`; checks come from
-DI as `IPreflightCheck` and run in `Order` (100–900, gaps left on purpose), each declaring `DependsOn`. A
+DI as `IPreflightCheck` and run in `Order` (50–900, gaps left on purpose), each declaring `DependsOn`. A
 dependent whose dependency has not passed is marked `Skipped` when its turn comes; everything the halt rule
 below never reached stays `Pending`. `RunCheck(id)` re-runs one and resets what depends on it. The engine
 has no UI and no DynamicData anywhere. The runner is event-based: it raises
 plain events (`CheckChanged`, `ArchiveChanged`, `ManualQueueChanged`, `RunFinished`) and offers snapshots;
 hosts project those however they like. The acquirer exposes `IObservable`s via `System.Reactive` (already
 a transitive dependency).
+
+**banned-sources refuses a list outright.** It reads `Bans.yml` from opt-out-lists (hosts, each covering its
+subdomains) and fails when any archive in the list, present or missing, automated or manual, points at one.
+That is the hard gate the allow-list is not: at install time `ServerWhitelist.yml` is applied only to the
+automated split, and an archive it refuses goes to the manual queue rather than stopping anything, while
+manual states are never checked against it at all — the allow-list's teeth are in `MO2Compiler.RunValidation`.
+A ban list that will not load passes with a detail saying so, because one file on GitHub must not be able to
+stop every install. The rule is the pure `Rules/BannedSources`, covered by `BannedSourcesTests`.
 
 **A run stops at the first check the user has to act on.** `PreflightRunner.StopsRun` is the rule: `Failed`
 always stops; `NeedsUser` stops unless the check sets `IPreflightCheck.NeedsUserStopsRun` to false; nothing
