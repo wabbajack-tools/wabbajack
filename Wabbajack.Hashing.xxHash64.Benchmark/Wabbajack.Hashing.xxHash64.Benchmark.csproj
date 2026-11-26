@@ -10,6 +10,7 @@
     <ItemGroup>
         <PackageReference Include="BenchmarkDotNet" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
         <PackageReference Include="SharpCompress" />
         <PackageReference Include="SixLabors.ImageSharp" />
         <PackageReference Include="System.Data.HashFunction.xxHash" />
