@@ -18,6 +18,7 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
 {
     private bool _userChangingProfileSelection;
     private bool _syncingProfileSelection;
+    private bool _syncingTagSelection;
 
     public CompilerDetailsView()
     {
@@ -49,6 +50,9 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
                     b => b, c => c ?? false)
                 .DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Settings.AutoGenerateReport, view => view.AutoGenerateReportSetting.IsChecked,
+                    b => b, c => c ?? false)
+                .DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.Settings.ModlistIsUtilityList, view => view.UtilityListSetting.IsChecked,
                     b => b, c => c ?? false)
                 .DisposeWith(disposables);
 
@@ -90,7 +94,37 @@ public partial class CompilerDetailsView : ReactiveUserControl<CompilerDetailsVM
                     SelectAdditionalProfiles(profiles);
                 })
                 .DisposeWith(disposables);
+
+            ViewModel.WhenAnyValue(vm => vm.AvailableTags)
+                .Subscribe(tags =>
+                {
+                    _syncingTagSelection = true;
+                    TagsSetting.ItemsSource = tags;
+                    if (TagsSetting.SelectedItems is { } selected)
+                    {
+                        selected.Clear();
+                        foreach (var tag in ViewModel!.SelectedTags)
+                            if (tags != null && tags.Contains(tag))
+                                selected.Add(tag);
+                    }
+                    _syncingTagSelection = false;
+                })
+                .DisposeWith(disposables);
+
+            TagsSetting.SelectionChanged += OnTagsChanged;
+            Disposable.Create(() => TagsSetting.SelectionChanged -= OnTagsChanged)
+                .DisposeWith(disposables);
         });
+    }
+
+    private void OnTagsChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_syncingTagSelection || ViewModel is not { } vm) return;
+        var chosen = TagsSetting.SelectedItems!.OfType<string>().ToList();
+        foreach (var tag in vm.SelectedTags.Where(t => !chosen.Contains(t)).ToList())
+            vm.SelectedTags.Remove(tag);
+        foreach (var tag in chosen.Where(t => !vm.SelectedTags.Contains(t)))
+            vm.SelectedTags.Add(tag);
     }
 
     /// <summary>
