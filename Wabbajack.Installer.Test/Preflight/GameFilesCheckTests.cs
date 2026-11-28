@@ -177,6 +177,21 @@ public class GameFilesCheckTests : IDisposable
         Assert.Equal("1.6.640", repairable.Version);
     }
 
+    [Theory]
+    [InlineData("Oblivion.exe")]
+    [InlineData("oblivion.exe")]
+    public async Task RequiredGameFilesIgnoreCase(string executable)
+    {
+        _host.Config.Game = Game.Oblivion;
+        _host.Config.ModList.GameType = Game.Oblivion;
+        _host.Config.ModList.Archives = Array.Empty<Archive>();
+        await PreflightTestHost.WriteFile(_host.GameFolder.Combine(executable), "exe bytes");
+
+        var result = await _check.Run(await Context(), _progress, CancellationToken.None);
+
+        Assert.Equal(PreflightState.Passed, result.State);
+    }
+
     [Fact]
     public async Task MissingRequiredFilesFailBeforeAnyHashing()
     {

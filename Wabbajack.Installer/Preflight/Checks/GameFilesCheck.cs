@@ -70,7 +70,7 @@ public sealed class GameFilesCheck : IPreflightCheck
         // a row the user has already been told about - by the Warning that let the run get here.
         var missingRequired = folder == default
             ? new List<RelativePath>()
-            : meta.RequiredFiles.Where(r => !folder.Combine(r).FileExists()).ToList();
+            : meta.RequiredFiles.Where(r => !folder.FindIgnoringCase(r).FileExists()).ToList();
         if (missingRequired.Count > 0)
         {
             return Task.FromResult(PreflightResult.Failed(
